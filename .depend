@@ -1,0 +1,57 @@
+dot_driver.cmo: nts_types.cmi nts_generic.cmi nts_functor.cmi dot_driver.cmi
+dot_driver.cmx: nts_types.cmx nts_generic.cmx nts_functor.cmx dot_driver.cmi
+interproc_driver.cmo: nts_types.cmi nts_spl_intermediate_language_types.cmi \
+    nts_functor.cmi interproc_driver.cmi
+interproc_driver.cmx: nts_types.cmx nts_spl_intermediate_language_types.cmx \
+    nts_functor.cmx interproc_driver.cmi
+ntl_cfg_types.cmo: ntl_cfg_types.cmi
+ntl_cfg_types.cmx: ntl_cfg_types.cmi
+ntl_lexer.cmo: ntl_parser.cmi
+ntl_lexer.cmx: ntl_parser.cmx
+ntl_parser.cmo: parsing_error.cmi ntsint.cmi nts_types.cmi nts_generic.cmi \
+    nts_functor.cmi ntl_parser.cmi
+ntl_parser.cmx: parsing_error.cmx ntsint.cmx nts_types.cmx nts_generic.cmx \
+    nts_functor.cmx ntl_parser.cmi
+ntl_relations_types.cmo:
+ntl_relations_types.cmx:
+nts.cmo: nts_types.cmi nts.cmi
+nts.cmx: nts_types.cmx nts.cmi
+nts2dot.cmo: ntsint.cmi nts_generic.cmi ntl_parser.cmi ntl_lexer.cmo \
+    dot_driver.cmi
+nts2dot.cmx: ntsint.cmx nts_generic.cmx ntl_parser.cmx ntl_lexer.cmx \
+    dot_driver.cmx
+nts_functor.cmo: simplification.cmi nts_types.cmi nts_generic.cmi nts.cmi \
+    nts_functor.cmi
+nts_functor.cmx: simplification.cmx nts_types.cmx nts_generic.cmx nts.cmx \
+    nts_functor.cmi
+nts_generic.cmo: nts_types.cmi nts.cmi nts_generic.cmi
+nts_generic.cmx: nts_types.cmx nts.cmx nts_generic.cmi
+nts_spl_intermediate_language_types.cmo: nts_types.cmi \
+    nts_spl_intermediate_language_types.cmi
+nts_spl_intermediate_language_types.cmx: nts_types.cmx \
+    nts_spl_intermediate_language_types.cmi
+nts_types.cmo: nts_types.cmi
+nts_types.cmx: nts_types.cmi
+ntsint.cmo: nts_functor.cmi ntsint.cmi
+ntsint.cmx: nts_functor.cmx ntsint.cmi
+parse_n_print.cmo: ntsint.cmi nts_generic.cmi ntl_parser.cmi ntl_lexer.cmo \
+    parse_n_print.cmi
+parse_n_print.cmx: ntsint.cmx nts_generic.cmx ntl_parser.cmx ntl_lexer.cmx \
+    parse_n_print.cmi
+parsing_error.cmo: parsing_error.cmi
+parsing_error.cmx: parsing_error.cmi
+simplification.cmo: nts_types.cmi simplification.cmi
+simplification.cmx: nts_types.cmx simplification.cmi
+dot_driver.cmi: nts_functor.cmi
+interproc_driver.cmi: nts_types.cmi nts_functor.cmi
+ntl_cfg_types.cmi:
+ntl_parser.cmi: ntsint.cmi
+nts.cmi: nts_types.cmi
+nts_functor.cmi: nts_types.cmi
+nts_generic.cmi: nts_types.cmi
+nts_spl_intermediate_language_types.cmi: nts_types.cmi
+nts_types.cmi:
+ntsint.cmi: nts_types.cmi nts_functor.cmi
+parse_n_print.cmi:
+parsing_error.cmi:
+simplification.cmi: nts_types.cmi
