@@ -245,7 +245,8 @@ struct
       visited block
   *)
 
-(*
+
+ (*
   let fill_basic_block bblock (vtable : visited_table ) 
       (lindex : label_index) (cindex : control_lablel_index )
       (bindec : block_index) (pred_relation : (control , unit) Hashtbl.t )
@@ -270,8 +271,10 @@ struct
 	let 
 		
     in
-    
-	*)  
+   )*
+
+ 
+	  
     
 
 (*
