@@ -32,13 +32,15 @@ This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
-
+  
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor,
  Boston, MA  02110-1301  USA
 
 *)
+
+
 
 
 open Nts_types
@@ -54,8 +56,15 @@ struct
       from the numerical transition system description*)
   module NtsSys = Nts_functor.Make(Param)
   
+  type nts_automaton = NtsSys.nts_automaton
   type control = NtsSys.control
   type anotations = NtsSys.anotations
+
+
+
+
+  exception Cant_be_head_of_basic_block of control
+  exception Nts_i_have_a_binding
 
   type nts_basic_block = {
     mutable head_label : string ;
@@ -96,7 +105,7 @@ struct
     in
     try
       let control_table = 
-	Hashtbl.find cautomaton.transitions control_state 
+	Hashtbl.find cautomaton.NtsSys.transitions control_state 
       in
       (Hashtbl.fold count_folder control_table 0)
     with
@@ -107,7 +116,7 @@ struct
   there exists one --Some ( key , value)-- and returs None if none
   if the Hashtbl is empty. *)
 
-  let pick_elem_in_hastbl tbl =
+  let pick_elem_in_hashtbl tbl =
     let gen_binding = ref None in
     let get_first_elem_iterator a b =
       gen_binding := Some( ( a , b ) );
@@ -121,23 +130,24 @@ struct
 	  
 
 
-  exception Cant_be_head_of_basic_block of control
-
+  
  (* Anything below is work in progress and need to be redesigned *)
 
 
-(*
+
   (* Creates a basic block header from a control state, the latter must
   have one successor at most, else an exception is raised.*)
+
+
   let create_basic_block (control_state : control ) ( label : string ) 
     (cautomaton : nts_automaton ) =
 
-    if (out_degree_of_control_state control cautomaton) <> 1 then
-      raise Cant_be_head_of_basic_block ( control )
+    if (out_degree_of_control_state control_state cautomaton) <> 1 then
+      raise (Cant_be_head_of_basic_block ( control_state ))
     else
       begin
 	let entry_table = 
-	  Hashtbl.find cautomaton.transitions control_state 
+	  Hashtbl.find cautomaton.NtsSys.transitions control_state 
 	in
 	let block_head = pick_elem_in_hashtbl entry_table in
 	{
@@ -175,6 +185,8 @@ struct
   (** Returns the number of control states registered as a predecessor
   of the control state "state" given as a parameter. *)
 
+
+(*
   let in_degree_of_control_state state pre_relation =
     try 
       let matches = Hashtbl.find_all pre_relation state in
@@ -182,7 +194,7 @@ struct
     with
 	Not_found -> 0
 
-
+*)
 
 
   (** 
@@ -190,7 +202,7 @@ struct
       
   *)
 
-
+(*
 
   let label_contol_state control =
     
@@ -201,7 +213,7 @@ struct
       (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
       cautomaton 
       (label_id : int ref ) = 
-    
+*)  
 
     (* 
        Creates, label and chain a block per branch. Mark them as visited
@@ -209,7 +221,7 @@ struct
        blocks.
     *)
     
-
+(*
     let sequentialize_branching control_state_org 
 	control_state_dest nts_label block_list =
 
@@ -217,7 +229,7 @@ struct
 	  
       let successor_table = 
       Hashtbl.find control_state cautomaton.transitions in
-      
+*)    
 
   (** Takes as input a basic block header and completes the list
       of couples ( controls * nts_transition list) and 
@@ -226,6 +238,8 @@ struct
       been visited that succeeds the currently
       visited block
   *)
+
+(*
   let fill_basic_block bblock (vtable : visited_table ) 
       (lindex : label_index) (cindex : control_lablel_index )
       (bindec : block_index) (pred_relation : (control , unit) Hashtbl.t )
