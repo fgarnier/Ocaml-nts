@@ -149,12 +149,18 @@ struct
 	let entry_table = 
 	  Hashtbl.find cautomaton.NtsSys.transitions control_state 
 	in
-	let block_head = pick_elem_in_hashtbl entry_table in
-	{
-	  head_label = label;
-	  block  = block_head :: [] ;
-	  block_succs = None;
-	}
+	let block_head = pick_elem_in_hashtbl entry_table 
+	in
+	match block_head 
+	with 
+	    Some(bhead) ->
+	      {
+		head_label = label;
+		block  = bhead :: [] ;
+		block_succs = None;
+	      }
+	  | None -> 
+	    assert false
       end
 
   (* Create one block per initial states successor. The blocks are not
@@ -165,20 +171,20 @@ struct
       (label_id : int Pervasives.ref ) =
     
     let init_state_rel_iterator control _ =
-      let label =  Format.sprintf "lab%s" !label_id in
+      let label =  Format.sprintf "lab%d" !label_id in
       label_id := !label_id + 1;
       let init_block = create_basic_block control label nts_automaton
       in
-      Queue.push init_block a
+      Queue.push init_block q
     in
-    Hashtbl.iter init_state_rel_iterator nts_automaton.init_states
+    Hashtbl.iter init_state_rel_iterator nts_automaton.NtsSys.init_states
     
 
   type visited_table = Visited of (control, unit ) Hashtbl.t
   type label_index = Label_index of (string , control ) Hashtbl.t
   type control_label_index = Control_label of (control , string ) Hashtbl.t
-  type block_control_index = Control_block_index of ( control, basic_block ) Hashtbl.t
-  type block_label_index = Label_block_index of (string , basic_block ) Hashtbl.t
+  type block_control_index = Control_block_index of ( control, nts_basic_block ) Hashtbl.t
+  type block_label_index = Label_block_index of (string , nts_basic_block ) Hashtbl.t
 
 
 

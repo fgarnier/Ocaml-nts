@@ -1,5 +1,9 @@
 dot_driver.cmo: nts_types.cmi nts_generic.cmi nts_functor.cmi dot_driver.cmi
 dot_driver.cmx: nts_types.cmx nts_generic.cmx nts_functor.cmx dot_driver.cmi
+interproc_driver.cmo: nts_types.cmi nts_spl_intermediate_language_types.cmi \
+    nts_functor.cmi interproc_driver.cmi
+interproc_driver.cmx: nts_types.cmx nts_spl_intermediate_language_types.cmx \
+    nts_functor.cmx interproc_driver.cmi
 ntl_cfg_types.cmo: ntl_cfg_types.cmi
 ntl_cfg_types.cmx: ntl_cfg_types.cmi
 ntl_lexer.cmo: ntl_parser.cmi
