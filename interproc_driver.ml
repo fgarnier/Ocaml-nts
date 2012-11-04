@@ -46,6 +46,56 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
 open Nts_types
 open Nts_spl_intermediate_language_types
 
+
+module Make_NtsCfg =
+  functor (Param : Nts_functor.NTS_PARAM) ->
+   struct
+      module NtsSys = Nts_functor.Make(Param)
+       
+
+      type control = NtsSys.control
+      type anotations = NtsSys.anotations
+      
+      type nts_basic_block = {
+        mutable head_label : string;
+        mutable block : (Nts_types.nts_trans_label list) list;
+        mutable block_succs :
+          (nts_basic_block ref * Nts_types.nts_trans_label list) list option;
+      }
+	  
+      type nts_function_cfg = {
+        mutable nts_cfg_name : string;
+        mutable cfg_anot : anotations;
+        nts_cfg_blocks : (string, unit) Hashtbl.t;
+	
+        nts_cfg_final_block : (string, unit) Hashtbl.t;
+        nts_cfg_error_block : (string, unit) Hashtbl.t;
+        nts_input_vars : Nts_types.nts_genrel_var list;
+        nts_output_vars : Nts_types.nts_genrel_var list;
+        nts_local_vars : Nts_types.nts_genrel_var list;
+        nts_blocks_transitions : (string, nts_basic_block) Hashtbl.t;
+      }
+
+      type nts_functional_program = {
+	nts_fun_glob_vars : nts_genrel_var list;
+	nts_fun_function_definitions : nts_function_cfg list option;
+	nts_fun_gvars_init : nts_gen_relation list option; 
+	nts_fun_function_main : nts_function_cfg;
+
+	nts_fun_system_threads : 
+	  ( string * Big_int.big_int ) list  option;   
+	
+      }
+(*
+      let nts_cfg_of_automaton ( : NtsSys.nts_automaton )=  nts_function_cfg
+      let nts_cfg_of_nts_sys (: NtsSys.nts_system ) = nts_function_cfg
+*)  
+  end
+
+
+
+
+
 module Make =
   functor ( Param :  Nts_functor.NTS_PARAM ) ->
 struct
@@ -192,73 +242,72 @@ struct
   of the control state "state" given as a parameter. *)
 
 
-(*
-  let in_degree_of_control_state state pre_relation =
-    try 
+    (*
+      let in_degree_of_control_state state pre_relation =
+      try 
       let matches = Hashtbl.find_all pre_relation state in
       List.length matches
-    with
-	Not_found -> 0
-
-*)
-
-
-  (** 
+      with
+      Not_found -> 0
       
-      
-  *)
-
-(*
-
-  let label_contol_state control =
-    
-	  
-  let build_basic_block_for_branching_statement 
-      bblock (vtable : visited_table ) 
-      (lindex : label_index) (cindex : control_lablel_index )
-      (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
-      cautomaton 
-      (label_id : int ref ) = 
-*)  
-
-    (* 
-       Creates, label and chain a block per branch. Mark them as visited
-       Updates the lindex and bindex with the newly created control 
-       blocks.
     *)
     
-(*
-    let sequentialize_branching control_state_org 
-	control_state_dest nts_label block_list =
-
-      let  
-	  
-      let successor_table = 
-      Hashtbl.find control_state cautomaton.transitions in
-*)    
-
-  (** Takes as input a basic block header and completes the list
-      of couples ( controls * nts_transition list) and 
-      returns the filled basic block plus the 
-      list of the basic blocks headers that have not
-      been visited that succeeds the currently
-      visited block
-  *)
-
-
- (*
-  let fill_basic_block bblock (vtable : visited_table ) 
-      (lindex : label_index) (cindex : control_lablel_index )
-      (bindec : block_index) (pred_relation : (control , unit) Hashtbl.t )
-      cautomaton 
-      (label_id : int ref )  = 
     
-    let rec add_elem_of_segment current_control =
-      if ( out_degree_of_control_state current_control cautomaton = 1 
+    
+    
+(*
+  
+  let label_contol_state control =
+  
+  
+  let build_basic_block_for_branching_statement 
+  bblock (vtable : visited_table ) 
+      (lindex : label_index) (cindex : control_lablel_index )
+  (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
+  cautomaton 
+  (label_id : int ref ) = 
+*)  
+    
+(* 
+   Creates, label and chain a block per branch. Mark them as visited
+   Updates the lindex and bindex with the newly created control 
+   blocks.
+*)
+    
+(*
+  let sequentialize_branching control_state_org 
+  control_state_dest nts_label block_list =
+  
+  let  
+  
+  let successor_table = 
+  Hashtbl.find control_state cautomaton.transitions in
+*)    
+    
+    
+(*
+  Takes as input a basic block header and completes the list
+  of couples ( controls * nts_transition list) and 
+  returns the filled basic block plus the 
+  list of the basic blocks headers that have not
+  been visited that succeeds the currently
+  visited block
+  
+*)
+    
+(*
+  let fill_basic_block bblock (vtable : visited_table ) 
+  (lindex : label_index) (cindex : control_lablel_index )
+  (bindec : block_index) (pred_relation : (control , unit) Hashtbl.t )
+  cautomaton 
+  (label_id : int ref )  = 
+  
+  let rec add_elem_of_segment current_control =
+  if ( out_degree_of_control_state current_control cautomaton = 1 
 	  && in_degree_of_control_state current_control pred_relation = 1 )
-      then
-	begin
-	  let out_relation = Hashtbl.find 
+  then
+  begin
+  let out_relation = Hashtbl.find 
 	    cautomaton.transitions current_control in
 	  let (ctr, trans_list ) =  pick_elem_in_hastbl out_relation in
 	  bblock.block <- (bblock.block @ (ctr,trans_list)) ;
@@ -267,15 +316,11 @@ struct
       else
 	(* In this case, the current element given as parameter, is
 	the first element of another block. It is either branching
-	or have many predecessors*)
-	let 
-		
-    in
-   )*
-
- 
-	  
-    
+  or have many predecessors*)
+  let 
+  
+  in
+*)
 
 (*
   let cfg_of_nts_automaton ca =
