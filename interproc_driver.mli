@@ -12,9 +12,10 @@ to the Interproc SPL language.
 *)
 
 
+open Nts_types
+
 
 module Make_NtsCfg :
-  module Make :
   functor (Param : Nts_functor.NTS_PARAM) ->
     sig
       module NtsSys :
@@ -60,9 +61,10 @@ module Make_NtsCfg :
 	  ( string * Big_int.big_int ) list  option;   
 	
       }
-
+	  (*
       val nts_cfg_of_automaton : NtsSys.nts_automaton -> nts_function_cfg
       val nts_cfg_of_nts_sys : NtsSys.nts_system -> nts_function_cfg
+	  *)
     end
 
 
