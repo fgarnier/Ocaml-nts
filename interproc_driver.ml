@@ -51,13 +51,20 @@ module Make_NtsCfg =
   functor (Param : Nts_functor.NTS_PARAM) ->
    struct
       module NtsSys = Nts_functor.Make(Param)
-       
-
+     
       type control = NtsSys.control
       type anotations = NtsSys.anotations
+      type block_labels = string
       
+      module block_lab_order = 
+      struct
+	type t = string
+	type compare = String.compare
+      end;;
+	
+
       type nts_basic_block = {
-        mutable head_label : string;
+        mutable head_label : block_labels;
         mutable block : (Nts_types.nts_trans_label list) list;
         mutable block_succs :
           (nts_basic_block ref * Nts_types.nts_trans_label list) list option;
@@ -86,6 +93,16 @@ module Make_NtsCfg =
 	  ( string * Big_int.big_int ) list  option;   
 	
       }
+
+      (** This type need not to be defined in the interface. *)
+
+      type coalescing_parameter = {
+	control_label_map : +block_labels Map.Make(block_lab_order).t;
+	
+	
+      }
+
+
 (*
       let nts_cfg_of_automaton ( : NtsSys.nts_automaton )=  nts_function_cfg
       let nts_cfg_of_nts_sys (: NtsSys.nts_system ) = nts_function_cfg
@@ -99,18 +116,16 @@ module Make_NtsCfg =
 module Make =
   functor ( Param :  Nts_functor.NTS_PARAM ) ->
 struct
-  
-  
+ 
   
   (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
+
   module NtsSys = Nts_functor.Make(Param)
   
   type nts_automaton = NtsSys.nts_automaton
   type control = NtsSys.control
   type anotations = NtsSys.anotations
-
-
 
 
   exception Cant_be_head_of_basic_block of control
@@ -242,15 +257,15 @@ struct
   of the control state "state" given as a parameter. *)
 
 
-    (*
-      let in_degree_of_control_state state pre_relation =
-      try 
+      
+  let in_degree_of_control_state state pre_relation =
+    try 
       let matches = Hashtbl.find_all pre_relation state in
       List.length matches
-      with
-      Not_found -> 0
-      
-    *)
+    with
+	Not_found -> 0
+	
+       
     
     
     
