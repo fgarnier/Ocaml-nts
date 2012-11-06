@@ -11,19 +11,20 @@ module Nts_int :
   sig
     type anotations = Nts_functor.Make(P).anotations
     type control = Nts_functor.Make(P).control
+    type transitions_container = Nts_functor.Make(P).transitions_container
+    type states_container = Nts_functor.Make(P).states_container
+    type inv_relation_container = Nts_functor.Make(P).inv_relation_container
     type nts_automaton =
       Nts_functor.Make(P).nts_automaton = {
       mutable nts_automata_name : string;
       mutable anot : anotations;
-      init_states : (control, unit) Hashtbl.t;
-      final_states : (control, unit) Hashtbl.t;
-      error_states : (control, unit) Hashtbl.t;
+      init_states : states_container;
+      final_states : states_container;
+      error_states : states_container;
       input_vars : Nts_types.nts_genrel_var list;
       output_vars : Nts_types.nts_genrel_var list;
       local_vars : Nts_types.nts_genrel_var list;
-      transitions :
-        (control, (control, Nts_types.nts_trans_label list) Hashtbl.t)
-        Hashtbl.t;
+      transitions : transitions_container;
     }
     type nts_system =
       Nts_functor.Make(P).nts_system = {
@@ -33,6 +34,7 @@ module Nts_int :
       nts_gvars_init : Nts_types.nts_gen_relation list option;
       nts_system_threads : (string * Big_int.big_int) list option;
     }
+    val pprint_control : control -> string
     val anot_parser : unit -> anotations
     val control_of_id_param : P.t -> control
     val get_varinfo_by_optname :
@@ -51,6 +53,5 @@ module Nts_int :
     val pprint_to_nts : nts_automaton -> string
     val pprint_nts : nts_system -> string
     val pprint_transitions : string -> nts_automaton -> string
-    val compute_pred_relation :
-      nts_automaton -> (control, (control, unit) Hashtbl.t) Hashtbl.t
+    val compute_pred_relation : nts_automaton -> inv_relation_container
   end

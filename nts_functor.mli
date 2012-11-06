@@ -44,23 +44,52 @@ sig
       
   type anotations (** Type for anotations*)
   type control   (** Type of a control state*)
-  type nts_automaton = (** counter automata with inputs and
-			 output variables and hierachical 
-			 calls enabled.
-		     *) 
-	{
-        mutable nts_automata_name : string;
-        mutable anot : anotations  ;
-        (*states : (control , unit ) Hashtbl.t;*)
-        init_states : (control , unit ) Hashtbl.t;
-        final_states : (control , unit ) Hashtbl.t;
-        error_states : (control , unit ) Hashtbl.t;
-        input_vars : nts_genrel_var list; (*Variable ordering is important*)
-        output_vars : nts_genrel_var list;
-        local_vars : nts_genrel_var list;
-        transitions : (control, (control , nts_trans_label list ) Hashtbl.t) Hashtbl.t ;
+  type transitions_container (** Type used to encode transitions
+				 between control states *)
+  type states_container  (** Container used to sore a state collection*)
+  type inv_relation_container (** Type used to encode the inverse of the
+				  unlabelled successor relation transition
+			      *)
 
-	}
+  val fold_states_containers : states_container ->  ( 'a -> control -> 'a ) -> 'a -> 'a
+  val fold_transitions_container : transitions_container ->  ('a -> control -> nts_trans_label list-> control -> 'a ) -> 'a -> 'a 
+ 
+ (** 
+
+      'a is the type of the folded value.
+      A nts transition is defined by a tuple of type 
+      ( control * nts_gen_rel list * control ). A function of
+      type ('a -> control -> nts_gen_rel list-> control -> 'a ) is
+      required by this folder. e.g : type 'a = string for any pretty
+      printting.
+									        *)
+    
+  
+
+
+    
+  (** counter automata with inputs and
+      output variables and hierachical 
+      calls enabled.
+  *)
+  type nts_automaton = {
+    
+    mutable nts_automata_name : string;
+    mutable anot : anotations  ;
+    
+    init_states : states_container;
+    final_states : states_container;
+    error_states : states_container;
+    
+    input_vars : nts_genrel_var list; (*Variable ordering is important*)
+    output_vars : nts_genrel_var list;
+    local_vars : nts_genrel_var list;
+    transitions : transitions_container;
+   
+  }
+
+  
+
 
   type nts_system = (** Hierarchical numerical transition systems *)
       {
@@ -71,31 +100,37 @@ sig
         nts_system_threads : (string * Big_int.big_int) list option;
       }
   
+  (** 
+      Experimental section 
+  *)
+  
 
+	
+	
   val pprint_control : control -> string	
   val anot_parser : unit -> anotations
-
+    
   (*val rename_nts_system : nts_system -> string -> unit*)
   val control_of_id_param : Param.t -> control
   (*val create_nts_cautomaton : unit -> nts_automaton (* Creates a new structure
-					nts_automata*)*)
+    nts_automata*)*)
   (*val add_nts_int_vars_to_nts_system : nts_system -> string list -> unit 
-  val add_nts_real_vars_to_nts_system : nts_system -> string list -> unit*) 
+    val add_nts_real_vars_to_nts_system : nts_system -> string list -> unit*) 
   (* string option check in a subsystem; string var name *)
   val get_varinfo_by_optname : nts_system -> string option -> string -> nts_genrel_var option 
 
   val get_varinfo_by_optcautomaton : nts_system -> nts_automaton option ->string -> nts_genrel_var option
- 
+    
     
   val get_transition_from :
     nts_automaton ->
     control -> control -> Nts_types.nts_trans_label list list option
-  
-
+    
+    
   val pprint_inputvars : nts_automaton  -> string
   val pprint_outputvars : nts_automaton  -> string 
   val pprint_localvars : nts_automaton  -> string
-
+    
   (**
      computes a numerical transition system in which all local variables
      list of each automaton has been cleared of non used varibles
@@ -109,7 +144,9 @@ sig
   val pprint_transitions : string -> nts_automaton -> string
   
   (** Compute the set of one step predecessors of all control states*)
-  val compute_pred_relation : nts_automaton -> 
-    (control, (control , unit) Hashtbl.t ) Hashtbl.t
+  (*val compute_pred_relation : nts_automaton -> 
+    (control, (control , unit) Hashtbl.t ) Hashtbl.t*)
+  val compute_pred_relation : nts_automaton -> inv_relation_container
+    
 end
 

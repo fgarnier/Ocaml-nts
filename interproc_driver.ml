@@ -56,11 +56,11 @@ module Make_NtsCfg =
       type anotations = NtsSys.anotations
       type block_labels = string
       
-      module block_lab_order = 
+      module Block_lab_order = 
       struct
 	type t = string
-	type compare = String.compare
-      end;;
+        let compare = String.compare
+      end
 	
 
       type nts_basic_block = {
@@ -95,13 +95,13 @@ module Make_NtsCfg =
       }
 
       (** This type need not to be defined in the interface. *)
-
+(*
       type coalescing_parameter = {
 	control_label_map : +block_labels Map.Make(block_lab_order).t;
 	
 	
       }
-
+*)
 
 (*
       let nts_cfg_of_automaton ( : NtsSys.nts_automaton )=  nts_function_cfg

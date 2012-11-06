@@ -89,20 +89,22 @@ module type NTS_PARAM =
   end
 
 
-
 module Make =
   functor( Param : NTS_PARAM )->
 struct 
   type anotations = Nts_Anot of Param.anot_type
   type control = Nts_State of Param.t (* Control state *)
- 
+
+  type states_container = (control , unit ) Hashtbl.t
+  type transitions_container = (control, (control , nts_trans_label list ) Hashtbl.t) Hashtbl.t
+  type inv_relation_container = (control, (control , unit) Hashtbl.t ) Hashtbl.t
+      
   let size_hash = 97
   let pprint_control c =
     match c with
 	Nts_State(s) -> Param.pprint_keyid s
 
-  (*let pprint = Param.pprint_keyid*)
-
+  (* let pprint = Param.pprint_keyid *)
   let pprint_anotation a =
     match a with
 	Nts_Anot(l)-> Param.pprint_anot l
@@ -112,13 +114,13 @@ struct
 	mutable nts_automata_name : string; 
 	mutable anot : anotations;
 	(*states : (control , unit ) Hashtbl.t;*)
-	init_states : (control , unit ) Hashtbl.t;
-	final_states : (control , unit ) Hashtbl.t;
-	error_states : (control , unit ) Hashtbl.t;
+	init_states : states_container ;
+	final_states : states_container;
+	error_states : states_container;
 	input_vars : nts_genrel_var list; (*Variable ordering is important*)
         output_vars : nts_genrel_var list;
         local_vars : nts_genrel_var list;
-	transitions : (control, (control , nts_trans_label list ) Hashtbl.t) Hashtbl.t ;
+	transitions : transitions_container ;
       }
 
   type nts_system = 
@@ -140,8 +142,10 @@ struct
 						      *)
 
       }
-	
-  let anot_parser = (fun s -> Nts_Anot((Param.anot_parser s)))
+
+
+
+    let anot_parser = (fun s -> Nts_Anot((Param.anot_parser s)))
 
   (*Need not appear in the API*)
   let get_cautomata_names_of_nts nts_sys =
@@ -174,6 +178,7 @@ struct
 	  with
 	      Not_found -> None
       end
+
 	
   (*None is returned if no transition exists*)
 	
@@ -258,6 +263,35 @@ struct
     with 
 	Found_genvar v -> Some(v)
 
+
+
+
+	  
+  (** Binding between the generic definition of fold_states_containers  
+      provided in the interface and the specific implementation proposed
+      in this file.
+  *)
+
+  let fold_states_containers statec folder_fun init_val =
+    let bind_folder control () prefix =
+      folder_fun prefix control
+    in
+    Hashtbl.fold bind_folder statec init_val
+    
+
+  (** In this implementation, transc has type 
+      (control,(control, nts_gen_rel list) t ) t. 
+  *)
+  let fold_transitions_container transc folder_fun init_val =
+    let inner_folder external_control curr_control transit prefix =
+      let ret_val = folder_fun prefix external_control  transit curr_control 
+      in
+      ret_val
+    in
+    let outter_folder external_control inner_table prefix =
+      Hashtbl.fold ( inner_folder external_control) inner_table prefix
+    in
+    Hashtbl.fold  outter_folder transc init_val
 
 
 
@@ -473,6 +507,7 @@ ordering on their name. *)
     (List.fold_left pprint_folder "" ret_list)
       
 
+ 
 
  let compute_pred_relation cautomaton =
    let invert_table = Hashtbl.create 7 in
