@@ -14,6 +14,13 @@ module Nts_int :
     type transitions_container = Nts_functor.Make(P).transitions_container
     type states_container = Nts_functor.Make(P).states_container
     type inv_relation_container = Nts_functor.Make(P).inv_relation_container
+    val fold_states_containers :
+      states_container -> ('a -> control -> 'a) -> 'a -> 'a
+    val fold_transitions_container :
+      transitions_container ->
+      ('a -> control -> Nts_types.nts_trans_label list -> control -> 'a) ->
+      'a -> 'a
+    val is_state_in_inv_relation : inv_relation_container -> control -> bool
     type nts_automaton =
       Nts_functor.Make(P).nts_automaton = {
       mutable nts_automata_name : string;
@@ -36,7 +43,12 @@ module Nts_int :
     }
     val pprint_control : control -> string
     val anot_parser : unit -> anotations
+    val states_container_of_states_list : control list -> states_container
+    val transitions_container_of_trans_list :
+      (control * control * Nts_types.nts_trans_label list) list ->
+      transitions_container
     val control_of_id_param : P.t -> control
+    val out_degree_of_control_state : control -> nts_automaton -> int
     val get_varinfo_by_optname :
       nts_system ->
       string option -> string -> Nts_types.nts_genrel_var option
@@ -46,6 +58,8 @@ module Nts_int :
     val get_transition_from :
       nts_automaton ->
       control -> control -> Nts_types.nts_trans_label list list option
+    val get_successor_of : nts_automaton -> control -> states_container
+    val get_one_state : states_container -> control option
     val pprint_inputvars : nts_automaton -> string
     val pprint_outputvars : nts_automaton -> string
     val pprint_localvars : nts_automaton -> string

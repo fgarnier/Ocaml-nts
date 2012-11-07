@@ -64,7 +64,7 @@ sig
       printting.
 									        *)
     
-  
+  val is_state_in_inv_relation : inv_relation_container -> control -> bool
 
 
     
@@ -110,13 +110,15 @@ sig
   val pprint_control : control -> string	
   val anot_parser : unit -> anotations
     
+  val states_container_of_states_list : control list -> states_container  
+  val transitions_container_of_trans_list : (control * control * Nts_types.nts_trans_label list ) list -> transitions_container
+    
   (*val rename_nts_system : nts_system -> string -> unit*)
-  val control_of_id_param : Param.t -> control
-  (*val create_nts_cautomaton : unit -> nts_automaton (* Creates a new structure
-    nts_automata*)*)
-  (*val add_nts_int_vars_to_nts_system : nts_system -> string list -> unit 
-    val add_nts_real_vars_to_nts_system : nts_system -> string list -> unit*) 
-  (* string option check in a subsystem; string var name *)
+  
+  val control_of_id_param : Param.t -> control 
+  
+  val out_degree_of_control_state :  control ->  nts_automaton -> int
+
   val get_varinfo_by_optname : nts_system -> string option -> string -> nts_genrel_var option 
 
   val get_varinfo_by_optcautomaton : nts_system -> nts_automaton option ->string -> nts_genrel_var option
@@ -125,7 +127,11 @@ sig
   val get_transition_from :
     nts_automaton ->
     control -> control -> Nts_types.nts_trans_label list list option
-    
+  
+  val get_successor_of : nts_automaton -> control -> states_container
+  val get_one_state : states_container -> control option
+
+ 
     
   val pprint_inputvars : nts_automaton  -> string
   val pprint_outputvars : nts_automaton  -> string 

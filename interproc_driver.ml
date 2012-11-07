@@ -163,7 +163,10 @@ struct
 
 
 
-  let out_degree_of_control_state (control_state : control ) 
+  (*
+    This function belongs to nts_functor.ml
+
+    let out_degree_of_control_state (control_state : control ) 
       (cautomaton : nts_automaton ) =
     let count_folder a b sharp_entry =
       sharp_entry + 1
@@ -174,7 +177,7 @@ struct
       in
       (Hashtbl.fold count_folder control_table 0)
     with
-	Not_found -> 0
+	Not_found -> 0*)
 	  
     
   (** Generic function that returns one binding in a Hashtbl provided
@@ -207,15 +210,19 @@ struct
   let create_basic_block (control_state : control ) ( label : string ) 
     (cautomaton : nts_automaton ) =
 
-    if (out_degree_of_control_state control_state cautomaton) <> 1 then
+    if (NtsSys.out_degree_of_control_state control_state cautomaton) <> 1 then
       raise (Cant_be_head_of_basic_block ( control_state ))
     else
       begin
-	let entry_table = 
+
+	let entry_table = NtsSys.get_successor_of cautomaton control_state 
+	in
+	let block_head = NtsSys.get_one_state entry_table in
+	(*let entry_table = 
 	  Hashtbl.find cautomaton.NtsSys.transitions control_state 
 	in
 	let block_head = pick_elem_in_hashtbl entry_table 
-	in
+	in*)
 	match block_head 
 	with 
 	    Some(bhead) ->

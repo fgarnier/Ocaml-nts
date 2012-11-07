@@ -74,35 +74,18 @@ let cautomata_hashtbl_of_cautomata_list (l : Nts_int.nts_automaton list) =
   ret_hash
 
 let state_hashtbl_of_statelist ( l : Nts_int.control list) =
-  let ret_hash = Hashtbl.create 97 in
+  Ntsint.Nts_int.states_container_of_states_list l
+
+(*let ret_hash = Hashtbl.create 97 in
   List.iter ( fun s -> Hashtbl.add ret_hash s () ) l;
-  ret_hash
+  ret_hash*) 
     
 
 let get_varname_of_primedvarname pvname =
   String.sub pvname 0 ((String.length pvname)-1)
 
-(* Converts the (control * control * tlist) list 
-   into
-   (control, (control, tlist) Hashtbl.t ) Hastbl.t
-*)
-
 let trans_hashtbl_of_trans_list tlist =
-  let ret_hash = Hashtbl.create 97 in
-  let build_iterator (c1,c2, tlabel ) =
-    if not (Hashtbl.mem ret_hash c1) then
-      begin
-	let new_rel_hash = Hashtbl.create 97 in
-	Hashtbl.add new_rel_hash c2 tlabel;
-	Hashtbl.add ret_hash c1 new_rel_hash
-      end
-    else
-      begin
-	let inner_relation = Hashtbl.find ret_hash c1 in
-	Hashtbl.add inner_relation c2 tlabel
-      end
-  in
-  List.iter build_iterator tlist; ret_hash
+   Nts_int.transitions_container_of_trans_list  tlist
 
  
  (* 
@@ -352,25 +335,6 @@ ident_list : IDENT {[$1]}
 | IDENT COMMA ident_list {$1::$3}
 ;
 
-
-/*
-gvars_decl : ident_list COLON INTDECL  { 
-  List.map (fun s-> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $1
-}
-
-| ident_list COLON REALDECL  {
-List.map (fun s->NtsGenVar( NtsRVar(s),NtsUnPrimed)) $1 
-} 
-
-| ident_list COLON NATDECL {
-List.map  (fun s->NtsGenVar( NtsNVar(s),NtsUnPrimed)) $1 
-}
-
-| ident_list COLON BOOLDECL  {
-List.map  (fun s->NtsGenVar( NtsBVar(s),NtsUnPrimed)) $1 
-}
-;
-*/
 
 
 

@@ -160,7 +160,9 @@ struct
   let control_of_id_param p =
     Nts_State (p)
 
- 
+  let is_state_in_inv_relation table cstate =
+    Hashtbl.mem table cstate
+    
 
   (**Returns the collection of transitions betwenn sorg and sdests
      The result has type cnt_translabel list list
@@ -262,8 +264,6 @@ struct
 	| None -> None
     with 
 	Found_genvar v -> Some(v)
-
-
 
 
 	  
@@ -383,6 +383,23 @@ struct
       
 
 
+
+  (** Returns the number of successor of a control state in a 
+given automaton.*)
+
+  let out_degree_of_control_state (control_state : control ) 
+      (cautomaton : nts_automaton ) =
+    let count_folder a b sharp_entry =
+      sharp_entry + 1
+    in
+    try
+      let control_table = 
+	Hashtbl.find cautomaton.transitions control_state 
+      in
+      (Hashtbl.fold count_folder control_table 0)
+    with
+	Not_found -> 0
+  
 
  
 
@@ -507,7 +524,36 @@ ordering on their name. *)
     (List.fold_left pprint_folder "" ret_list)
       
 
- 
+ let get_successor_of cautomaton state =
+   let returned_table = Hashtbl.create 7 in
+   let succss_table = Hashtbl.find cautomaton.transitions state in
+   let build_iterator state _ =
+     Hashtbl.add returned_table state () 
+   in
+   Hashtbl.iter  build_iterator succss_table ;
+   returned_table
+
+
+     
+ let get_one_binding tbl =
+   let gen_binding = ref None in
+    let get_first_elem_iterator a b =
+      gen_binding := Some( ( a , b ) );
+      raise Nts_i_have_a_binding
+    in
+    try 
+      Hashtbl.iter get_first_elem_iterator tbl;
+      !gen_binding
+    with
+	Nts_i_have_a_binding -> !gen_binding
+   
+
+ let get_one_state tbl =
+   let one_binding = get_one_binding tbl in
+   match one_binding with 
+       Some((a,b)) -> Some(a)
+     | None -> None
+   
 
  let compute_pred_relation cautomaton =
    let invert_table = Hashtbl.create 7 in
@@ -533,6 +579,35 @@ ordering on their name. *)
    Hashtbl.iter outer_relation_iterator cautomaton.transitions;
    invert_table
 
+
+ let states_container_of_states_list ( l : control list) =
+   let ret_hash = Hashtbl.create 97 in
+  List.iter ( fun s -> Hashtbl.add ret_hash s () ) l;
+  ret_hash   
+
+
+
+(* Converts the (control * control * tlist) list 
+   into
+   (control, (control, tlist) Hashtbl.t ) Hastbl.t
+*)
+
+let transitions_container_of_trans_list ( tlist :  (control * control * Nts_types.nts_trans_label list) list ) =
+  let ret_hash = Hashtbl.create 97 in
+  let build_iterator (c1,c2, tlabel ) =
+    if not (Hashtbl.mem ret_hash c1) then
+      begin
+	let new_rel_hash = Hashtbl.create 97 in
+	Hashtbl.add new_rel_hash c2 tlabel;
+	Hashtbl.add ret_hash c1 new_rel_hash
+      end
+    else
+      begin
+	let inner_relation = Hashtbl.find ret_hash c1 in
+	Hashtbl.add inner_relation c2 tlabel
+      end
+  in
+  List.iter build_iterator tlist; ret_hash
 
 
   let pprint_all_cautomata cautomata_table =
