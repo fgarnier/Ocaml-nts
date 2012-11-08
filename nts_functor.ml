@@ -229,6 +229,7 @@ struct
 	Found_genvar v -> Some(v)
 
 
+
   let get_varinfo_by_optcautomaton nts_sys  (cautomatopt : nts_automaton option) (vname : string) =
     let search_varname_iterator vname ntvar =
       match ntvar with
@@ -726,9 +727,12 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
       Hashtbl.iter log_var_in_transitions_iterator inner_table
     in
     Hashtbl.iter trans_table_iterator nt_aut.transitions
-(*;
-    Format.printf "[locally_used_variables] \n"; (Simplification.pprint_diary diary) 
-*)
+    ;
+    Format.printf "[locally_used_variables] \n"; (Simplification.pprint_diary diary)
+
+
+
+
 
  
   
@@ -770,7 +774,10 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
       then 
 	gvar::glist
       else
-	glist
+	begin
+	  Format.printf "eliminating variable %s \n" (Nts_generic.nts_pprint_genvar  gvar);
+	  glist
+	end
 	
     in
 
@@ -778,15 +785,14 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     locally_used_variables diary nt_aut;
     
     let clean_local_list =
-      (List.fold_left ( local_list_folder diary) [] nt_aut.local_vars)
+      (List.fold_left ( local_list_folder diary) []  nt_aut.local_vars )
     in
     update_local_list nt_aut clean_local_list
 
       
       
-  let clean_unlisted_vars_on_all_system_table nt_system =
-    
-    let cleaner_folder cname nt_aut new_table =
+  let clean_unlisted_vars_on_all_system_table nt_system =    
+    let cleaner_folder cname nt_aut n_table =
       let local_diary = create_empty_var_diary () 
       in
       locally_used_variables local_diary nt_aut; 
@@ -794,7 +800,7 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
 	 variables*)
       let clean_entry = clean_unlisted_local_vars  nt_aut
       in
-      Hashtbl.add new_table cname clean_entry; new_table
+      Hashtbl.add n_table cname clean_entry; n_table
     (* Modify each automaton
        within the hashtbl.*)
     in

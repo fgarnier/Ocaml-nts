@@ -25,3 +25,4 @@ val contains_var : vars_entry -> Nts_types.nts_var -> bool
 val contains_nts_genrel_var : vars_entry -> Nts_types.nts_genrel_var -> bool
 
 val pprint_diary : vars_entry -> unit
+

@@ -379,6 +379,30 @@ decl_automata : IDENT LBRACK vars_automaton states_list transitions_list RBRACK
   
 }
 
+| IDENT LBRACK  states_list transitions_list RBRACK
+{
+  (*Format.printf "!!!!!##### Creating a new counter automaton %s \n" $1;*)
+  let cautomata_name = $1 in
+  let varlocs = [] in
+  let trans_list = $4 in
+  let states_list = $3 in
+  {
+    nts_automata_name = cautomata_name;
+    anot = Nts_int.anot_parser () ;
+    init_states =  state_hashtbl_of_statelist( (get_states_by_locality_type_of_states_list Cautomaton_start) states_list );
+    final_states = state_hashtbl_of_statelist( 
+	get_states_by_locality_type_of_states_list Cautomaton_final states_list );
+    error_states =  state_hashtbl_of_statelist( 
+      get_states_by_locality_type_of_states_list Cautomaton_error states_list );
+    
+    input_vars = get_vars_by_locality_type_of_vars_list Cautomaton_input varlocs;
+    output_vars = get_vars_by_locality_type_of_vars_list Cautomaton_output varlocs;
+    local_vars = get_vars_by_locality_type_of_vars_list Cautomaton_local varlocs;
+    transitions = trans_hashtbl_of_trans_list trans_list;
+  }
+  
+};
+
 vars_automaton : vars_loc  vars_automaton { $1 @ $2 }
 | vars_loc {$1}
 ;
