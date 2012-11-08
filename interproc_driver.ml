@@ -163,22 +163,7 @@ struct
 
 
 
-  (*
-    This function belongs to nts_functor.ml
-
-    let out_degree_of_control_state (control_state : control ) 
-      (cautomaton : nts_automaton ) =
-    let count_folder a b sharp_entry =
-      sharp_entry + 1
-    in
-    try
-      let control_table = 
-	Hashtbl.find cautomaton.NtsSys.transitions control_state 
-      in
-      (Hashtbl.fold count_folder control_table 0)
-    with
-	Not_found -> 0*)
-	  
+  
     
   (** Generic function that returns one binding in a Hashtbl provided
   there exists one --Some ( key , value)-- and returs None if none
@@ -214,31 +199,26 @@ struct
       raise (Cant_be_head_of_basic_block ( control_state ))
     else
       begin
+	
 
-	let entry_table = NtsSys.get_successor_of cautomaton control_state 
+	let block_head = 
+	  NtsSys.get_one_transition cautomaton control_state
 	in
-	let block_head = NtsSys.get_one_state entry_table in
-	(*let entry_table = 
-	  Hashtbl.find cautomaton.NtsSys.transitions control_state 
-	in
-	let block_head = pick_elem_in_hashtbl entry_table 
-	in*)
-	match block_head 
-	with 
-	    Some(bhead) ->
-	      {
-		head_label = label;
-		block  = bhead :: [] ;
-		block_succs = None;
-	      }
-	  | None -> 
-	    assert false
+	
+  	{ 
+	  head_label = label;
+	  block  = block_head :: [] ;
+	  block_succs = None;
+ 	}
+	
       end
 
   (* Create one block per initial states successor. The blocks are not
      filled entirely, moreover the initial states are not marked.
   *)
-	
+
+
+(*	
   let add_init_states_to_cblocks_queue nts_automaton q 
       (label_id : int Pervasives.ref ) =
     
@@ -273,7 +253,7 @@ struct
 	Not_found -> 0
 	
        
-    
+*)  
     
     
     

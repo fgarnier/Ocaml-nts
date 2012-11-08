@@ -524,6 +524,15 @@ ordering on their name. *)
     (List.fold_left pprint_folder "" ret_list)
       
 
+ let get_outing_transitions_of cautomaton state =
+   let returned_table = Hashtbl.create 7 in
+   let succss_table = Hashtbl.find cautomaton.transitions state in
+   let build_iterator state l =
+     Hashtbl.add returned_table state l 
+   in
+   Hashtbl.iter  build_iterator succss_table ;
+   returned_table
+
  let get_successor_of cautomaton state =
    let returned_table = Hashtbl.create 7 in
    let succss_table = Hashtbl.find cautomaton.transitions state in
@@ -554,6 +563,19 @@ ordering on their name. *)
        Some((a,b)) -> Some(a)
      | None -> None
    
+ 
+(** Picks-up one transition among that which are exiting the 
+control state "state" in the subsystem cautomaton.
+*)
+
+ let get_one_transition cautomaton state =
+   let tbl = get_outing_transitions_of cautomaton state in
+   let one_binding = get_one_binding tbl 
+   in
+   match one_binding with 
+       Some((a,b)) -> (a,b)
+     | None -> assert false 
+
 
  let compute_pred_relation cautomaton =
    let invert_table = Hashtbl.create 7 in

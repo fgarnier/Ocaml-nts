@@ -19,29 +19,26 @@ module Make =
 
       let pprint_control = NFParam.pprint_control
 	
-      (*
-      let dot_of_init_nodes (ca : nts_automaton) =
-	let in_folder control () prefix =
-	  Format.sprintf "%s %s_%s [style=filled,color=blue];\n" 
-	    prefix ca.NFParam.nts_automata_name  (pprint_control control) 
-	in
-	Hashtbl.fold  in_folder ca.NFParam.init_states ""
-      *)
+    
 
       let dot_of_init_nodes (ca : nts_automaton) =
 	let init_state_printer  prefix control =
 	  Format.sprintf "%s %s_%s [style=filled,color=blue];\n" 
 	    prefix ca.NFParam.nts_automata_name  (pprint_control control) 
 	in
-	NFParam.fold_states_containers ca.init_states init_state_printer  ""
+	NFParam.fold_states_containers 
+	  ca.init_states init_state_printer  ""
 	  
+
+
 
       let dot_of_final_nodes (ca : nts_automaton) =
 	let final_state_printer prefix control =
 	  Format.sprintf "%s%s_%s[style=filled,color=green];\n" 
 	    prefix ca.NFParam.nts_automata_name (pprint_control control) 
 	in
-	NFParam.fold_states_containers ca.NFParam.final_states final_state_printer  ""
+	NFParam.fold_states_containers 
+	  ca.NFParam.final_states final_state_printer  ""
 	  
 
 	  
@@ -56,26 +53,20 @@ module Make =
 	  else
 	    prefix
 	in
-	NFParam.fold_states_containers ca.NFParam.error_states error_printer ""
+	NFParam.fold_states_containers 
+	  ca.NFParam.error_states error_printer ""
+	  
 	  
       let dot_of_error_nodes (ca : nts_automaton) =
 	let in_folder  prefix control =
 	  Format.sprintf "%s%s_%s[label=\"error\",color=red];\n" 
 	    prefix ca.NFParam.nts_automata_name (pprint_control control) 
 	in
-	NFParam.fold_states_containers ca.NFParam.final_states in_folder  ""
+	NFParam.fold_states_containers 
+	  ca.NFParam.final_states in_folder  ""
 	  
 	  
-      (*let dot_of_transitions  (ca : nts_automaton ) prefix  =
-	let inner_folder outter_control  inner_control _ prefix =
-	  Format.sprintf "%s%s_%s->%s_%s;\n" prefix ca.NFParam.nts_automata_name (pprint_control outter_control) 
-	    ca.nts_automata_name (pprint_control inner_control )
-	in
-	let outter_folder outter_control inner_table prefix =
-	  Hashtbl.fold (inner_folder outter_control) inner_table prefix
-	in
-	Hashtbl.fold  outter_folder ca.transitions prefix
-      *)
+     
 
       let dot_of_transitions  (ca : nts_automaton ) prefix =
 	let transition_printer prefix control_org _ control_dest =
@@ -84,8 +75,8 @@ module Make =
 	    (pprint_control control_org) 
 	    ca.nts_automata_name (pprint_control control_dest)
 	in 
-	NFParam.fold_transitions_container ca.transitions transition_printer 
-	  prefix
+	NFParam.fold_transitions_container 
+	  ca.transitions transition_printer prefix
 	  
 
       let dot_of_cautomaton ?(standalone_graph = false) (ca : nts_automaton )=

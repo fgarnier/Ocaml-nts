@@ -131,7 +131,8 @@ sig
   val get_successor_of : nts_automaton -> control -> states_container
   val get_one_state : states_container -> control option
 
- 
+  (** Picks an outing transiton from control in the automaton*)
+  val get_one_transition : nts_automaton -> control -> (control * Nts_types.nts_trans_label list) 
     
   val pprint_inputvars : nts_automaton  -> string
   val pprint_outputvars : nts_automaton  -> string 
