@@ -20,6 +20,9 @@ module Nts_int :
       transitions_container ->
       ('a -> control -> Nts_types.nts_trans_label list -> control -> 'a) ->
       'a -> 'a
+    val iter_transitions_container :
+      transitions_container ->
+      (control -> Nts_types.nts_trans_label list -> control -> unit) -> unit
     val is_state_in_inv_relation : inv_relation_container -> control -> bool
     type nts_automaton =
       Nts_functor.Make(P).nts_automaton = {
@@ -60,10 +63,13 @@ module Nts_int :
       control -> control -> Nts_types.nts_trans_label list list option
     val get_successor_of : nts_automaton -> control -> states_container
     val get_one_state : states_container -> control option
+    val get_one_transition :
+      nts_automaton -> control -> control * Nts_types.nts_trans_label list
     val pprint_inputvars : nts_automaton -> string
     val pprint_outputvars : nts_automaton -> string
     val pprint_localvars : nts_automaton -> string
     val nt_system_var_cleaner : nts_system -> nts_system
+    val nt_system_uncalled_subsystem_cleaner : nts_system -> nts_system
     val pprint_to_nts : nts_automaton -> string
     val pprint_nts : nts_system -> string
     val pprint_transitions : string -> nts_automaton -> string

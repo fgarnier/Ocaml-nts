@@ -145,7 +145,7 @@ sig
      list of each automaton has been cleared of non used varibles
   *)
   val nt_system_var_cleaner : nts_system -> nts_system 
-
+  val nt_system_uncalled_subsystem_cleaner : nts_system -> nts_system 
   val pprint_to_nts : nts_automaton -> string
   val pprint_nts : nts_system -> string 
     (* Here for debuging purposes. Shall be removed for release

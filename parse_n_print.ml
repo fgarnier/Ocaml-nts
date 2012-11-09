@@ -50,6 +50,8 @@ let _ =
 	let buf = Lexing.from_channel input_channel in
 	let nt_system = Ntl_parser.ntldescr Ntl_lexer.token buf in
 	let nt_system = Nts_int.nt_system_var_cleaner nt_system in
+	let nt_system = Nts_int.nt_system_uncalled_subsystem_cleaner nt_system
+	in
 	let output_reparsed = Nts_int.pprint_nts nt_system in
       (*Format.printf "%s \n %!" output_reparsed;*)
 	let dump_channel = Format.formatter_of_out_channel dump_file_descr 
