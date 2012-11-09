@@ -294,6 +294,16 @@ struct
     in
     Hashtbl.fold  outter_folder transc init_val
 
+ 
+  let iter_transitions_container transc iter_fun =
+    let inner_iterator  external_control curr_control transit =
+      iter_fun external_control  transit curr_control
+    in
+     let outter_iterator external_control inner_table =
+       Hashtbl.iter ( inner_iterator external_control) inner_table
+     in
+     Hashtbl.iter  outter_iterator transc
+
 
 
   let pprint_inputvars cautomata = 
@@ -809,6 +819,28 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     
       
 
+  (** Adds the name of the called subsystems in cautomaton, in called_fun,
+  if the former are not already referenced.*)
+
+  let register_called_subsystem called_fun cautomaton =
+   
+    let called_fun_of_transition _ translist _ =
+      (List.iter (fun s -> Simplification.register_called_subsystems called_fun s) translist)
+    in
+    iter_transitions_container  cautomaton.transitions called_fun_of_transition  
+    
+
+
+      
+  let reference_called_nts nt_system =
+    let called_fun = Simplification.create_fun_name_in_call_table () 
+    in
+    Simplification.add_fun_name_in_call_table called_fun "main";
+    nt_system
+    
+    
+    
+    
   
 (**
 Returns as input a numerical transition system in which all local variables
@@ -817,7 +849,7 @@ list of each automaton has been cleared of non used varibles
   let nt_system_var_cleaner nt_sys =
     let clean_system_table = clean_unlisted_vars_on_all_system_table nt_sys
     in
-     nts_sys_with_update_cautomaton_table nt_sys clean_system_table
+    nts_sys_with_update_cautomaton_table nt_sys clean_system_table
     
  
 

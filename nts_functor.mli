@@ -54,6 +54,8 @@ sig
   val fold_states_containers : states_container ->  ( 'a -> control -> 'a ) -> 'a -> 'a
   val fold_transitions_container : transitions_container ->  ('a -> control -> nts_trans_label list-> control -> 'a ) -> 'a -> 'a 
  
+
+  val iter_transitions_container : transitions_container ->  ( control -> nts_trans_label list-> control -> unit ) -> unit 
  (** 
 
       'a is the type of the folded value.

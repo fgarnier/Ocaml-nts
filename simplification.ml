@@ -14,7 +14,7 @@ open Nts_types
 
 type vars_entry = UVars_diary of ( string ,  unit ) Hashtbl.t
 type vars_entry_by_name = UNamedVarsDiary of ( string , nts_var ) Hashtbl.t
-type called_sybsystems = CalledSubsystem of ( string , unit ) Hashtbl.t
+type called_subsystems_diary = CalledSubsystem of ( string , unit ) Hashtbl.t
 
 
 let create_empty_var_diary () =
@@ -40,10 +40,6 @@ let add_nts_var_to_diary diary nvar =
     begin
       Hashtbl.add table  vname ()
     end
-
-
-
-
 
 
       
@@ -162,7 +158,7 @@ let add_fun_name_in_call_table table vname =
 	  end
 
 
-let reference_called_subsystem table ( lbl : nts_trans_label ) =
+let register_called_subsystems table ( lbl : nts_trans_label ) =
   match lbl with
       | CntGenCall (vname,_,_) ->
 	begin
