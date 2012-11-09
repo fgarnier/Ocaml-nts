@@ -12,9 +12,10 @@ open Nts_types
   that don't appear in any transition are stripped from the local variables
   lists.*)
 
-
 type vars_entry = UVars_diary of ( string ,  unit ) Hashtbl.t
 type vars_entry_by_name = UNamedVarsDiary of ( string , nts_var ) Hashtbl.t
+type called_sybsystems = CalledSubsystem of ( string , unit ) Hashtbl.t
+
 
 let create_empty_var_diary () =
   let tbl = Hashtbl.create 11 in
@@ -145,6 +146,29 @@ let add_vars_of_cnt_trans_label_to_diary diary ( lbl : nts_trans_label ) =
     in havoc as used if they don't appear in relations.*)
 
     | CntGenHavoc (hlist) -> add_vars_of_lvals_to_diary diary (Some(hlist))
+
+      
+let create_fun_name_in_call_table () =
+  let t = Hashtbl.create 97 in
+  CalledSubsystem(t)
+
+let add_fun_name_in_call_table table vname =
+  match table with
+      CalledSubsystem(t) ->
+	if Hashtbl.mem t vname then ()
+	else 
+	  begin
+	    Hashtbl.add t vname ()
+	  end
+
+
+let reference_called_subsystem table ( lbl : nts_trans_label ) =
+  match lbl with
+      | CntGenCall (vname,_,_) ->
+	begin
+	  add_fun_name_in_call_table table vname
+	end
+      | _ -> ()
 
 
 

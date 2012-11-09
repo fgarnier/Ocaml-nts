@@ -1,11 +1,11 @@
 
 (* Type of a variable diary *)
-type vars_entry = UVars_diary of (string, unit) Hashtbl.t
+type vars_entry (*= UVars_diary of (string, unit) Hashtbl.t*)
 
+type vars_entry_by_name (*=
+    UNamedVarsDiary of (string, Nts_types.nts_var) Hashtbl.t*)
 
-type vars_entry_by_name =
-    UNamedVarsDiary of (string, Nts_types.nts_var) Hashtbl.t
-
+type called_sybsystems 
 
 val create_empty_var_diary : unit -> vars_entry
 
