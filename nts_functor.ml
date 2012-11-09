@@ -836,7 +836,11 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     let called_fun = Simplification.create_fun_name_in_call_table () 
     in
     Simplification.add_fun_name_in_call_table called_fun "main";
-    nt_system
+    let register_callees_of_each_subsystems _ subs =
+      register_called_subsystem called_fun subs 
+    in
+    Hashtbl.iter register_callees_of_each_subsystems nt_system.nts_automata 
+    
     
     
     
