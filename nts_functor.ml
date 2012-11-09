@@ -839,7 +839,8 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     let register_callees_of_each_subsystems _ subs =
       register_called_subsystem called_fun subs 
     in
-    Hashtbl.iter register_callees_of_each_subsystems nt_system.nts_automata 
+    Hashtbl.iter register_callees_of_each_subsystems nt_system.nts_automata;
+    called_fun
     
     
     
@@ -856,6 +857,35 @@ list of each automaton has been cleared of non used varibles
     nts_sys_with_update_cautomaton_table nt_sys clean_system_table
     
  
+
+
+
+
+  let c_table_having_keys_in ctable called_fun =
+    let new_table = Hashtbl.create 97 in
+    let fill_clean_table name cautomaton =
+      if Simplification.is_name_in_call_table called_fun name 
+      then Hashtbl.add new_table  name cautomaton
+      else ()
+    in
+    Hashtbl.iter fill_clean_table ctable;
+    new_table
+
+
+(**
+ This function returns a numerical transition system where all the subsystem
+are called at some point. Calls might be performed from the same subsystem.
+*)
+
+  let nt_system_uncalled_subsystem_cleaner nt_sys =
+    let called_fun = reference_called_nts nt_sys in
+    let cleaned_call_table =  
+      c_table_having_keys_in nt_sys.nts_automata called_fun 
+    in
+    nts_sys_with_update_cautomaton_table nt_sys cleaned_call_table
+    
+
+    
 
 
   (** Types and functions used to generate a control flow graph

@@ -157,6 +157,12 @@ let add_fun_name_in_call_table table vname =
 	    Hashtbl.add t vname ()
 	  end
 
+let is_name_in_call_table table vname =
+  match table with
+      CalledSubsystem(t) ->
+	if Hashtbl.mem t vname then true
+	else false
+
 
 let register_called_subsystems table ( lbl : nts_trans_label ) =
   match lbl with

@@ -21,7 +21,7 @@ val register_called_subsystems : called_subsystems_diary -> Nts_types.nts_trans_
 val add_vars_of_trans_label_list_to_diary :
   vars_entry ->  Nts_types.nts_trans_label list -> unit
 val add_fun_name_in_call_table :  called_subsystems_diary->string -> unit
-
+val is_name_in_call_table  : called_subsystems_diary -> string -> bool 
 (** Answer yes when the variable is listed in the entry, false
 in the opposite case.*)
 
