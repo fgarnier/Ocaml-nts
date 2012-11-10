@@ -91,8 +91,6 @@ sig
   }
 
   
-
-
   type nts_system = (** Hierarchical numerical transition systems *)
       {
         nts_system_name : string;
@@ -105,10 +103,7 @@ sig
   (** 
       Experimental section 
   *)
-  
-
-	
-	
+ 	
   val pprint_control : control -> string	
   val anot_parser : unit -> anotations
     
