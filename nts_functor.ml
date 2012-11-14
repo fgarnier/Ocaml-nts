@@ -193,7 +193,7 @@ struct
   let get_varinfo_by_optname nts_sys  (cname : string option) (vname : string) =
     let search_varname_iterator vname ntvar =
       match ntvar with
-	| NtsGenVar(NtsIVar(name),_) | NtsGenVar(NtsRVar(name),_) ->
+	 NtsGenVar(NtsVar(name,_),_)  ->
 	  if (String.compare name vname )==0 then
 	    raise (Found_genvar(ntvar))
 	  else ()
@@ -233,7 +233,7 @@ struct
   let get_varinfo_by_optcautomaton nts_sys  (cautomatopt : nts_automaton option) (vname : string) =
     let search_varname_iterator vname ntvar =
       match ntvar with
-	| NtsGenVar(NtsIVar(name),_) | NtsGenVar(NtsRVar(name),_) ->
+	 NtsGenVar(NtsVar(name,_),_)  ->
 	  if (String.compare name vname )==0 then
 	    raise (Found_genvar(ntvar))
 	  else ()

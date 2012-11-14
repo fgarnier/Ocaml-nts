@@ -424,16 +424,14 @@ typed_id_list_list : typed_id_list COMMA typed_id_list_list {$1 @ $3}
 | typed_id_list {$1}
 
 typed_id_list : ident_list COLON INTDECL {
-List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $1
+List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $1
 }
-| ident_list COLON NATDECL{
-List.map (fun s -> NtsGenVar(NtsNVar(s),NtsUnPrimed)) $1
-}
+
 | ident_list COLON REALDECL{
-List.map (fun s -> NtsGenVar(NtsRVar(s),NtsUnPrimed)) $1
+List.map (fun s -> NtsGenVar(NtsVar(s,NtsRealType),NtsUnPrimed)) $1
 }
 | ident_list COLON BOOLDECL{
-List.map (fun s -> NtsGenVar(NtsBVar(s),NtsUnPrimed)) $1
+List.map (fun s -> NtsGenVar(NtsVar(s,NtsBoolType),NtsUnPrimed)) $1
 }
 ;
 
@@ -515,37 +513,37 @@ nts_trans_elem :/* BNOT {`Trans_neg_of_guard} */  /* Negation until the
 
 
 qformula : EXISTS ident_list COLON INTDECL DOT pressburg_atomic_bool {
-  let var_list = List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $2
+  let var_list = List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $2
   in 
   CntQVarsGenRel(var_list,NtsExists,$6)
  } 
 
 | EXISTS ident_list COLON INTDECL DOT LBRACE pressburg_tree_guards RBRACE {
-  let var_list = List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $2
+  let var_list = List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $2
   in 
   CntQVarsGenRel(var_list,NtsExists,$7)
  }
 
 | EXISTS ident_list COLON INTDECL DOT LBRACE qformula RBRACE {
-  let var_list = List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $2
+  let var_list = List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $2
   in 
   CntQVarsGenRel(var_list,NtsExists,$7)
  }
   
 |  FORALL ident_list COLON INTDECL DOT pressburg_atomic_bool {
-  let var_list = List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $2
+  let var_list = List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $2
   in 
   CntQVarsGenRel(var_list,NtsForall,$6)
  } 
 
 | FORALL ident_list COLON INTDECL DOT LBRACE pressburg_tree_guards RBRACE {
-  let var_list = List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $2
+  let var_list = List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $2
   in 
   CntQVarsGenRel(var_list,NtsForall,$7)
  }
 
 | FORALL ident_list COLON INTDECL DOT LBRACE qformula RBRACE {
-  let var_list = List.map (fun s -> NtsGenVar(NtsIVar(s),NtsUnPrimed)) $2
+  let var_list = List.map (fun s -> NtsGenVar(NtsVar(s,NtsIntType),NtsUnPrimed)) $2
   in 
   CntQVarsGenRel(var_list,NtsForall,$7)
 }
@@ -576,7 +574,7 @@ primed_var_list : primed_express COMMA primed_var_list %prec PRIMEVARLIST {$1::$
 
 gen_affect : PRIMEDVAR EQ IDENT  LBRACE arithm_expr_list RBRACE {
   let vname = get_varname_of_primedvarname $1 in
-  let vinfolist =  NtsGenVar(NtsMiscType(vname),NtsPrimed)::[] 
+  let vinfolist =  NtsGenVar(NtsVar(vname,NtsUnTyped),NtsPrimed)::[] 
   in 
   CntGenCall($3,Some(vinfolist),$5)
 
@@ -585,7 +583,7 @@ gen_affect : PRIMEDVAR EQ IDENT  LBRACE arithm_expr_list RBRACE {
 
 | PRIMEDVAR EQ IDENT  LBRACE  RBRACE {
   let vname = get_varname_of_primedvarname $1 in
-  let vinfolist =  NtsGenVar(NtsMiscType(vname),NtsPrimed)::[] 
+  let vinfolist =  NtsGenVar(NtsVar(vname,NtsUnTyped),NtsPrimed)::[] 
   in 
   CntGenCall($3,Some(vinfolist),[])
 
@@ -593,7 +591,7 @@ gen_affect : PRIMEDVAR EQ IDENT  LBRACE arithm_expr_list RBRACE {
 
 | PRIMEDVAR EQ arithm_expr   {
   let vname = get_varname_of_primedvarname $1 in
-  let vinfo = (*get_vinfo*) NtsGenVar(NtsMiscType(vname),NtsPrimed) 
+  let vinfo = (*get_vinfo*) NtsGenVar(NtsVar(vname,NtsUnTyped),NtsPrimed) 
   in 
   (* We need to
      get the type of the
@@ -606,14 +604,14 @@ gen_affect : PRIMEDVAR EQ IDENT  LBRACE arithm_expr_list RBRACE {
 
 | LBRACE PRIMEDVAR RBRACE EQ IDENT LBRACE arithm_expr_list RBRACE {
   let vname = get_varname_of_primedvarname $2 in
-  let vinfolist =  NtsGenVar(NtsMiscType(vname),NtsPrimed)::[] 
+  let vinfolist =  NtsGenVar(NtsVar(vname,NtsUnTyped),NtsPrimed)::[] 
   in 
   CntGenCall($5,Some(vinfolist),$7)
 }
 
 | LBRACE PRIMEDVAR RBRACE EQ IDENT LBRACE  RBRACE {
   let vname = get_varname_of_primedvarname $2 in
-  let vinfolist =  NtsGenVar(NtsMiscType(vname),NtsPrimed)::[] 
+  let vinfolist =  NtsGenVar(NtsVar(vname,NtsUnTyped),NtsPrimed)::[] 
   in 
   CntGenCall($5,Some(vinfolist),[])
 }
@@ -737,7 +735,7 @@ primed_express : PRIMEDVAR %prec PRIMEDEXPR {
   let varname = get_varname_of_primedvarname $1 in
   (*Format.printf "Primed var string is %s \n %!" $1;
   Format.printf "Primed var has name %s \n %! " varname ;*)
-  NtsGenVar(NtsMiscType(varname),NtsPrimed)
+  NtsGenVar(NtsVar(varname,NtsUnTyped),NtsPrimed)
  
 }
 ;
@@ -748,32 +746,32 @@ arithm_expr_list : arithm_expr {$1::[]}
 ;
 
 arithm_expr : INT { let  cst =  $1 in 
-		   CntGenCst(CntGenICst(cst))}
+		   CntGenCst(CntGenICst(cst),NtsIntType)}
 | FLOAT {
   let cst = $1 in
-  CntGenCst(CntGenFCst(cst))
+  CntGenCst(CntGenFCst(cst),NtsRealType)
 }
 
 
 | IDENT { let vname = $1 in
-	  CntGenVar(NtsGenVar(NtsMiscType(vname),NtsUnPrimed))
+	  CntGenVar(NtsGenVar(NtsVar(vname,NtsUnTyped),NtsUnPrimed))
 	}
 
 | primed_express {
   CntGenVar($1)
 }
 | LBRACE arithm_expr RBRACE {$2}
-| MINUS arithm_expr %prec UMINUS { CntGenArithmUOp(CntGenUMinus,$2) }
-| arithm_expr PLUS arithm_expr { CntGenArithmBOp(CntGenSum,$1,$3) }
-| arithm_expr MINUS arithm_expr {CntGenArithmBOp( CntGenMinus,$1,$3) }
-| arithm_expr DIV arithm_expr {CntGenArithmBOp( CntGenDiv,$1,$3) }
-| arithm_expr MOD arithm_expr {CntGenArithmBOp( CntGenMod,$1,$3) }
-| arithm_expr TIMES arithm_expr { CntGenArithmBOp( CntGenProd,$1,$3) }
+| MINUS arithm_expr %prec UMINUS { CntGenArithmUOp(CntGenUMinus,$2,NtsUnTyped) }
+| arithm_expr PLUS arithm_expr { CntGenArithmBOp(CntGenSum,$1,$3,NtsUnTyped) }
+| arithm_expr MINUS arithm_expr {CntGenArithmBOp( CntGenMinus,$1,$3,NtsUnTyped) }
+| arithm_expr DIV arithm_expr {CntGenArithmBOp( CntGenDiv,$1,$3,NtsUnTyped) }
+| arithm_expr MOD arithm_expr {CntGenArithmBOp( CntGenMod,$1,$3,NtsUnTyped) }
+| arithm_expr TIMES arithm_expr { CntGenArithmBOp( CntGenProd,$1,$3,NtsUnTyped) }
 ;
 
 
 havocise : HAVOC LBRACE ident_list RBRACE {
-  let ntvarlist = (*List.map get_vinfo $3*) List.map (fun s -> NtsGenVar(NtsMiscType(s),NtsUnPrimed)) $3 in 
+  let ntvarlist = (*List.map get_vinfo $3*) List.map (fun s -> NtsGenVar(NtsVar(s,NtsUnTyped),NtsUnPrimed)) $3 in 
   CntGenHavoc(ntvarlist)
 }
 

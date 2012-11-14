@@ -23,7 +23,10 @@ let nts_pprint_nts_var (x : nts_var ) =
   match x with 
       NtsVar( vname ,_ ) -> vname
  
-
+let nts_get_nts_gen_var_name v =
+  match v with 
+      NtsGenVar(v,_) -> nts_pprint_nts_var v
+	
 
 let nts_pprint_btype t =
   match t with

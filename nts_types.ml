@@ -23,6 +23,7 @@ type nts_quantifier = NtsExists
 type nts_base_types = NtsIntType
 		      | NtsRealType
 		      | NtsBoolType
+		      | NtsUnTyped
 		     
 
 
@@ -34,7 +35,7 @@ type nts_primed_type = NtsPrimed
 
 
 (* Variables in the general relations : Primed or unprimed nts vars*)
-type nts_genrel_var = NtsGenVar of nts_var * nts_primed_type option
+type nts_genrel_var = NtsGenVar of nts_var * nts_primed_type 
 
 
 
@@ -67,15 +68,15 @@ type nts_symbolic_constant = CntSymCst of string * nts_base_types
 type nts_genrel_arithm_exp =
     CntGenCst of nts_base_type_cst * nts_base_types
 	
-  | CntGenNdetVar of string (* non deterministic value *)
-  | CntGenSymCst of nts_symbolic_constant
+ (* | CntGenNdetVar of string (* non deterministic value *) *)
+  | CntGenSymCst of nts_symbolic_constant * nts_base_types
   | CntGenVar of nts_genrel_var
       
   | CntGenArithmBOp of nts_gen_arithm_binop *
-      nts_genrel_arithm_exp * nts_genrel_arithm_exp
+      nts_genrel_arithm_exp * nts_genrel_arithm_exp * nts_base_types
       
   | CntGenArithmUOp of nts_gen_arithm_unop *
-      nts_genrel_arithm_exp
+      nts_genrel_arithm_exp * nts_base_types
 		    
 
 

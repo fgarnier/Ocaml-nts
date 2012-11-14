@@ -65,7 +65,7 @@ type ntl_spl_il_instruction = NS_Skip
 			      | NS_Assume
 			      | NS_If of nts_gen_relation * ntl_spl_il_label * ntl_spl_il_label option
 			      | NS_Goto of ntl_spl_il_label
-			      | NS_Call of nts_var list option * string * cnt_arithm_exp list 
+			      | NS_Call of nts_var list option * string * nts_genrel_arithm_exp list 
 			      | NS_local of bool * nts_var list * ntl_spl_block
 
 and  ntl_spl_il_instr = {

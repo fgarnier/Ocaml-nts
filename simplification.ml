@@ -25,12 +25,8 @@ let get_diary_table tble =
   match tble with 
       UVars_diary(table) -> table
 
-let get_var_name nvar =
-  match nvar with 
-      NtsIVar(vname) | NtsINdetVar(vname) | NtsRVar(vname) 
-    |  NtsBVar(vname)  |  NtsMiscType(vname) | NtsNVar(vname) ->
-      vname
-
+let get_var_name nvar = Nts.nts_pprint_nts_var nvar
+ 
 let add_nts_var_to_diary diary nvar =
   
   let table = get_diary_table diary in
@@ -66,19 +62,19 @@ let contains_nts_genrel_var diary gen_var =
 let rec add_vars_of_genrel_arithm_exp_to_diary diary ( expr : nts_genrel_arithm_exp ) =
   
   match expr with
-      CntGenCst _ | CntGenNdetVar _ 
-    | CntGenSymCst _  | CntGenInvalidExp | CntGenNdet -> ()
+      CntGenCst _ (*| CntGenNdetVar _*) 
+    | CntGenSymCst _ -> ()
       
     | CntGenVar (NtsGenVar(v,_)) ->
       add_nts_var_to_diary diary v
 		
-    | CntGenArithmBOp (_, g , d ) ->
+    | CntGenArithmBOp (_, g , d,_ ) ->
       begin
 	add_vars_of_genrel_arithm_exp_to_diary diary g;
 	add_vars_of_genrel_arithm_exp_to_diary diary d
       end
 
-    | CntGenArithmUOp (_, p ) ->
+    | CntGenArithmUOp (_, p,_ ) ->
       begin
 	add_vars_of_genrel_arithm_exp_to_diary diary p
       end

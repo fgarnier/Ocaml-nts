@@ -25,27 +25,22 @@ let pprint_nts_quantifier  q =
 
 let rec nts_pprint_nts_typeinfo_genvar ( x : nts_genrel_var) =
   match x with 
-      NtsGenVar(NtsIVar( vname ),_) -> vname^" :int "
-    | NtsGenVar(NtsRVar ( vname ),_) ->vname^" :real "
-    | NtsGenVar(NtsMiscType ( vname ),_) ->vname^" : No defined type"
-    | NtsGenVar(NtsINdetVar vname, _) ->vname^" :nondet int" 
+      NtsGenVar(NtsVar( vname,vtype ),_) -> vname^(Nts.nts_pprint_btype vtype )
+    
       
 
 let is_int_var v =
   match v with 
-      NtsGenVar(NtsIVar( _ ),_)-> true
+      NtsGenVar(NtsVar( _, NtsIntType ),_)-> true
     |_ -> false
       
 let is_real_var v =
   match v with
-    NtsGenVar(NtsRVar( _ ),_)-> true
+    NtsGenVar(NtsVar( _,NtsRealType),_)-> true
     |_ -> false
       
 
-let is_nat_var v =
-  match v with
-      NtsGenVar(NtsNVar(_),_) -> true
-    | _ -> false
+
  
       
 let concat_if_first_arg_nonzero s1 s2 =
@@ -92,41 +87,45 @@ and integer, resp. a folating point number. *)
 let pprint_typeinfo_nts_genvar_list l  =
   let get_curr_type_of_var v =
     match v with
-        NtsGenVar(NtsIVar(_),_) -> `Curr_Int_Type
-      | NtsGenVar(NtsRVar(_),_) -> `Curr_Real_Type
-  in
-  let get_name_of_nts_var v =
-     match v with
-        NtsGenVar(NtsIVar(v),_) -> v
-      | NtsGenVar(NtsRVar(v),_) -> v
+        NtsGenVar(NtsVar(_,NtsIntType),_) -> `Curr_Int_Type
+      | NtsGenVar(NtsVar(_,NtsRealType),_) -> `Curr_Real_Type
+      | NtsGenVar(NtsVar(_,NtsBoolType),_) -> `Curr_Bool_Type 
+      (*| NtsGenVar(NtsVar(_,NtsUnTyped),_) -> `Curr_UnTyped_Type *)
   in
   let string_of_type ctype =
     match ctype with
         Some(`Curr_Int_Type) -> ": int"
       | Some(`Curr_Real_Type) -> ": real"
+      | Some(`Curr_Bool_Type) -> ":bool"
+      (*| Some(`Curr_UnTyped_Type) -> ":untyped"*)
       | None -> ""
   in
 
   let outputstring_folder ( prefix , ctype ) nvar  =
     match ctype, nvar with
-        (None, v) ->
+        (None, _) ->
           begin
-            let vname = get_name_of_nts_var v in
+            let vname = Nts.nts_get_nts_gen_var_name nvar in
             ((Format.sprintf "%s"  vname),
-             Some(get_curr_type_of_var v) )
+             Some(get_curr_type_of_var nvar) )
           end
-      | (Some(`Curr_Int_Type), NtsGenVar(NtsIVar(vname),_)) ->
+      | (Some(`Curr_Int_Type), NtsGenVar(NtsVar(vname,NtsIntType),_)) ->
         ((Format.sprintf "%s,%s" prefix vname),ctype )
 
-      | (Some(`Curr_Real_Type), NtsGenVar(NtsRVar(vname),_)) ->
+      | (Some(`Curr_Real_Type), NtsGenVar(NtsVar(vname,NtsRealType),_)) ->
+        ((Format.sprintf "%s,%s" prefix vname), ctype)
+      | (Some(`Curr_Bool_Type), NtsGenVar(NtsVar(vname,NtsBoolType),_)) ->
         ((Format.sprintf "%s,%s" prefix vname), ctype)
       (*Need to add handling for various array types*)
       | (Some(`Curr_Int_Type),_) ->
         ((Format.sprintf "%s : int, %s" prefix
-          (get_name_of_nts_var nvar)), Some(get_curr_type_of_var nvar) )
+            (Nts.nts_get_nts_gen_var_name nvar)), Some(get_curr_type_of_var nvar) )
       | (Some(`Curr_Real_Type),_) ->
         ((Format.sprintf "%s :real, %s" prefix
-          (get_name_of_nts_var nvar)), Some (get_curr_type_of_var nvar) )
+            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) )
+      | (Some(`Curr_Bool_Type),_) ->
+        ((Format.sprintf "%s :bool, %s" prefix
+            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) )	  
   in
   let (ret_s,ctype_s) = List.fold_left outputstring_folder ("", None) l in
   Format.sprintf "%s%s" ret_s (string_of_type ctype_s)
@@ -145,15 +144,13 @@ let rec size_genrel_arithm_deeper_than
   else 
     let depth' = depth - 1 in
     match barithm with 
-	CntGenCst(_)
-      | CntGenNdet
+	CntGenCst(_,_)
       | CntGenSymCst (_ )
-      | CntGenVar (_)
-      | CntGenNdetVar(_)
-      | CntGenInvalidExp -> false
-      | CntGenArithmUOp( _, exp' ) ->  
+      | CntGenVar (_) -> false
+      | CntGenArithmUOp( _, exp',_ ) ->  
 	size_genrel_arithm_deeper_than exp' depth'
-      | CntGenArithmBOp (_ , eg ,  ed ) ->
+	  
+      | CntGenArithmBOp (_ , eg ,  ed , _ ) ->
 	(size_genrel_arithm_deeper_than eg depth' ) || (size_genrel_arithm_deeper_than ed depth' )
       
   
@@ -178,25 +175,25 @@ let rec size_genrel_deeper_than  (bexp : nts_gen_relation ) (depth : int ) =
 
 let rec nts_pprint_genrel_arithm_exp ( exp : nts_genrel_arithm_exp ) =
   match exp with
-      CntGenCst(CntGenICst(i)) -> Big_int.string_of_big_int i
-    | CntGenCst(CntGenFCst(f)) -> Format.sprintf "%f" f
-    | CntGenNdet -> "NDET"
-    | CntGenSymCst(str) -> str
+      CntGenCst(CntGenICst(i),_) -> Big_int.string_of_big_int i
+    | CntGenCst(CntGenFCst(f),_) -> Format.sprintf "%f" f
+    (*| CntGenNdet -> "NDET"*)
+    | CntGenSymCst(CntSymCst(vname,_),_ ) -> vname
     | CntGenVar ( ntsgenvar ) -> nts_pprint_genvar ntsgenvar
-    | CntGenNdetVar(varname) -> varname
+    (*| CntGenNdetVar(varname) -> varname*)
     
     
-    | CntGenArithmUOp(CntGenUMinus, e ) ->
+    | CntGenArithmUOp(CntGenUMinus, e ,_ ) ->
       begin
 	match e with
-	    CntGenArithmUOp(CntGenUMinus, subtree ) -> nts_pprint_genrel_arithm_exp subtree
+	    CntGenArithmUOp(CntGenUMinus, subtree,_ ) -> nts_pprint_genrel_arithm_exp subtree
 	  | _  -> "-"^(nts_pprint_genrel_arithm_exp e)
       end
 
-    | CntGenArithmBOp(CntGenSum , eg , ed ) ->
+    | CntGenArithmBOp(CntGenSum , eg , ed ,_) ->
       (nts_pprint_genrel_arithm_exp eg ) ^"+" ^(nts_pprint_genrel_arithm_exp ed)
 
-    | CntGenArithmBOp( CntGenMinus , eg , ed )
+    | CntGenArithmBOp( CntGenMinus , eg , ed, _ )
       -> 
       begin
 	if size_genrel_arithm_deeper_than ed 2 then
@@ -208,7 +205,7 @@ let rec nts_pprint_genrel_arithm_exp ( exp : nts_genrel_arithm_exp ) =
 	  (nts_pprint_genrel_arithm_exp eg)^"-"^(nts_pprint_genrel_arithm_exp ed)
       end
 	
-    | CntGenArithmBOp(  CntGenDiv,  eg , ed )
+    | CntGenArithmBOp(  CntGenDiv,  eg , ed, _ )
       -> 
      begin
        let pprint_outputd = ref ""
@@ -234,7 +231,7 @@ let rec nts_pprint_genrel_arithm_exp ( exp : nts_genrel_arithm_exp ) =
        (!pprint_outputg)^"-"^(!pprint_outputd)
       end
        
-   | CntGenArithmBOp(  CntGenProd , eg , ed )
+   | CntGenArithmBOp(  CntGenProd , eg , ed, _ )
 	-> 
      begin
        let pprint_outputd = ref ""
@@ -261,7 +258,7 @@ let rec nts_pprint_genrel_arithm_exp ( exp : nts_genrel_arithm_exp ) =
      end
        
     
-   | CntGenArithmBOp( CntGenMod ,  eg , ed )
+   | CntGenArithmBOp( CntGenMod ,  eg , ed, _ )
 	-> 
      begin
        let pprint_outputd = ref ""
@@ -287,7 +284,7 @@ let rec nts_pprint_genrel_arithm_exp ( exp : nts_genrel_arithm_exp ) =
        (!pprint_outputg)^"%"^(!pprint_outputd)
      end 
 
-   | CntGenInvalidExp -> raise Invalid_nts_expression
+  (* | CntGenInvalidExp -> raise Invalid_nts_expression *)
      
 
 
@@ -405,13 +402,14 @@ let boolean_relation r =
   let rec primeless_arithm_express p =
     match p with
 	CntGenVar(n) ->  unprimed_var_checker n
-      | CntGenNdet | CntGenNdetVar(_) 
+      (*| CntGenNdet | CntGenNdetVar(_)*) 
       | CntGenSymCst(_) -> ()
-      | CntGenArithmBOp(_,a,b) -> 
+      | CntGenCst(_,_) -> ()
+      | CntGenArithmBOp(_,a,b,_) -> 
 	( primeless_arithm_express a);
 	( primeless_arithm_express b) 
-      | CntGenArithmUOp(_,a) ->  primeless_arithm_express a 
-      | CntGenInvalidExp -> raise  Invalid_nts_expression
+      | CntGenArithmUOp(_,a,_) ->  primeless_arithm_express a 
+      
   in
   try
     primeless_arithm_express r; true
@@ -476,7 +474,9 @@ let boolean_relation r =
 (**********************)
 (* Those mutually recursive functions answers yes whenever the bool, res. the 
 arithmetic val, only depends on the variable evaluation --and not of 
-non-determinitic variables.*)
+non-determinitic variables. In this implementation, the Non deterministic
+variables and values are removed, hence, the answere is always true. One
+need to update that function or delete it*)
 
 let rec is_gen_bool_det ( b : nts_gen_relation ) =
   match b with
@@ -500,14 +500,14 @@ let rec is_gen_bool_det ( b : nts_gen_relation ) =
 contains no CntNdet constructor *)	
 and is_gen_arithm_exp_a_function (e : nts_genrel_arithm_exp ) =
   match e with
-   | CntGenNdet -> false
-   | CntGenNdetVar(_) -> false
-   | CntGenArithmBOp(_,fg,fd) ->   
+   (*| CntGenNdet -> false
+   | CntGenNdetVar(_) -> false *)
+   | CntGenArithmBOp(_,fg,fd,_) ->   
      let det_fg = is_gen_arithm_exp_a_function fg in
      let det_fd = is_gen_arithm_exp_a_function fd in
      det_fg && det_fd
-   | CntGenArithmUOp (_,a) -> is_gen_arithm_exp_a_function a
-   | CntGenInvalidExp -> raise CntInvalidExpression
+   | CntGenArithmUOp (_,a,_) -> is_gen_arithm_exp_a_function a
+   
    | _-> true
 
 (**********************)
