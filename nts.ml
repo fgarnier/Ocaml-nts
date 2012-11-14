@@ -18,52 +18,27 @@ and then send me your message.
 
 
 
-let is_ntisvar_det v =
-  match v with
-      NtsINdetVar(_) -> false
-    | _ -> true
-
-
-(* This part defines the function used to export the nts trees into
-a NTS compliant syntax -- as well as being human readable.*)
-
-
-
-
-let negate_cntbool_shallow ( b : cnt_bool) =
-  match b with
-      CntBTrue -> CntBFalse
-    | CntBFalse -> CntBTrue
-    | CntNot(a)-> a
-    | _ -> CntNot(b)
-
 
 let nts_pprint_nts_var (x : nts_var ) = 
   match x with 
-      NtsIVar( vname ) | NtsRVar ( vname ) | NtsMiscType ( vname ) 
-    | NtsNVar (vname) | NtsBVar (vname) -> vname
-  (*  | NtsArray (vname,size,_) -> Format.printf "%s[%d]" vname size*)
+      NtsVar( vname ,_ ) -> vname
+ 
 
+
+let nts_pprint_btype t =
+  match t with
+      NtsIntType -> ": int"
+    | NtsRealType -> " : real"
+    | NtsBoolType -> ":bool"
 
 let rec nts_pprint_nts_typeinfo_var ( x :nts_var) =
   match x with 
-      NtsIVar( vname ) -> vname^" :int "
-    (*| NtsBVar( vname ) ->  vname^":  bool"*)
-    | NtsRVar ( vname ) ->vname^" :real "
-    | NtsMiscType ( vname ) ->vname^" : No defined type"
-   (* | NtsArray ( name, size , base_type) -> "Tab : "^vname^"["^(Format.printf "%d" size)^"] "^(nts_pprint_nts_typeinfo_var base_type )*)
-
+      NtsVar( vname, vtype ) -> vname^":"^(nts_pprint_btype vtype)
+    
 
 let pprint_typeinfo_nts_var_list l =
-  (*let elem_left = ref (List.length l) in*)
   let pprint_lfold res var =
-    (*if !elem_left > 1 then 
-      begin 
-	elem_left := (!elem_left - 1);*)
 	res^(nts_pprint_nts_typeinfo_var var)^";"
-     (* end
-    else
-      res^(nts_pprint_nts_typeinfo_var var)*)
   in
   List.fold_left pprint_lfold  "" l
 
@@ -89,24 +64,6 @@ let pprint_nts_and_prime_var_list l =
  
 
 
-let valid_name_of_var (vname : string ) =
-  "validity__"^vname^"_"  
-
-let offset_name_of_var (vname : string ) =
-  "offset__"^vname^"_"
-
-let make_ntsvars_of_ptrvar (vname : string ) = 
-  let val_name = valid_name_of_var vname in
-  let offset_name =  offset_name_of_var vname in
-  (NtsIVar(val_name))::(NtsIVar(offset_name)::[])
-
-
-
-let make_ntsvars_of_intvars (vname : string) =
-  let val_name = valid_name_of_var vname in 
-  (NtsIVar(vname))::(NtsIVar(val_name)::[])
-
-
 
 
 let concat_if_first_arg_nonzero s1 s2 =
@@ -127,7 +84,7 @@ let concat_comma_both_arg_non_empty s1 s2 =
 
 let pprint_typeinfo_int_nts_var_list l =
   let is_int_var  = function
-  NtsIVar( vname ) -> true
+  NtsVar( _, NtsIntType) -> true
     | _ ->false
   in
   let int_var_list = List.filter ( is_int_var) l in
@@ -135,11 +92,11 @@ let pprint_typeinfo_int_nts_var_list l =
 
 let pprint_typeinfo_nts_var_list l =
   let is_int_var  = function
-  NtsIVar( vname ) -> true
+  NtsVar( _, NtsIntType ) -> true
     | _ ->false
   in
   let is_real_var  = function
-  NtsRVar( vname ) -> true
+  NtsVar( _,NtsRealType ) -> true
     | _ ->false
   in
   let int_var_list = List.filter ( is_int_var) l in
@@ -151,6 +108,9 @@ let pprint_typeinfo_nts_var_list l =
   concat_comma_both_arg_non_empty pp_of_list_of_int pp_of_list_of_real
  
     
+
+
+(*
   
 let rec size_arithm_exp ( exp : cnt_arithm_exp ) =
   match exp with 
@@ -160,24 +120,25 @@ let rec size_arithm_exp ( exp : cnt_arithm_exp ) =
     | CntSymCst ( _ ) -> 1
     | CntVar (_) -> 1
     | CntInvalidExp -> 1
-    | CntUnMin ( exp' ) -> 1 +    size_arithm_exp exp'
-    | CntMinus ( eg ,  ed ) ->
+    | CntUnMin ( exp',_ ) -> 1 +    size_arithm_exp exp'
+    | CntMinus ( eg ,  ed,_ ) ->
       1 + max (size_arithm_exp eg ) (size_arithm_exp eg )
-    | CntSum ( eg ,  ed ) ->
+    | CntSum ( eg ,  ed, _ ) ->
       1 + max (size_arithm_exp eg ) (size_arithm_exp eg )
-    | CntProd ( eg ,  ed ) -> 
+    | CntProd ( eg ,  ed, _ ) -> 
       1 + max (size_arithm_exp eg ) (size_arithm_exp eg )    
-    | CntMod ( eg ,  ed ) -> 
+    | CntMod ( eg ,  ed, _ ) -> 
       1 + max (size_arithm_exp eg ) (size_arithm_exp eg )       
-    | CntDiv ( eg ,  ed ) -> 
+    | CntDiv ( eg ,  ed, _ ) -> 
       1 + max (size_arithm_exp eg ) (size_arithm_exp eg )       
 
-
+*)
 
 
 (* This function answers true if there exists a subtree of exp which size
 is greater or equal that deepness. We use this function to decide wheter
 some expression shall be parenthesed or not. *)
+(*
 let rec size_arithmexp_deeper_than  (exp : cnt_arithm_exp ) (deepness : int ) =
   if deepness <= 0 then true
   else 
@@ -189,18 +150,19 @@ let rec size_arithmexp_deeper_than  (exp : cnt_arithm_exp ) (deepness : int ) =
     | CntVar (_)
     | CntNdetVar(_)
     | CntInvalidExp -> false
-    | CntUnMin ( exp' ) ->   size_arithmexp_deeper_than exp' deepness'
-    | CntMinus ( eg ,  ed ) ->
+    | CntUnMin ( exp', _ ) ->   size_arithmexp_deeper_than exp' deepness'
+    | CntMinus ( eg ,  ed, _ ) ->
       (size_arithmexp_deeper_than eg deepness' ) || (size_arithmexp_deeper_than ed deepness' )
-    | CntSum ( eg ,  ed ) ->
+    | CntSum ( eg ,  ed, _ ) ->
      (size_arithmexp_deeper_than eg deepness' ) || (size_arithmexp_deeper_than ed deepness' )
-    | CntProd ( eg ,  ed ) -> 
+    | CntProd ( eg ,  ed, _ ) -> 
       (size_arithmexp_deeper_than eg deepness' ) || (size_arithmexp_deeper_than ed deepness' )
-    | CntMod ( eg ,  ed ) -> 
+    | CntMod ( eg ,  ed, _ ) -> 
       (size_arithmexp_deeper_than eg deepness' ) || (size_arithmexp_deeper_than ed deepness' ) 
-    | CntDiv ( eg ,  ed ) -> 
+    | CntDiv ( eg ,  ed, _ ) -> 
       (size_arithmexp_deeper_than eg deepness' ) || (size_arithmexp_deeper_than ed deepness' )
-
+*)
+(*
 let rec size_boolexp_deeper_than  (bexp : cnt_bool ) (depth : int ) =
   if depth <= 0 then
     true
@@ -216,7 +178,9 @@ let rec size_boolexp_deeper_than  (bexp : cnt_bool ) (depth : int ) =
 	(size_boolexp_deeper_than eg deep' ) || (size_boolexp_deeper_than ed deep' )
       | CntBool ( _, _ , _ ) -> false
 
+*)
 
+(*
 let rec cnt_pprint_arithm_exp ( exp : cnt_arithm_exp ) =
   match exp with
       CntCst(i) -> Big_int.string_of_big_int i
@@ -327,7 +291,7 @@ let rec cnt_pprint_arithm_exp ( exp : cnt_arithm_exp ) =
 
    | CntInvalidExp -> raise Invalid_nts_expression
 
-
+*)
 
 
 
@@ -335,6 +299,7 @@ let rec cnt_pprint_arithm_exp ( exp : cnt_arithm_exp ) =
 (*********************************************************************************************) 
 (**** Simplification of CntBool expression : Elimination of tautologies, or false  bool expressions *)
 
+(*
  let simplify_bottom_top (e : cnt_bool ) = 
     match e with
       | CntBAnd(CntBFalse,_) -> CntBFalse
@@ -355,8 +320,9 @@ let rec cnt_pprint_arithm_exp ( exp : cnt_arithm_exp ) =
       | CntNot(CntBool(CntGeq,a,b)) -> (CntBool(CntLt,a,b))	
       | _ -> e
 
-	
-  let rec simplify_cnt_boolexp ( e : cnt_bool ) =
+*)	
+(*  
+let rec simplify_cnt_boolexp ( e : cnt_bool ) =
     match e with
       | CntBAnd(CntBFalse,_) -> CntBFalse
       | CntBAnd(_,CntBFalse) -> CntBFalse
@@ -385,7 +351,7 @@ let rec cnt_pprint_arithm_exp ( exp : cnt_arithm_exp ) =
       | CntBFalse -> CntBFalse
 	
       | _ -> e
-     
+*)   
 
       (*| CntBAnd(CntBTrue,a) -> simplify_cnt_boolexp a
       | CntBAnd(a,CntBTrue) -> simplify_cnt_boilexp a
@@ -402,7 +368,8 @@ let rec cnt_pprint_arithm_exp ( exp : cnt_arithm_exp ) =
  An answers to false means that e shall be evaluated at runtime, and might
 be equal CntBFalse.
 *)
-  let static_check_if_false ( e : cnt_bool  ) =
+ (* 
+ let static_check_if_false ( e : cnt_bool  ) =
     let es =  simplify_cnt_boolexp e in
     match es with
 	CntBFalse -> true
@@ -487,16 +454,19 @@ be equal CntBFalse.
 	      | CntGeq -> expg^" >= "^expd
 	  end
 
+ *)
 
-	    
+(*	    
   let cnt_simplify_and_pprint_boolexp ( bexp : cnt_bool) =
     (* Uncomment this to simplify *) 
     let bexp = simplify_cnt_boolexp bexp in
     cnt_pprint_boolexp bexp
 
-
+*)
 
 (* This return true iff there is no constructor CntNDet in a CntBoolExpression*)
+
+(*
 let rec is_cnt_bool_det ( b : cnt_bool ) =
   match b with
     | CntBTrue -> true
@@ -534,7 +504,7 @@ and is_cnt_arithm_exp_a_function (e : cnt_arithm_exp ) =
    | CntUnMin (a) ->  	is_cnt_arithm_exp_a_function a
    | CntInvalidExp -> raise CntInvalidExpression
    | _-> true
-
+*)
 	  
 (*let pprint_il_args arg =
   match arg with 
@@ -549,6 +519,8 @@ and is_cnt_arithm_exp_a_function (e : cnt_arithm_exp ) =
   
 *)
 
+
+(*
 let arg_expr_left_folder ( str : string )  expr =
   match str with 
       "" -> cnt_pprint_arithm_exp expr
@@ -557,7 +529,9 @@ let arg_expr_left_folder ( str : string )  expr =
 
 let pprint_arg_list exprl =
   List.fold_left arg_expr_left_folder "" exprl
+*)
 
+(*
 let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
   match tlabel with
       CntGuardIf(cbool) |
@@ -593,7 +567,10 @@ let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
 	    | None -> funname^"("^(pprint_arg_list paramlist)^")"
 	end
   
-	    
+*)
+
+
+(*	    
  let need_split_transition label_list =
     let need_split_folder (has_guard,has_call) trans_label =
 	match trans_label with
@@ -605,9 +582,12 @@ let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
     in
     a && b
 
+*)
 
  (* this method is used to compute the set of counter variables who are
  assigned a new value*)
+
+(*
   let havocise (trans_label_list : cnt_trans_label list) =
 
     let var_with_same_name vref vlistelem =
@@ -712,7 +692,7 @@ let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
     (tpre,tpost)
 	  
 
-
+*)
  
 
 
@@ -723,10 +703,13 @@ let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
 
       (*  number of variables added *)
      (* ( int *  il_fun_argument list ) *)
-      
+  
+
+   (*
   let name_ndet_arg i =
     let name = Format.sprintf "_ndet_arg_%d" i in
     NtsIVar(name)
+   *)
 (*
   let replace_ndet_args_by_ndet_counters ( ilfunlist :  il_fun_arguments list ) =
     let ndet_args = ref 0 in
@@ -923,11 +906,13 @@ let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
     (*l*) (*Retuns the labels untouched*) 
     *)
 
+
+(*
   let havocise_label l =
    (* let l = rewrite_ndet_assignation l
     in*)		
       havocise l
-
+*)
 
  (* let split_guard_call_transition translabel =
      let translabel = 
@@ -939,7 +924,7 @@ let cnt_pprint_translabel ( tlabel : cnt_trans_label ) =
 (************** Implementation of the structural equality between nts
 types. *********)
 
- 
+ (*
   let compare_nts_var (vg : nts_var ) (vd : nts_var ) =
     match vg,vd with 
 	(NtsIVar(nameg),NtsIVar(named)) -> nameg=named
@@ -972,7 +957,9 @@ types. *********)
       
       | (_,_) -> false
 
+ *)
 
+(*
 
   exception Neq_arithm_expr
 
@@ -991,8 +978,9 @@ types. *********)
       with
 	  Neq_arithm_expr -> false
       
+*)
 
-
+(*
   let rec compare_cnt_bool (bg : cnt_bool)(bd : cnt_bool ) =
     match bg,bd with
 	(CntBTrue,CntBTrue) -> true
@@ -1018,7 +1006,7 @@ types. *********)
 	  
       | _-> false
 
-
+*)
 (*
   let compare_il_int_fun_arg (arg1 : il_int_fun_arg) 
       (arg2 : il_int_fun_arg) =
@@ -1039,7 +1027,7 @@ types. *********)
     eq_validity && eq_offset
 
 *)
-
+(*
   let rec compare_nts_var_list l1 l2 =
     match l1 , l2 with
 	(a::_,[]) -> false
@@ -1049,7 +1037,7 @@ types. *********)
 	if compare_nts_var a b
 	then compare_nts_var_list lg ld 
 	else false
-	  
+*)	  
 (*	    
   let rec compare_il_fun_arguments (ilg : il_fun_arguments  list )
       (ild :il_fun_arguments list  ) =
@@ -1075,7 +1063,7 @@ types. *********)
 *)
 	    
 
-
+(*
   let compare_cnt_trans_label_guard 
       (gg : cnt_trans_label)( gd : cnt_trans_label ) =
     match gg,gd with
@@ -1115,9 +1103,10 @@ types. *********)
 
       |(_,_) -> false
 
+*)
 
-
-  let rec compare_tranlabel_list l1 l2 =
+(*  
+let rec compare_tranlabel_list l1 l2 =
      match  l1 , l2 with
 	(a::_,[]) -> false
       | ([],a::_) -> false
@@ -1130,14 +1119,14 @@ types. *********)
 	end
 
 
-
+*)
 
 (************** Hashing function for nts_label types and nts types in general **)
 
 (* The rhs integer values are all primes numbers and shall be pairwise
 distinct.*)
 
-
+(*
   let hash_nts_var 
       (t : nts_var ) =
     match t with 
@@ -1180,7 +1169,7 @@ distinct.*)
       end
     | CntNot(_) -> 4813	
     
-
+*)
 (*
   let hash_cnt_arithm_exp (visit_nodes_left : int)
       (t : cnt_arithm_exp ) =
