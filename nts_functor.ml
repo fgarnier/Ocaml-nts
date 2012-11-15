@@ -1015,7 +1015,8 @@ Typing and typechecking section.
       shared by an expression node have the same type.
   *)
 	  
-  let type_
+  let type_gen_arithm_expressions n c exp =
+    
 
 
 
