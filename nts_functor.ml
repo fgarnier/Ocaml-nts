@@ -888,6 +888,138 @@ are called at some point. Calls might be performed from the same subsystem.
     
 
 
+
+
+(**
+
+Typing and typechecking section.
+
+*)
+
+  exception UndefinedVariable of string * nts_automaton
+  exception UndefinedSubsystem of string
+
+  exception ArgumentTypesMissMatch of nts_gen_relation
+  (** Wrong number of arguments or arguments types don't
+  match the subsystem call signature.*)
+
+  exception TypeErrorInVar of nts_genrel_var
+  exception TypeErrorInArithmExpr of nts_genrel_arithm_exp
+  exception TypeErrorInNtsGenRelation of nts_gen_relation
+
+
+  
+
+  (** Try to find a varible definition in the sybsystem c of
+      the nts n*)
+  exception MultipleDeclarationOfVar of nts_genrel_var * nts_automaton
+      
+  let get_definition_of_variable_by_name n c vname =
+    
+    let is_some t =
+      match t with 
+	  None -> true
+	| Some(_) -> false
+    in
+    let come_get_some t =
+      match t with
+	  Some(t) -> t
+	| None -> assert false
+    in
+    let check_unicity elem itemfound =
+      match elem with 
+	  None -> itemfound
+	| Some(v) ->
+	  begin
+	    if is_some itemfound then
+	      raise (MultipleDeclarationOfVar(v,c))
+	    else 
+	      elem
+	  end
+    in
+    let rec find_var_by_name name vlist =
+      match vlist with
+	  (NtsGenVar(NtsVar(vname,_),_) as hl)::l ->
+	    begin
+	      if String.compare vname name = 0 then
+		Some(hl)
+	      else
+		find_var_by_name name l
+	    end
+	| [] -> None
+    in
+    let res1 = check_unicity (find_var_by_name vname c.input_vars) None
+    in
+    let res1 = check_unicity (find_var_by_name vname c.output_vars) 
+      res1 in
+    let res1 = check_unicity (find_var_by_name vname c.local_vars)
+      res1 in
+    if is_some res1 then
+      come_get_some res1 
+    else
+      begin
+	let res1 = find_var_by_name vname n.nts_global_vars in
+	if  is_some res1 then
+	  come_get_some res1 
+	else
+	  raise ( UndefinedVariable ( vname , c))
+      end
+
+	
+	
+  (** Need to be moved in module Nts*)
+  let nts_var_of_nts_genvar gv =
+    match gv with
+	NtsGenVar(v,_)-> v
+	    
+  (** Need to be moved in Nts module*)
+  let has_type v t =
+    match v with
+	NtsGenVar(NtsVar(vname,typedef),priminfo) ->
+	  if typedef = t then
+	    true
+	  else
+	    false
+	      
+    (** This function might raise an exception whenever v is not
+	a defined variable within the current context of c. *)
+  let type_ntsgen_var n c v =
+    match v with
+	NtsGenVar(NtsVar(vname,NtsUnTyped),priminfo) ->
+	  begin
+	      (** No type is yet associated to this variable, hence
+		  we need to look forward to its definition in 
+		  the automaton.*)
+	    let typedvar_from_def = 
+	      get_definition_of_variable_by_name n c vname
+	    in
+	    let v= nts_var_of_nts_genvar typedvar_from_def in
+	    NtsGenVar(v,priminfo)
+	  end
+	    
+      |  NtsGenVar(NtsVar(vname,typedef),priminfo) ->
+	begin
+	  let typedvar_from_def = 
+	    get_definition_of_variable_by_name n c vname
+	  in
+	  if has_type typedvar_from_def typedef then v
+	    (** If well typed, then one returns the same variable*)
+	  else
+	    raise (TypeErrorInVar(v))
+	  (** Aborting upon type check failure*)
+	  end
+	      
+	      
+  (** Bottom to typecheck : One shall make sure that each subtrees of
+      an arithemtical expression is : typed and all subtree that are
+      shared by an expression node have the same type.
+  *)
+	  
+  let type_
+
+
+
+
   (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
       
