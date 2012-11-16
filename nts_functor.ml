@@ -948,7 +948,8 @@ Typing and typechecking section.
 	    end
 	| [] -> None
     in
-    let res1 = check_unicity (find_var_by_name vname c.input_vars) None
+    let res1 = check_unicity (find_var_by_name vname c.input_vars) 
+      None
     in
     let res1 = check_unicity (find_var_by_name vname c.output_vars) 
       res1 in
@@ -1010,14 +1011,58 @@ Typing and typechecking section.
 	  end
 	      
 	      
+    (** Returns the type of constant *)
+  let gentype_of_cst c =
+    match c with
+	CntGenICst (_) -> NtsIntType
+      | CntGenFCst(_) -> NtsRealType
+      | CntGenBCst (_) -> NtsBoolType	
+
   (** Bottom to typecheck : One shall make sure that each subtrees of
       an arithemtical expression is : typed and all subtree that are
       shared by an expression node have the same type.
   *)
 	  
-  let type_gen_arithm_expressions n c exp =
-    
 
+
+  let rec type_gen_arithm_expressions n c exp =
+    CntGenCst( base_cst , btype) ->
+    begin
+      match type with
+	  NtsUnTyped -> 
+	    let btype = gentype_of_cst base_cst in
+	    CntGenCst( base_cst , btype)
+	| _ ->
+	  begin
+	    let t = gentype_of_cst base_cst in
+	    if t = btype then
+	      exp
+	    else 
+	      raise  (TypeErrorInNtsGenRelation (exp) )
+	  end
+    end
+      
+      | CntGenSymCst(symcst,btype) ->
+	begin
+	  
+	end
+	  
+      | CntGenVar(v) -> 
+	begin
+	  let v = type_ntsgen_var n c v in
+	  CntGenVar(v)
+	end
+      
+      |  CntGenArithmBOp (bop,eg,ed,t) ->
+	begin
+	  
+	end
+
+      |  CntGenArithmUOp( uop , exp , t ) ->
+	begin
+	end
+
+    
 
 
 
