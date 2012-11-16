@@ -59,80 +59,8 @@ let concat_comma_both_arg_non_empty s1 s2 =
   else
     s2
       
-(*let pprint_typeinfo_int_nts_var_list l =
-  let int_var_list = List.filter ( is_int_var) l in
-  pprint_ntsgen_var_list int_var_list
-*)
- 
-(* 
-let pprint_typeinfo_nts_genvar_list l =
-  let int_var_list = List.filter ( is_int_var) l in
-  let real_var_list =  List.filter ( is_real_var) l in
-  let nat_var_list = List.filter ( is_nat_var ) l in
-  let pp_of_list_of_int = 
-    concat_if_first_arg_nonzero (pprint_ntsgen_var_list int_var_list) " : int" in
-  let pp_of_list_of_real = 
-    concat_if_first_arg_nonzero (pprint_ntsgen_var_list real_var_list) " : real" in
-  let pp_of_list_of_nat =
-    concat_if_first_arg_nonzero (pprint_ntsgen_var_list nat_var_list) " : nat" in
-  let ret = concat_comma_both_arg_non_empty pp_of_list_of_int pp_of_list_of_real
-  in  concat_comma_both_arg_non_empty ret pp_of_list_of_nat
-*)
 
-
-(** Polymorphic variant `Curr_Int_Typ, resp. `Curr_Real_Typ, is defined
-and used to state that the previous traversed elemenent of the list is
-and integer, resp. a folating point number. *)
-(*
 let pprint_typeinfo_nts_genvar_list l  =
-  let get_curr_type_of_var v =
-    match v with
-        NtsGenVar(NtsVar(_,NtsIntType),_) -> `Curr_Int_Type
-      | NtsGenVar(NtsVar(_,NtsRealType),_) -> `Curr_Real_Type
-      | NtsGenVar(NtsVar(_,NtsBoolType),_) -> `Curr_Bool_Type 
-      (*| NtsGenVar(NtsVar(_,NtsUnTyped),_) -> `Curr_UnTyped_Type *)
-  in
-  let string_of_type ctype =
-    match ctype with
-        Some(`Curr_Int_Type) -> ": int"
-      | Some(`Curr_Real_Type) -> ": real"
-      | Some(`Curr_Bool_Type) -> ":bool"
-      (*| Some(`Curr_UnTyped_Type) -> ":untyped"*)
-      | None -> ""
-  in
-
-  let outputstring_folder ( prefix , ctype ) nvar  =
-    match ctype, nvar with
-        (None, _) ->
-          begin
-            let vname = Nts.nts_get_nts_gen_var_name nvar in
-            ((Format.sprintf "%s"  vname),
-             Some(get_curr_type_of_var nvar) )
-          end
-      | (Some(`Curr_Int_Type), NtsGenVar(NtsVar(vname,NtsIntType),_)) ->
-        ((Format.sprintf "%s,%s" prefix vname),ctype )
-
-      | (Some(`Curr_Real_Type), NtsGenVar(NtsVar(vname,NtsRealType),_)) ->
-        ((Format.sprintf "%s,%s" prefix vname), ctype)
-      | (Some(`Curr_Bool_Type), NtsGenVar(NtsVar(vname,NtsBoolType),_)) ->
-        ((Format.sprintf "%s,%s" prefix vname), ctype)
-      (*Need to add handling for various array types*)
-      | (Some(`Curr_Int_Type),_) ->
-        ((Format.sprintf "%s : int, %s" prefix
-            (Nts.nts_get_nts_gen_var_name nvar)), Some(get_curr_type_of_var nvar) )
-      | (Some(`Curr_Real_Type),_) ->
-        ((Format.sprintf "%s :real, %s" prefix
-            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) )
-      | (Some(`Curr_Bool_Type),_) ->
-        ((Format.sprintf "%s :bool, %s" prefix
-            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) )	  
-  in
-  let (ret_s,ctype_s) = List.fold_left outputstring_folder ("", None) l in
-  Format.sprintf "%s%s" ret_s (string_of_type ctype_s)
-
-  *)
-  
-    let pprint_typeinfo_nts_genvar_list l  =
   let get_curr_type_of_var v =
     match v with
         NtsGenVar(NtsVar(_,t),_) -> t
@@ -146,7 +74,6 @@ let pprint_typeinfo_nts_genvar_list l  =
       | Some(NtsUnTyped) -> ":untyped"
       | None -> ""
   in
-
   let outputstring_folder ( prefix , ctype ) nvar  =
     match ctype, nvar with
         (None, _) ->

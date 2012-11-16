@@ -1123,14 +1123,61 @@ Typing and typechecking section.
 		  (
 		  let ex = TypeErrorInArithmExpr(exp) in
 		  raise ex )
-	      end
-		
-	      
-	      
+	      end     
 	end
 
     
 
+(** Type checking the nts transitions, return a well typed
+relation upon success, an exception if some operation failed*)
+
+
+ let rec type_check_ntsgen_rel n c genrel =
+   match genrel with
+       CntGenRel (bop, eag ,ead ) ->
+	 let eag = type_gen_arithm_expression n c eag  in
+	 let ead = type_gen_arithm_expression n c ead in	  
+	 let type_eag = type_of_arithm_tree_header eag in
+	 let type_ead = type_of_arithm_tree_header ead in
+	 if type_eag =type_ead 
+	 then
+	   CntGenRel (bop, eag ,ead )
+	 else
+	   begin
+	     let ex =  TypeErrorInNtsGenRelation( genrel ) in
+	     raise ex
+	   end
+
+  | CntGenRelComp (bop , relg, reld) ->
+    begin
+      let relg = type_check_ntsgen_rel n c relg  in
+      let reld = type_check_ntsgen_rel n c reld in	 
+      CntGenRelComp (bop, relg ,reld )
+	
+    end
+      
+  | CntGenNot(rel) ->
+    begin
+      let rel = type_check_ntsgen_rel n c rel
+      in
+      CntGenNot(rel)
+    end
+  | CntGenTrue -> CntGenTrue
+  | CntGenFalse -> CntGenFalse
+  | CntQVarsGenRel ( vlist , quantifier , relation )
+    -> 
+    begin
+      let  rel = type_check_ntsgen_rel n c relation in
+      CntQVarsGenRel ( vlist , quantifier , rel )
+    end
+    
+
+
+
+
+(** Type checking transitions *)
+
+      
 
 
   (** Types and functions used to generate a control flow graph
