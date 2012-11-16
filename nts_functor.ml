@@ -1128,7 +1128,7 @@ Typing and typechecking section.
 
     
 
-(** Type checking the nts transitions, return a well typed
+(** Type checking the nts relation, return a well typed
 relation upon success, an exception if some operation failed*)
 
 
@@ -1174,10 +1174,105 @@ relation upon success, an exception if some operation failed*)
 
 
 
+(** Check whether a call to subsystem is well defined
+*)
+      
+ let vars_have_same_type v1 v2 =
+   match v1, v2 with 
+       (NtsGenVar(NtsVar(_,t1),_),NtsGenVar(NtsVar(_,t2),_))
+       ->
+	 if (t1=t2) then true
+	 else false
+
+ let compare_var_and_exp_type n c v1 e2 =
+   match v1 with
+       NtsGenVar(NtsVar(_,t1),_) ->
+	 let type_e2 = type_of_arithm_tree_header e2 in
+	 (t1 = type_e2 )
+	  
+
+ exception CallToUndefinedSubsystem of string
+ exception BadNumberofArgumentInCall of string * nts_genrel_arithm_exp list
+ exception BadNumberofElemtInLvalsOfCall of string * nts_genrel_var list option
+ exception TypeMismatchInArgCall of string * nts_genrel_arithm_exp list
+ exception TypeMismatchInRetCall of string * nts_genrel_var list option
+
+ let check_call_type n c sysname opt_retlist arg_list =
+   (** *)
+   if not (Hashtbl.mem n.nts_automata sysname) then
+     raise (CallToUndefinedSubsystem(sysname))
+   else ();
+   let subs = Hashtbl.find n.nts_automata sysname in
+   let well_typed_arg_call =
+     try
+       (List.for_all2 (compare_var_and_exp_type n c ) subs.input_vars arg_list)
+     with
+	 Invalid_argument _ -> raise( BadNumberofArgumentInCall(sysname,arg_list))
+   in
+   if ( not  well_typed_arg_call) then
+     raise (TypeMismatchInArgCall(sysname,arg_list))
+   else ();
+
+   let well_typed_ret_val =
+     try
+       match opt_retlist, subs.output_vars with
+	   (None,[]) -> true 
+	 | (Some(lg),ld) ->
+	   begin
+	     (List.for_all2 (vars_have_same_type ) lg ld )
+	   end
+	 | (_,_) -> false
+     with
+	 Invalid_argument _ -> raise(BadNumberofElemtInLvalsOfCall (sysname,opt_retlist))
+   in
+   if (not ( well_typed_ret_val)) then
+     raise 
+       (TypeMismatchInRetCall(sysname,opt_retlist))
+   else ();
+   (** Here, all is fine*)
+   CntGenCall(sysname, opt_retlist, arg_list)
+   
+   
+   
 
 (** Type checking transitions *)
 
+
+
+
+ let type_check_nts_trans_label n c l =
+   match l with
+       CntGenGuard(r) -> let r = type_check_ntsgen_rel n c r in
+			 CntGenGuard(r)
+     | CntGenCall(sysname, Some(ret_list), arg_list) ->
+       begin
+	 (* One need to type vars of ret_list and arg_list and
+	 check that their types match with sysname subsystem
+	 signature.*)
+	 let ret_list = List.map (fun v -> type_ntsgen_var n c v) ret_list 
+	 in
+	 let arg_list = List.map (fun v -> type_gen_arithm_expression n c v ) arg_list 
+	 in
+	 check_call_type n c sysname (Some(ret_list)) arg_list 
+       end
+
+     | CntGenCall(sysname, None, arg_list) ->
+       begin
+	 (* One need to type vars of ret_list and arg_list and
+	 check that their types match with sysname subsystem
+	 signature.*)
+	 let arg_list = List.map (fun v -> type_gen_arithm_expression n c v ) arg_list 
+	 in
+	 check_call_type n c sysname None arg_list 
+       end
       
+     | CntGenHavoc (_) as h -> h 
+			   
+      
+
+
+
+
 
 
   (** Types and functions used to generate a control flow graph
