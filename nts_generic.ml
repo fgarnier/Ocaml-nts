@@ -83,7 +83,7 @@ let pprint_typeinfo_nts_genvar_list l =
 (** Polymorphic variant `Curr_Int_Typ, resp. `Curr_Real_Typ, is defined
 and used to state that the previous traversed elemenent of the list is
 and integer, resp. a folating point number. *)
-
+(*
 let pprint_typeinfo_nts_genvar_list l  =
   let get_curr_type_of_var v =
     match v with
@@ -130,9 +130,59 @@ let pprint_typeinfo_nts_genvar_list l  =
   let (ret_s,ctype_s) = List.fold_left outputstring_folder ("", None) l in
   Format.sprintf "%s%s" ret_s (string_of_type ctype_s)
 
-
+  *)
   
-    
+    let pprint_typeinfo_nts_genvar_list l  =
+  let get_curr_type_of_var v =
+    match v with
+        NtsGenVar(NtsVar(_,t),_) -> t
+	  
+  in
+  let string_of_type ctype =
+    match ctype with
+        Some(NtsIntType) -> ": int"
+      | Some(NtsRealType) -> ": real"
+      | Some(NtsBoolType) -> ":bool"
+      | Some(NtsUnTyped) -> ":untyped"
+      | None -> ""
+  in
+
+  let outputstring_folder ( prefix , ctype ) nvar  =
+    match ctype, nvar with
+        (None, _) ->
+          begin
+            let vname = Nts.nts_get_nts_gen_var_name nvar in
+            ((Format.sprintf "%s"  vname),
+             Some(get_curr_type_of_var nvar) )
+          end
+      | (Some(NtsIntType), NtsGenVar(NtsVar(vname,NtsIntType),_)) ->
+        ((Format.sprintf "%s,%s" prefix vname),ctype )
+
+      | (Some(NtsRealType), NtsGenVar(NtsVar(vname,NtsRealType),_)) ->
+        ((Format.sprintf "%s,%s" prefix vname), ctype)
+      | (Some(NtsBoolType), NtsGenVar(NtsVar(vname,NtsBoolType),_)) ->
+        ((Format.sprintf "%s,%s" prefix vname), ctype)
+      (*Need to add handling for various array types*)
+      | (Some(NtsUnTyped), NtsGenVar(NtsVar(vname,NtsUnTyped),_)) ->
+        ((Format.sprintf "%s,%s" prefix vname), ctype)	  
+      | (Some(NtsIntType),_) ->
+        ((Format.sprintf "%s : int, %s" prefix
+            (Nts.nts_get_nts_gen_var_name nvar)), Some(get_curr_type_of_var nvar) )
+      | (Some(NtsRealType),_) ->
+        ((Format.sprintf "%s :real, %s" prefix
+            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) )
+      | (Some(NtsBoolType),_) ->
+        ((Format.sprintf "%s :bool, %s" prefix
+            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) )
+
+      | (Some(NtsUnTyped),_) ->
+        ((Format.sprintf "%s :bool, %s" prefix
+            (Nts.nts_get_nts_gen_var_name nvar)), Some (get_curr_type_of_var nvar) ) 
+  in
+  let (ret_s,ctype_s) = List.fold_left outputstring_folder ("", None) l in
+  Format.sprintf "%s%s" ret_s (string_of_type ctype_s)
+
+
   
 
 
@@ -177,10 +227,11 @@ let rec nts_pprint_genrel_arithm_exp ( exp : nts_genrel_arithm_exp ) =
   match exp with
       CntGenCst(CntGenICst(i),_) -> Big_int.string_of_big_int i
     | CntGenCst(CntGenFCst(f),_) -> Format.sprintf "%f" f
-    (*| CntGenNdet -> "NDET"*)
+    | CntGenCst(CntGenBCst(CntBTrue),_) -> "true"
+    | CntGenCst(CntGenBCst(CntBFalse),_) -> "false" 
     | CntGenSymCst(CntSymCst(vname,_),_ ) -> vname
     | CntGenVar ( ntsgenvar ) -> nts_pprint_genvar ntsgenvar
-    (*| CntGenNdetVar(varname) -> varname*)
+   
     
     
     | CntGenArithmUOp(CntGenUMinus, e ,_ ) ->

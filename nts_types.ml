@@ -54,14 +54,20 @@ type nts_gen_arithm_binop =
   | CntGenDiv
   | CntGenMod
 
+
+type nts_gen_bool_cst = CntBTrue | CntBFalse
+
+
 type nts_gen_arithm_unop = CntGenUMinus
 
 type nts_gen_bool_binop = CntGenBAnd 
 			  | CntGenBOr
  			 
 
-type nts_base_type_cst = CntGenICst of  Big_int.big_int
-			 | CntGenFCst of float
+type nts_base_type_cst = 
+    CntGenICst of  Big_int.big_int
+  | CntGenFCst of float
+  | CntGenBCst of nts_gen_bool_cst
 
 type nts_symbolic_constant = CntSymCst of string * nts_base_types
 

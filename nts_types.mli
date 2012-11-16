@@ -1,3 +1,21 @@
+(**
+ Type definition for numerical transition systems' relations.
+This file is part of the Ocaml NTL lib, developped in the
+Team DCS of the Verimag laboratory.
+
+
+Contact florent dot garnier at imag dot fr for comments
+suggestions or questions.
+
+
+This file as well as all the files of the Ocaml Ntl library
+are realeased under the terms of the GNU LGPL version 2.1 
+Licence.
+
+
+*)
+
+
 exception Not_LiPVar
 exception Not_LiVar
 exception Not_Guard
@@ -50,13 +68,16 @@ type nts_genrel_arithm_exp =
 type ref_nts_array =
     RefBasicTypeArray of nts_base_types
   | RefMulDimArray of ref_nts_array
+
 type nts_array =
     RefNtsArray of ref_nts_array
   | FixedSizeNtsArray of fixed_size_nts_array
 and fixed_size_nts_array =
     FixedSizeBasicTypeNtsArray of nts_genrel_arithm_exp * nts_base_types
   | FixedSizeMulDimNtsArray of nts_genrel_arithm_exp * nts_array
+
 type nts_array_var = NtsArrayVar of string * nts_array * nts_base_types
+
 type nts_gen_relation =
     CntGenRel of cnt_binop * nts_genrel_arithm_exp * nts_genrel_arithm_exp
   | CntGenRelComp of nts_gen_bool_binop * nts_gen_relation * nts_gen_relation
@@ -64,6 +85,7 @@ type nts_gen_relation =
   | CntGenTrue
   | CntGenFalse
   | CntQVarsGenRel of nts_genrel_var list * nts_quantifier * nts_gen_relation
+
 type nts_trans_label =
     CntGenGuard of nts_gen_relation
   | CntGenCall of string * nts_genrel_var list option *

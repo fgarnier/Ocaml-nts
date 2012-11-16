@@ -33,6 +33,7 @@ let nts_pprint_btype t =
       NtsIntType -> ": int"
     | NtsRealType -> " : real"
     | NtsBoolType -> ":bool"
+    | NtsUnTyped -> ":Untyped"
 
 let rec nts_pprint_nts_typeinfo_var ( x :nts_var) =
   match x with 

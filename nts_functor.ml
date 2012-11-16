@@ -981,6 +981,10 @@ Typing and typechecking section.
 	    true
 	  else
 	    false
+
+
+
+    
 	      
     (** This function might raise an exception whenever v is not
 	a defined variable within the current context of c. *)
@@ -1018,33 +1022,49 @@ Typing and typechecking section.
       | CntGenFCst(_) -> NtsRealType
       | CntGenBCst (_) -> NtsBoolType	
 
-  (** Bottom to typecheck : One shall make sure that each subtrees of
+ 
+
+  (** This function only returns the value the type in the
+  topmost position of an arithmetical expression tree.*)
+ 
+  let type_of_arithm_tree_header exp =
+    match exp with
+	CntGenCst(_,t)-> t
+      | CntGenSymCst (_,t)-> t
+      | CntGenVar(NtsGenVar(NtsVar(_,typedef),_)) -> typedef 
+      | CntGenArithmBOp(_,_,_,t) -> t
+      | CntGenArithmUOp(_,_,t) -> t
+
+	
+ (** Bottom to typecheck : One shall make sure that each subtrees of
       an arithemtical expression is : typed and all subtree that are
       shared by an expression node have the same type.
   *)
 	  
-
-
-  let rec type_gen_arithm_expressions n c exp =
-    CntGenCst( base_cst , btype) ->
-    begin
-      match type with
-	  NtsUnTyped -> 
-	    let btype = gentype_of_cst base_cst in
-	    CntGenCst( base_cst , btype)
-	| _ ->
+  let rec type_gen_arithm_expression n c exp =
+    match exp with
+	CntGenCst( base_cst , btype) ->
 	  begin
-	    let t = gentype_of_cst base_cst in
-	    if t = btype then
-	      exp
-	    else 
-	      raise  (TypeErrorInNtsGenRelation (exp) )
+	    match btype with
+		NtsUnTyped -> 
+		  let btype = gentype_of_cst base_cst in
+		  CntGenCst( base_cst , btype)
+	      | _ ->
+		begin
+		  let t = gentype_of_cst base_cst in
+		  if t = btype then
+		    exp
+		  else 
+		    raise  (TypeErrorInArithmExpr (exp) )
+		end
 	  end
-    end
       
       | CntGenSymCst(symcst,btype) ->
 	begin
-	  
+	  match symcst with
+	      CntSymCst (_,t) -> CntGenSymCst(symcst,t) 
+	(* I need to check whether this constant is not
+	   declared elsewhere using another type*)
 	end
 	  
       | CntGenVar(v) -> 
@@ -1052,14 +1072,61 @@ Typing and typechecking section.
 	  let v = type_ntsgen_var n c v in
 	  CntGenVar(v)
 	end
-      
+	  
       |  CntGenArithmBOp (bop,eg,ed,t) ->
 	begin
+	  let eg = type_gen_arithm_expression n c eg in
+	  let ed = type_gen_arithm_expression n c ed in
 	  
+	  let type_eg = type_of_arithm_tree_header eg in
+	  let type_ed = type_of_arithm_tree_header ed in
+	  if  type_eg = type_ed  
+	  then
+	    begin
+	      match t with
+		  NtsUnTyped -> 
+		    CntGenArithmBOp (bop,eg,ed,type_eg)
+		| _ ->
+		  if t=type_eg 
+		  then exp (* Returning the same subtree, as it is
+			      already well types*)
+		  else (* In this case, subtrees have not the same
+			  type as expected*)
+		    begin
+		      let ex = TypeErrorInArithmExpr(exp) in
+		      raise ex
+		    end	      
+	    end
+ 	  else
+	    begin
+	      (** In this case, eg and ed don't have the same type,
+	      which is not permitted in the Ntl semantic*)
+	       let ex = TypeErrorInArithmExpr(exp) in
+	       raise ex
+	    end   
 	end
 
       |  CntGenArithmUOp( uop , exp , t ) ->
 	begin
+	  let exp = type_gen_arithm_expression n c exp in
+	  let type_exp =  type_of_arithm_tree_header exp  in
+	 
+	  match t with
+	      NtsUnTyped ->	  
+		CntGenArithmUOp( uop , exp , type_exp )
+		  
+	    | _ ->
+	      begin
+		if type_exp = t then  
+		  CntGenArithmUOp( uop , exp , type_exp )
+		else
+		  (
+		  let ex = TypeErrorInArithmExpr(exp) in
+		  raise ex )
+	      end
+		
+	      
+	      
 	end
 
     
