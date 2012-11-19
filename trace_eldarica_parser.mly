@@ -77,17 +77,21 @@
 %token LBRACE
 %token RBRACE
 %token COLON
+%token TRACEDECL
+
+%start gettrace
+
+%%
 
 
 
-
-gettrace = LIST LBRACE statelist RBRACE {
+gettrace : TRACEDECL LBRACE statelist RBRACE {
   let parsedlist = $3 in
   List.map ( state_of_str ) parsedlist
-}
+};
 
-statelist = STATE COMMA statelist { $1 :: $3 }
-	    | STATE {[$1]}
+statelist : STATE COMMA statelist { $1 :: $3 }
+	    | STATE {[$1]};
 
 
 
