@@ -4,13 +4,13 @@
 
   exception UndefinedLexem of string
 
-  module KWD: sig val register_kwd : string -> token -> unit val _KWD_or_IDENT : string -> token end =
+  module KWD: sig val register_kwd : string -> token -> unit val _KWD_or_STATE : string -> token end =
   struct
   let kwds = Hashtbl.create 17
     
   let register_kwd k sort = Hashtbl.add kwds k sort
     
-  let _KWD_or_IDENT str = try Hashtbl.find kwds str with Not_found -> IDENT(str)
+  let _KWD_or_STATE str = try Hashtbl.find kwds str with Not_found -> STATE(str)
   end;;
   
   open KWD;;      
@@ -30,13 +30,14 @@ let intval = number +
 let sys_state_name = ('_'| uletter | lletter )+ (uletter|lletter|'_'|number)*
 
 rule token = parse
+| [' ' '\t' '\r' '\000' '\n'] {token lexbuf}
 | "," {COMMA}
 | "(" {LBRACE}
 | ")" {RBRACE}
 | ":" {COLON}
 
  
-| sys_state_name {STATE( Lexing.lexeme lexbuf)}
+| sys_state_name { _KWD_or_STATE (Lexing.lexeme lexbuf)}
 | eof {EOF}
 
 

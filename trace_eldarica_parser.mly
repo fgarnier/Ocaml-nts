@@ -71,9 +71,9 @@
 
 %}
 
-%type <Trace_types.trace> gettrace 
+/*%type <Trace_types.trace> gettrace*/
+%type<string list > gettrace
 %token <string> STATE
-%token <string> IDENT
 %token EOF
 %token COMMA
 %token LBRACE
@@ -89,7 +89,7 @@
 
 gettrace : TRACEDECL LBRACE statelist RBRACE EOF {
   let parsedlist = $3 in
-  List.map ( state_of_str ) parsedlist
+  (*(List.map ( state_of_str ) parsedlist)*) parsedlist
 };
 
 statelist : STATE COMMA statelist { $1 :: $3 }

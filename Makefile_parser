@@ -15,13 +15,17 @@ CFLAGS = -g -annot -c
 INTERFACES = ntl_parser.mli
 OBJECTS = nts_types.cmo trace_types.cmo trace.cmo nts.cmo simplification.cmo nts_generic.cmo nts_functor.cmo ntsint.cmo \
 	dot_driver.cmo \
+	trace_eldarica_parser.cmo \
+	trace_eldarica_lexer.cmo \
 	nts_spl_intermediate_language_types.cmo \
 	interproc_driver.cmo \
 	ntl_lexer.cmo parsing_error.cmo \
-	ntl_parser.cmo  
+	ntl_parser.cmo   
 
-XOBJECTS = nts_types.cmx trace_types.cmx trace.cmo nts.cmx simplification.cmx nts_generic.cmx nts_functor.cmx ntsint.cmx \
+XOBJECTS = nts_types.cmx trace_types.cmx trace.cmx nts.cmx simplification.cmx nts_generic.cmx nts_functor.cmx ntsint.cmx \
 	dot_driver.cmx \
+	trace_eldarica_parser.cmx \
+	trace_eldarica_lexer.cmx \
 	nts_spl_intermediate_language_types.cmx \
 	interproc_driver.cmx \
 	ntl_lexer.cmx parsing_error.cmx \
