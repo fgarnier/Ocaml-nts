@@ -1162,6 +1162,7 @@ relation upon success, an exception if some operation failed*)
       in
       CntGenNot(rel)
     end
+
   | CntGenTrue -> CntGenTrue
   | CntGenFalse -> CntGenFalse
   | CntQVarsGenRel ( vlist , quantifier , relation )
@@ -1249,9 +1250,11 @@ relation upon success, an exception if some operation failed*)
 	 (* One need to type vars of ret_list and arg_list and
 	 check that their types match with sysname subsystem
 	 signature.*)
-	 let ret_list = List.map (fun v -> type_ntsgen_var n c v) ret_list 
+	 let ret_list = List.map (fun v -> type_ntsgen_var n c v) 
+	   ret_list 
 	 in
-	 let arg_list = List.map (fun v -> type_gen_arithm_expression n c v ) arg_list 
+	 let arg_list = List.map (fun v -> type_gen_arithm_expression n c v ) 
+	   arg_list 
 	 in
 	 check_call_type n c sysname (Some(ret_list)) arg_list 
        end
@@ -1261,7 +1264,8 @@ relation upon success, an exception if some operation failed*)
 	 (* One need to type vars of ret_list and arg_list and
 	 check that their types match with sysname subsystem
 	 signature.*)
-	 let arg_list = List.map (fun v -> type_gen_arithm_expression n c v ) arg_list 
+	 let arg_list = List.map (fun v -> type_gen_arithm_expression n c v ) 
+	   arg_list 
 	 in
 	 check_call_type n c sysname None arg_list 
        end
@@ -1269,11 +1273,6 @@ relation upon success, an exception if some operation failed*)
      | CntGenHavoc (_) as h -> h 
 			   
       
-
-
-
-
-
 
   (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
@@ -1309,9 +1308,5 @@ relation upon success, an exception if some operation failed*)
     nts_blocks_transitions : ( string , nts_basic_block ) Hashtbl.t
   }
 
-
-
-
-    
 
 end
