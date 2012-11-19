@@ -13,14 +13,14 @@ DOCFLAGS := -html -d $(DOCEXPORTDIR) *.ml *.mli
 
 CFLAGS = -g -annot -c
 INTERFACES = ntl_parser.mli
-OBJECTS = nts_types.cmo nts.cmo simplification.cmo nts_generic.cmo nts_functor.cmo ntsint.cmo \
+OBJECTS = nts_types.cmo trace_types.cmo trace.cmo nts.cmo simplification.cmo nts_generic.cmo nts_functor.cmo ntsint.cmo \
 	dot_driver.cmo \
 	nts_spl_intermediate_language_types.cmo \
 	interproc_driver.cmo \
 	ntl_lexer.cmo parsing_error.cmo \
 	ntl_parser.cmo  
 
-XOBJECTS = nts_types.cmx nts.cmx simplification.cmx nts_generic.cmx nts_functor.cmx ntsint.cmx \
+XOBJECTS = nts_types.cmx trace_types.cmx trace.cmo nts.cmx simplification.cmx nts_generic.cmx nts_functor.cmx ntsint.cmx \
 	dot_driver.cmx \
 	nts_spl_intermediate_language_types.cmx \
 	interproc_driver.cmx \
@@ -98,8 +98,12 @@ parse_n_print : parse_n_print.cmo parse_n_print.cmx $(OBJECTS) $(XOBJECTS)
 nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling parse_n_print test"
 	ocamlc -g -o nts2dot $(LIBNUM) $(OBJECTS) nts2dot.cmo 
-	ocamlopt -g -o nts2dot  $(LIBXNUM) $(XOBJECTS) nts2dot.cmx 
+	ocamlopt -g -o xnts2dot  $(LIBXNUM) $(XOBJECTS) nts2dot.cmx 
 
+test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XOBJECTS)
+	@echo "Compiling parse_n_print test"
+	ocamlc -g -o print_trace $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
+	ocamlopt -g -o xprint_trace  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
 
 include .depend
 
