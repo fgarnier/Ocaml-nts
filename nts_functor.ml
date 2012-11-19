@@ -740,11 +740,6 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     ;
     Format.printf "[locally_used_variables] \n"; (Simplification.pprint_diary diary)
 
-
-
-
-
- 
   
   let update_local_list nt_aut loc_vars_list =
     {
@@ -843,10 +838,6 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     called_fun
     
     
-    
-    
-    
-  
 (**
 Returns as input a numerical transition system in which all local variables
 list of each automaton has been cleared of non used varibles
