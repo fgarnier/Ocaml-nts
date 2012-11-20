@@ -148,7 +148,7 @@ module Make =
 		("",Some(curr_control))
 	    | Some(prev) -> 
 	      begin
-		let out_string = Format.sprintf "%s %s -> %s [color=blue]\n" prefix_printer 
+		let out_string = Format.sprintf "%s %s -> %s [color=gold]\n" prefix_printer 
 		(pprint_sys_control prev) (pprint_sys_control curr_control) in
 		(out_string,Some(curr_control))
 	      end
