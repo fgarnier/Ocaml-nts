@@ -19,7 +19,15 @@ module Make =
 
       let pprint_control = NFParam.pprint_control
 	
-    
+      let rec get_opt_transition ntlist =
+	match ntlist with
+	    (CntGenCall ( _, _, _) as h)::l -> Some(h)
+	  | _::l -> get_opt_transition l
+	  | [] -> None
+	    
+	       
+	       
+	    
 
       let dot_of_init_nodes (ca : nts_automaton) =
 	let init_state_printer  prefix control =
@@ -69,11 +77,23 @@ module Make =
      
 
       let dot_of_transitions  (ca : nts_automaton ) prefix =
-	let transition_printer prefix control_org _ control_dest =
-	  Format.sprintf "%s%s_%s->%s_%s;\n" prefix 
-	    ca.NFParam.nts_automata_name 
-	    (pprint_control control_org) 
-	    ca.nts_automata_name (pprint_control control_dest)
+	let transition_printer prefix control_org l control_dest =
+	  let opt_call = get_opt_transition l in
+	  match opt_call with
+	      None ->
+		Format.sprintf "%s%s_%s->%s_%s;\n" prefix 
+		  ca.NFParam.nts_automata_name 
+		  (pprint_control control_org) 
+		  ca.nts_automata_name (pprint_control control_dest)
+	    | Some(CntGenCall ( sysname, _, _)) -> 
+	      begin
+		Format.sprintf "%s%s_%s->%s_%s[color=red,label=\"call to %s \"];\n" prefix 
+		  ca.NFParam.nts_automata_name 
+		  (pprint_control control_org) 
+		  ca.nts_automata_name (pprint_control control_dest)
+		  sysname
+	      end
+	      
 	in 
 	NFParam.fold_transitions_container 
 	  ca.transitions transition_printer prefix
