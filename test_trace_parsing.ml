@@ -35,10 +35,10 @@ let _ = if ( Array.length  Sys.argv ) != 2 then
       
   let buf = Lexing.from_channel input_channel 
   in
-  (*
-  let trace_l = Trace_eldarica_parser.gettrace Trace_eldarica_lexer.token  buf *)
+  
    let trace_l = Trace_eldarica_parser.gettrace Trace_eldarica_lexer.token  buf
    in
-  Format.printf "Trace is %s \n" (List.fold_left  print_str_l_folder "" trace_l)
+  (*Format.printf "Trace is %s \n" (List.fold_left  print_str_l_folder "" trace_l)*)
+   Format.printf "Trace is %s \n" (Trace.print_trace trace_l)
       
       

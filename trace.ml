@@ -11,7 +11,7 @@ open Trace_types
 
 let print_sys_control s =
   match s with 
-    Sys_control(sname,cname) -> sname^":"^cname
+    Sys_control(sname,cname) -> "("^sname^";"^cname^")"
 
 let print_trace_l_folder prefix s =
   if String.length prefix = 0 then

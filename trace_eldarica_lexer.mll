@@ -10,7 +10,7 @@
     
   let register_kwd k sort = Hashtbl.add kwds k sort
     
-  let _KWD_or_STATE str = try Hashtbl.find kwds str with Not_found -> STATE(str)
+  let _KWD_or_STATE str = try Hashtbl.find kwds str with Not_found -> IDENT(str)
   end;;
   
   open KWD;;      
@@ -35,7 +35,7 @@ rule token = parse
 | "(" {LBRACE}
 | ")" {RBRACE}
 | ":" {COLON}
-
+| ";" {SEMICOLON}
  
 | sys_state_name { _KWD_or_STATE (Lexing.lexeme lexbuf)}
 | eof {EOF}
