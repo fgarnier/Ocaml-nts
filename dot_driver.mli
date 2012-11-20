@@ -28,4 +28,8 @@ module Make :
 	system into a .dot file.
       *)
       val dot_of_nts : NFParam.nts_system -> string
+
+	(** Prints a trance upon the hierachical transition system*)
+      val dot_of_trace_upon_nts :
+        NFParam.nts_system -> Trace_types.trace -> string
     end

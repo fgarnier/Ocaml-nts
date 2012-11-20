@@ -49,7 +49,7 @@ module Make =
 	  ca.NFParam.final_states final_state_printer  ""
 	  
 
-	  
+      (** Prints error states in red.*)  
       let dot_of_error_nodes_reach_upb (ca : nts_automaton ) invtable =
 	let error_printer  prefix control =
 	  if NFParam.is_state_in_inv_relation invtable control 
@@ -75,7 +75,8 @@ module Make =
 	  
 	  
      
-
+      (** Interprocedural calls are represented using a red transition 
+      label.*)
       let dot_of_transitions  (ca : nts_automaton ) prefix =
 	let transition_printer prefix control_org l control_dest =
 	  let opt_call = get_opt_transition l in
@@ -93,6 +94,7 @@ module Make =
 		  ca.nts_automata_name (pprint_control control_dest)
 		  sysname
 	      end
+	    | Some(_) -> assert false
 	      
 	in 
 	NFParam.fold_transitions_container 
@@ -131,7 +133,43 @@ module Make =
 	in
 	ret_string
 	
-	
+
+      let pprint_sys_control s =
+	match s with
+	    Trace_types.Sys_control(sname,cname) ->
+	      sname^"_"^cname 
+		 
+
+      let pprint_trace_tansitions tr =
+	let pprint_trace_transitions_folder (prefix_printer,previous_state) 
+	    curr_control =
+	  match previous_state with 
+	      None -> 
+		("",Some(curr_control))
+	    | Some(prev) -> 
+	      begin
+		let out_string = Format.sprintf "%s %s -> %s [color=blue]\n" prefix_printer 
+		(pprint_sys_control prev) (pprint_sys_control curr_control) in
+		(out_string,Some(curr_control))
+	      end
+	in
+	let  (ret_string, _ ) = 
+	  List.fold_left pprint_trace_transitions_folder ("",None) tr 
+	in
+	ret_string
 	  
+	
+      let dot_of_trace_upon_nts (nt : nts_system ) (tr : Trace_types.trace ) =
+	let automata_folder name caut pre_str =
+	  Format.sprintf "%s\n%s" pre_str (dot_of_cautomaton caut)
+	in
+	let automata_dump = 
+	  Hashtbl.fold automata_folder nt.nts_automata "" 
+	in
+	let ret_string = 
+	  Format.sprintf "digraph %s { %s" nt.nts_system_name automata_dump
+	in
+	let trace_transitions =  pprint_trace_tansitions tr in
+	Format.sprintf "%s %s } " ret_string trace_transitions
 	  
 end;;
