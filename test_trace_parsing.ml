@@ -5,6 +5,30 @@ open Trace_eldarica_lexer
 open Trace_eldarica_parser
 
 
+let pprint_sys_control s =
+	match s with
+	    Trace_types.Sys_control(sname,cname) ->
+	      sname^"_"^cname 
+
+let pprint_trace_tansitions tr =
+  let pprint_trace_transitions_folder (prefix_printer,previous_state) 
+      curr_control =
+    match previous_state with 
+      None -> 
+	("",Some(curr_control))
+    | Some(prev) -> 
+      begin
+	let out_string = Format.sprintf "%s %s -> %s \n" prefix_printer 
+	  (pprint_sys_control prev) (pprint_sys_control curr_control) in
+	(out_string,Some(curr_control))
+      end
+  in
+  let  (ret_string, _ ) = 
+    List.fold_left pprint_trace_transitions_folder ("",None) tr 
+  in
+  ret_string
+
+
 let print_str_l_folder prefix s =
   if String.length prefix = 0 then
      s
@@ -38,7 +62,7 @@ let _ = if ( Array.length  Sys.argv ) != 2 then
   
    let trace_l = Trace_eldarica_parser.gettrace Trace_eldarica_lexer.token  buf
    in
-  (*Format.printf "Trace is %s \n" (List.fold_left  print_str_l_folder "" trace_l)*)
-   Format.printf "Trace is %s \n" (Trace.print_trace trace_l)
+   
+   Format.printf "Trace is %s \n" (pprint_trace_tansitions trace_l)
       
       
