@@ -8,16 +8,36 @@
 
   let sid_to_code_tbl_builder tbl ((l,r) : (sid * string)) =
     Hastbl.add tbl l r
-}
+%}
 
 
 
 %token <int> INT
+%token <string> IDENT
+%token <string> ANNOT
 %token MAPESIDTOSID OPENGROUP CLOSEGROUP CODEBLOCKOPEN CODEBLOCKCLOSE
-%token ENDLINE EOF CCODE SID COLON SEMICOLON
+%token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL
 
+%type <Table_types.sid_to_code_tbl_builder>
+%entry mapextract
 
 %%
+
+
+
+nts_map_list : extract_subsystable_map {[$1]}
+ | extract_subsystable_map nts_map_list {$1 :: $2 };
+
+
+extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT extract_esid_sid_map extract_sid_code_map CLOSEGROUP {
+
+  {
+    tr_sysname=$4;
+    esid_to_sid_map = $5;
+    esid_to_statement_infos=$6;
+  }
+
+};
 
 
 extract_esid_sid_map : MAPESIDTOSID OPENGROUP esidlist CLOSEGROUP

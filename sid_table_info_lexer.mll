@@ -4,6 +4,7 @@
 
   
   exception UNdefinedLexem of string
+  exception EofWhileInAComment of string
 
       
   module KWD: sig val register_kwd : string -> token -> unit val _KWD_or_IDENT : string -> token end =
@@ -45,7 +46,8 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
   | ">>" {MAPESIDTOSID}
   | "{{" {OPENGROUP}
   | "}}" {CLOSEGROUP}
-  | "@{{@" {CODEBLOCKOPEN}
+  | "@{{@" { annot "" lexbuf}
+
   | "@}}@" {CODEBLOCKCLOSE}
 
   | ";;" {ENDLINE}
@@ -75,6 +77,14 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
     let error_msg = Lexing.lexeme lexbuf in 
     raise (UndefinedLexem(error_msg))
   }
-      
+
+and 
+    rule annot prefix = parse
+    | "@}}@" {ANNOT(prefix)}
+    | eof { raise EofWhileInAComment}
+    | _ {
+      let suffix=prefix^(Lexing.lexeme lexbuf) in
+      annot suffix lexbuf
+    }
       
 {}
