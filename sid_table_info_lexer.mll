@@ -49,7 +49,10 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
   | "@}}@" {CODEBLOCKCLOSE}
 
   | ";;" {ENDLINE}
-
+  | ";" {SEMICOLON}
+  | ":" {COLON}
+  | "sid" {SID}
+  | "C-Code" {CCODE}
   | eof {EOF}
 
 
@@ -61,6 +64,11 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
     let num =  Big_int.big_int_of_string( 
     Lexing.lexeme lexbuf) in
     INT(num)
+  }
+
+  | identifier {
+    let str = Lexing.lexeme lexbuf in
+    _KWD_or_IDENT str 
   }
 
   | _ { 
