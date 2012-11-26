@@ -7,17 +7,17 @@
     Hashtbl.add tbl l r
       
   let sid_to_code_tbl_builder tbl ((l,r) : (sid * string)) =
-    Hastbl.add tbl l r
+    Hashtbl.add tbl l r
       
       
   let tr_subsystem_builder_iterator tbl 
-      ((l,r) : (string *  tr_subsystem_table)) =
+      ((l,r) : (string *  map_2_fcinfogs)) =
     Hashtbl.add tbl l r
       
 %}
 
 
-%type <Table_types.tr_subsystem_table> mapextract 
+%type <Trace_types.tr_subsystem_table> mapextract 
 %token <int> INT
 %token <string> IDENT
 %token <string> ANNOT
@@ -30,7 +30,8 @@
 
 mapextract : nts_map_list EOF {
   let tbl = Hashtbl.create 97 in
-  List.iter ( tr_subsystem_builder_iterator tbl ) $1
+  List.iter ( tr_subsystem_builder_iterator tbl ) $1;
+  tbl
     
 };
 
@@ -41,10 +42,13 @@ nts_map_list : extract_subsystable_map {[$1]}
 
 extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT ENDLINE extract_esid_sid_map ENDLINE extract_sid_code_map ENDLINE CLOSEGROUP {
 
-  {
+  let mp = {
     tr_sysname=$4;
     esid_to_sid_map = $6;
     esid_to_statement_infos=$8;
+  } in
+  {tr_subsystem_name = $4;
+   tr_map = mp;
   }
 
 };

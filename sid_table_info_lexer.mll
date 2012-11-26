@@ -1,7 +1,7 @@
 {
-  open Sid_table_info_parser
+  
   open Lexing
-
+  open Sid_table_info_parser
   
   exception UNdefinedLexem of string
   exception EofWhileInAComment of string

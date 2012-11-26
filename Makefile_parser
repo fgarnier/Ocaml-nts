@@ -1,8 +1,6 @@
 #
-
-
 TYPES_INCLUDES := ${FRAMA_C_INCLUDES} 
-GENSOURCE := ntl_parser.ml ntl_parser.mli ntl_lexer.ml trace_eldarica_lexer.ml trace_eldarica_parser.ml trace_eldarica_parser.mli sid_table_info_parser.ml sid_table_info_parser.mli sid_table_info_lexer.ml sid_table_info_parser.mli
+GENSOURCE := ntl_parser.ml ntl_parser.mli ntl_lexer.ml trace_eldarica_lexer.ml trace_eldarica_parser.ml trace_eldarica_parser.mli sid_table_info_parser.ml sid_table_info_lexer.ml
  
 SOURCE_FILES := nts_types.ml nts.ml nts_functor.ml ntsint.ml nts_generic.ml\
 	     dot_driver.ml  parsing_error.ml
@@ -17,6 +15,8 @@ OBJECTS = nts_types.cmo trace_types.cmo trace.cmo nts.cmo simplification.cmo nts
 	dot_driver.cmo \
 	trace_eldarica_parser.cmo \
 	trace_eldarica_lexer.cmo \
+	sid_table_info_parser.cmo \
+	sid_table_info_lexer.cmo \
 	nts_spl_intermediate_language_types.cmo \
 	interproc_driver.cmo \
 	ntl_lexer.cmo parsing_error.cmo \
@@ -26,6 +26,8 @@ XOBJECTS = nts_types.cmx trace_types.cmx trace.cmx nts.cmx simplification.cmx nt
 	dot_driver.cmx \
 	trace_eldarica_parser.cmx \
 	trace_eldarica_lexer.cmx \
+	sid_table_info_parser.cmx \
+        sid_table_info_lexer.cmx \
 	nts_spl_intermediate_language_types.cmx \
 	interproc_driver.cmx \
 	ntl_lexer.cmx parsing_error.cmx \
@@ -81,9 +83,9 @@ ntl_lexer.ml : ntl_lexer.mll
 
 
 
-trace_eldarica_parser.cmi : trace_eldarica_parser.mli
+trace_eldarica_lexer.cmi : trace_eldarica_parser.cmi
 
-trace_eldarica_parser.mli : trace_eldarica_parser.ml
+trace_eldarica_parser.cmi : trace_eldarica_parser.ml
 
 
 trace_eldarica_parser.ml : trace_eldarica_parser.mly
@@ -95,24 +97,27 @@ trace_eldarica_lexer.ml : trace_eldarica_lexer.mll
 	@ocamllex $<
 
 
-sid_table_info_parser.cmi : sid_table_info_parser.mli
-
-sid_table_info_parser.mli : sid_table_info_parser.ml
+sid_table_info_parser.cmi : sid_table_info_parser.mly
 
 
-sid_table_info_lexer.ml : sid_table_info_lexer.mll
+sid_table_info_lexer.cmi : sid_table_info_parser.cmi
+
+sid_table_info_parser.cmi : sid_table_info_parser.ml
+
+
+sid_table_info_lexer.ml : sid_table_info_lexer.mll sid_table_info_parser.cmi 
 	@echo  "Generating Lexer" $<
 	@ocamllex $<	
 
 
-sid_table_info_parser.ml :  trace_eldarica_parser.mly
+sid_table_info_parser.ml :  sid_table_info_parser.mly trace_types.cmi trace_types.cmx
 	@echo  "Generating Parser" $<
 	@ocamlyacc $<
 		
 
 parse_n_print : parse_n_print.cmo parse_n_print.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling parse_n_print test"
-	ocamlc -g -o parse_n_print $(LIBNUM) $(OBJECTS) parse_n_print.cmo 
+	ocamlc -g -o parse_n_print $(LIBNUM) $(OBJECTS) parse_n_print 
 	ocamlopt -g -o xparse_n_print  $(LIBXNUM) $(XOBJECTS) parse_n_print.cmx 
 
 nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
@@ -125,7 +130,10 @@ test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XO
 	ocamlc -g -o print_trace $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
 	ocamlopt -g -o xprint_trace  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
 
-
+test_parse_sidinfo : test_parse_sid_table.cmo test_parse_sid_table.cmx $(OBJECTS) $(XOBJECTS)
+	@echo "Compiling test_parse_sid_table"
+	ocamlc -g -o test_parse_sid_table $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
+	ocamlopt -g -o xtest_parse_sid_table  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
 
 
 include .depend
