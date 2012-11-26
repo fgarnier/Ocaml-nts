@@ -11,7 +11,7 @@
       
       
   let tr_subsystem_builder_iterator tbl 
-      ((l,r) : (string *  map_2_fcinfogs)) =
+      ((l,r) : (string *  map_2_fcinfos)) =
     Hashtbl.add tbl l r
       
 %}
@@ -42,14 +42,14 @@ nts_map_list : extract_subsystable_map {[$1]}
 
 extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT ENDLINE extract_esid_sid_map ENDLINE extract_sid_code_map ENDLINE CLOSEGROUP {
 
+  let sysname = $4 in
   let mp = {
-    tr_sysname=$4;
+    tr_sysname=sysname;
     esid_to_sid_map = $6;
     esid_to_statement_infos=$8;
-  } in
-  {tr_subsystem_name = $4;
-   tr_map = mp;
-  }
+  } 
+  in
+  (sysname,mp)
 
 };
 
@@ -66,13 +66,13 @@ esidlist : esidtosidrel ENDLINE {[$1]}
 | esidtosidrel ENDLINE esidlist {$1::$3};
 
 
-esidtosidrel : INT MAPESIDTOSID INT {(Esid($1), Sid($3))};
+esidtosidrel : INT MAPESIDTOSID INT {(Trace_types.ESID($1), Trace_types.SID($3))};
 
 
 extract_sid_code_map : CODEMAP OPENGROUP sidtocodelist CLOSEGROUP 
   {
     let tbl = Hashtbl.create 97 in
-    Lisp.map (fun s -> sid_to_code_tbl_builder tbl s) $3;
+    List.iter (fun s -> sid_to_code_tbl_builder tbl s) $3;
     tbl
   };
 
@@ -84,6 +84,6 @@ sidtocodelist : sidtocoderel { [$1] }
 sidtocoderel :  SID COLON INT SEMICOLON CCODE ANNOT {
   let sid = $3 in
   let code = $6 in
-  (Sid(sid),code)						 
+  (Trace_types.SID(sid),code)						 
 };
 

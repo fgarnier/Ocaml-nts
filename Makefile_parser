@@ -44,7 +44,7 @@ DIST_TAR_NAME = ocaml_ntlib$(DATE).tgz
 clean : 
 	rm -f *.cmo *.o *.cmx *.cmxa *.cmi *.cma *.annot parse_n_print xparse_n_print $(GENSOURCE)
 
-all : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) parse_n_print nts2dot
+all : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) parse_n_print nts2dot test_parse_sidinfo
 	@echo "Build successfull"
 
 dist : all clean
@@ -117,7 +117,7 @@ sid_table_info_parser.ml :  sid_table_info_parser.mly trace_types.cmi trace_type
 
 parse_n_print : parse_n_print.cmo parse_n_print.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling parse_n_print test"
-	ocamlc -g -o parse_n_print $(LIBNUM) $(OBJECTS) parse_n_print 
+	ocamlc -g -o parse_n_print $(LIBNUM) $(OBJECTS) parse_n_print.cmo 
 	ocamlopt -g -o xparse_n_print  $(LIBXNUM) $(XOBJECTS) parse_n_print.cmx 
 
 nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
@@ -132,8 +132,8 @@ test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XO
 
 test_parse_sidinfo : test_parse_sid_table.cmo test_parse_sid_table.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling test_parse_sid_table"
-	ocamlc -g -o test_parse_sid_table $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
-	ocamlopt -g -o xtest_parse_sid_table  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
+	ocamlc -g -o test_parse_sid_table $(LIBNUM) $(OBJECTS) test_parse_sid_table.cmo 
+	ocamlopt -g -o xtest_parse_sid_table  $(LIBXNUM) $(XOBJECTS) test_parse_sid_table.cmx 
 
 
 include .depend

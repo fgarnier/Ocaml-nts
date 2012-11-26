@@ -28,8 +28,9 @@ let _ =
       
       try
 	let buf = Lexing.from_channel input_channel in
-	let sid_infos =  Sid_table_info_parser.mapextract buf in
-	let print_out = Trace.pprint ( pprint_tr_subsystem_table sid_infos)
+	let sid_infos =  Sid_table_info_parser.mapextract Sid_table_info_lexer.token buf  in
+	let print_out =  
+	   Trace.pprint_tr_subsystem_table sid_infos
 	in
 	Format.printf "%s" print_out 
 

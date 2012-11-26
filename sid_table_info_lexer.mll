@@ -3,8 +3,8 @@
   open Lexing
   open Sid_table_info_parser
   
-  exception UNdefinedLexem of string
-  exception EofWhileInAComment of string
+  exception UndefinedLexem of string
+  exception EofWhileInAComment 
 
       
   module KWD: sig val register_kwd : string -> token -> unit val _KWD_or_IDENT : string -> token end =
@@ -21,7 +21,7 @@
 
 
   register_kwd "FUNCTION" FUNDECL;;
-  register_kwd "ESID_TO_SID_MAP" MAPDECL;;
+  register_kwd "ESID_TO_SID_MAP" DECLMAPESIDTOSID;;
   register_kwd "SID_TO_CODE_MAP" CODEMAP;;
 
 
@@ -65,7 +65,7 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
   | [' ' '\t' '\r' '\000'] {token lexbuf}
 
   | intval { 
-    let num =  Big_int.big_int_of_string( 
+    let num =  int_of_string( 
     Lexing.lexeme lexbuf) in
     INT(num)
   }
