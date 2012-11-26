@@ -44,6 +44,7 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
     
   rule token = parse
   | "ESID_TO_SID_MAP" {DECLMAPESIDTOSID} 
+  | "SID_TO_CODE_MAP" {DECLARECODEMAP}
   | ">>" {MAPESIDTOSID}
   | "{{" {OPENGROUP}
   | "}}" {CLOSEGROUP}

@@ -2,7 +2,7 @@
 
 
 TYPES_INCLUDES := ${FRAMA_C_INCLUDES} 
-GENSOURCE := ntl_parser.ml ntl_parser.mli ntl_lexer.ml trace_eldarica_lexer.ml trace_eldarica_parser.ml trace_eldarica_parser.mli
+GENSOURCE := ntl_parser.ml ntl_parser.mli ntl_lexer.ml trace_eldarica_lexer.ml trace_eldarica_parser.ml trace_eldarica_parser.mli sid_table_info_parser.ml sid_table_info_parser.mli sid_table_info_lexer.ml sid_table_info_parser.mli
  
 SOURCE_FILES := nts_types.ml nts.ml nts_functor.ml ntsint.ml nts_generic.ml\
 	     dot_driver.ml  parsing_error.ml
@@ -79,6 +79,8 @@ ntl_lexer.ml : ntl_lexer.mll
 	@echo  "Generating Lexer" $<
 	@ocamllex $<
 
+
+
 trace_eldarica_parser.cmi : trace_eldarica_parser.mli
 
 trace_eldarica_parser.mli : trace_eldarica_parser.ml
@@ -93,6 +95,20 @@ trace_eldarica_lexer.ml : trace_eldarica_lexer.mll
 	@ocamllex $<
 
 
+sid_table_info_parser.cmi : sid_table_info_parser.mli
+
+sid_table_info_parser.mli : sid_table_info_parser.ml
+
+
+sid_table_info_lexer.ml : sid_table_info_lexer.mll
+	@echo  "Generating Lexer" $<
+	@ocamllex $<	
+
+
+sid_table_info_parser.ml :  trace_eldarica_parser.mly
+	@echo  "Generating Parser" $<
+	@ocamlyacc $<
+		
 
 parse_n_print : parse_n_print.cmo parse_n_print.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling parse_n_print test"
@@ -100,7 +116,7 @@ parse_n_print : parse_n_print.cmo parse_n_print.cmx $(OBJECTS) $(XOBJECTS)
 	ocamlopt -g -o xparse_n_print  $(LIBXNUM) $(XOBJECTS) parse_n_print.cmx 
 
 nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
-	@echo "Compiling parse_n_print test"
+	@echo "Compiling nts2dot"
 	ocamlc -g -o nts2dot $(LIBNUM) $(OBJECTS) nts2dot.cmo 
 	ocamlopt -g -o xnts2dot  $(LIBXNUM) $(XOBJECTS) nts2dot.cmx 
 
@@ -108,6 +124,9 @@ test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XO
 	@echo "Compiling parse_n_print test"
 	ocamlc -g -o print_trace $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
 	ocamlopt -g -o xprint_trace  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
+
+
+
 
 include .depend
 

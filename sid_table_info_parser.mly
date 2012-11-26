@@ -23,6 +23,7 @@
 %token <string> ANNOT
 %token MAPESIDTOSID OPENGROUP CLOSEGROUP CODEBLOCKOPEN CODEBLOCKCLOSE
 %token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL CODEMAP DECLMAPESIDTOSID
+%token DECLARECODEMAP
 %start mapextract
 %%
 
@@ -38,12 +39,12 @@ nts_map_list : extract_subsystable_map {[$1]}
  | extract_subsystable_map nts_map_list {$1 :: $2 };
 
 
-extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT extract_esid_sid_map extract_sid_code_map CLOSEGROUP {
+extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT ENDLINE extract_esid_sid_map ENDLINE extract_sid_code_map ENDLINE CLOSEGROUP {
 
   {
     tr_sysname=$4;
-    esid_to_sid_map = $5;
-    esid_to_statement_infos=$6;
+    esid_to_sid_map = $6;
+    esid_to_statement_infos=$8;
   }
 
 };
