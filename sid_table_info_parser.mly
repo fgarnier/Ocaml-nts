@@ -22,7 +22,7 @@
 %token <string> IDENT
 %token <string> ANNOT
 %token MAPESIDTOSID OPENGROUP CLOSEGROUP CODEBLOCKOPEN CODEBLOCKCLOSE
-%token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL CODEMAP DECLMAPESIDTOSID
+%token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL DECLMAPESIDTOSID
 %token DECLARECODEMAP
 %start mapextract
 %%
@@ -54,7 +54,7 @@ extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT ENDLINE extract_esid_sid_ma
 };
 
 
-extract_esid_sid_map : DECLMAPESIDTOSID OPENGROUP esidlist CLOSEGROUP
+extract_esid_sid_map : DECLMAPESIDTOSID OPENGROUP esidlist CLOSEGROUP 
 {
   let esidsidtbl = Hashtbl.create 97 in
   List.iter (fun s -> esid_sid_tbl_builder esidsidtbl s) $3;
@@ -62,14 +62,14 @@ extract_esid_sid_map : DECLMAPESIDTOSID OPENGROUP esidlist CLOSEGROUP
 };
 
 
-esidlist : esidtosidrel ENDLINE {[$1]}
-| esidtosidrel ENDLINE esidlist {$1::$3};
+esidlist : esidtosidrel {[$1]}
+| esidtosidrel  esidlist {$1::$2};
 
 
 esidtosidrel : INT MAPESIDTOSID INT {(Trace_types.ESID($1), Trace_types.SID($3))};
 
 
-extract_sid_code_map : CODEMAP OPENGROUP sidtocodelist CLOSEGROUP 
+extract_sid_code_map : DECLARECODEMAP OPENGROUP sidtocodelist CLOSEGROUP 
   {
     let tbl = Hashtbl.create 97 in
     List.iter (fun s -> sid_to_code_tbl_builder tbl s) $3;

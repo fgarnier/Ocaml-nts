@@ -22,7 +22,7 @@
 
   register_kwd "FUNCTION" FUNDECL;;
   register_kwd "ESID_TO_SID_MAP" DECLMAPESIDTOSID;;
-  register_kwd "SID_TO_CODE_MAP" CODEMAP;;
+  register_kwd "SID_TO_CODE_MAP" DECLARECODEMAP;;
 
 
 
@@ -37,14 +37,13 @@
 let lletter = ['a' - 'z']
 let uletter = ['A' - 'Z']
 let number =  ['0' - '9']
-let intval = number +
+let intval = '-'(number +) | (number +)
 let identifier = ( '_' | uletter | lletter)+ ( uletter | lletter | '_' | number )*
 let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter | lletter | number )+ (uletter | lletter |number)+
 
     
   rule token = parse
-  | "ESID_TO_SID_MAP" {DECLMAPESIDTOSID} 
-  | "SID_TO_CODE_MAP" {DECLARECODEMAP}
+  
   | ">>" {MAPESIDTOSID}
   | "{{" {OPENGROUP}
   | "}}" {CLOSEGROUP}
@@ -56,6 +55,7 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
   | ";" {SEMICOLON}
   | ":" {COLON}
   | "sid" {SID}
+  | "=" {EQ}
   | "C-Code" {CCODE}
   | eof {EOF}
 
