@@ -21,4 +21,43 @@ let print_trace_l_folder prefix s =
 
 let print_trace t =
   List.fold_left print_trace_l_folder "" t
-    
+  
+let pprint_esid e =
+  match e with ESID(id) -> Format.sprintf "%d" id
+
+let pprint_sid s =
+   match s with SID(id) -> Format.sprintf "%d" id
+
+let pprint_folder_esid_sid_map key map prefix =
+  Format.sprintf "%s %s>>%s\n" prefix ( pprint_esid key) (pprint_sid map)
+
+let pprint_esidsid_map tbl = 
+  let ret_str = 
+    Hashtbl.fold pprint_folder_esid_sid_map  tbl "ESID_TO_SID_MAP{{"
+  in
+  ret_str^"}};;"
+
+
+let pprint_folder_sid_code_map key code prefix =
+  Format.sprintf "%s sid : %s ; C-Code%c{{%c%s%c}}%c;;\n" prefix ( pprint_sid key) '@' '@' code '@' '@' 
+
+
+let pprint_sid_to_code_info tbl = 
+  let ret_str = 
+    Hashtbl.fold pprint_folder_sid_code_map  tbl "SID_TO_CODE_MAP{{"
+  in
+  ret_str^"}};;"
+
+
+let pprint_map_2_fcinfo m =
+  let esid_sid = pprint_esidsid_map m.esid_to_sid_map in
+  let code_map = pprint_sid_to_code_info m.esid_to_statement_infos in
+  Format.sprintf "{{Function = %s ;; %s \n %s }}" 
+      m.tr_sysname esid_sid code_map
+
+
+let pprint_tr_subsystem_table tbl =
+  let print_folder _ map pre =
+    Format.sprintf "%s %s\n" pre (pprint_map_2_fcinfo map)
+  in
+  Hashtbl.fold print_folder  tbl ""
