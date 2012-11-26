@@ -2,27 +2,36 @@
   open Lexing
   open Trace_types 
    
-
+  
   let esid_sid_tbl_builder tbl ((l,r) : (esid * sid)) =
     Hashtbl.add tbl l r
-
+      
   let sid_to_code_tbl_builder tbl ((l,r) : (sid * string)) =
     Hastbl.add tbl l r
+      
+      
+  let tr_subsystem_builder_iterator tbl 
+      ((l,r) : (string *  tr_subsystem_table)) =
+    Hashtbl.add tbl l r
+      
 %}
 
 
-
+%type <Table_types.tr_subsystem_table> mapextract 
 %token <int> INT
 %token <string> IDENT
 %token <string> ANNOT
 %token MAPESIDTOSID OPENGROUP CLOSEGROUP CODEBLOCKOPEN CODEBLOCKCLOSE
-%token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL
-
-%type <Table_types.sid_to_code_tbl_builder>
-%entry mapextract
-
+%token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL CODEMAP DECLMAPESIDTOSID
+%start mapextract
 %%
 
+
+mapextract : nts_map_list EOF {
+  let tbl = Hashtbl.create 97 in
+  List.iter ( tr_subsystem_builder_iterator tbl ) $1
+    
+};
 
 
 nts_map_list : extract_subsystable_map {[$1]}
@@ -40,7 +49,7 @@ extract_subsystable_map : OPENGROUP FUNDECL EQ IDENT extract_esid_sid_map extrac
 };
 
 
-extract_esid_sid_map : MAPESIDTOSID OPENGROUP esidlist CLOSEGROUP
+extract_esid_sid_map : DECLMAPESIDTOSID OPENGROUP esidlist CLOSEGROUP
 {
   let esidsidtbl = Hashtbl.create 97 in
   List.iter (fun s -> esid_sid_tbl_builder esidsidtbl s) $3;
@@ -49,13 +58,13 @@ extract_esid_sid_map : MAPESIDTOSID OPENGROUP esidlist CLOSEGROUP
 
 
 esidlist : esidtosidrel ENDLINE {[$1]}
-| esdidlist ENDLINE esidlist {$1::$3};
+| esidtosidrel ENDLINE esidlist {$1::$3};
 
 
-esidtosidrel : INT MAPSIDTOSID INT {(Esid($1), Sid($3))};
+esidtosidrel : INT MAPESIDTOSID INT {(Esid($1), Sid($3))};
 
 
-extract_sid_code_map : CODEMAP OPENGROUP sidtocoldelist CLOSEGROUP 
+extract_sid_code_map : CODEMAP OPENGROUP sidtocodelist CLOSEGROUP 
   {
     let tbl = Hashtbl.create 97 in
     Lisp.map (fun s -> sid_to_code_tbl_builder tbl s) $3;
@@ -67,18 +76,9 @@ extract_sid_code_map : CODEMAP OPENGROUP sidtocoldelist CLOSEGROUP
 sidtocodelist : sidtocoderel { [$1] }
 | sidtocoderel sidtocodelist {$1::$2};
 
-sidtocoderel : SID COLON INT SEMICOLON CCODE CODEBLOCKOPEN CODEBLOCKCLOSE 
-  {
-    (Sid(sid),"")
-  };
-
-| SID COLON INT SEMICOLON CCODE CODEBLOCKOPEN something CODEBLOCKCLOSE {
+sidtocoderel :  SID COLON INT SEMICOLON CCODE ANNOT {
   let sid = $3 in
-  let code = $7 in
+  let code = $6 in
   (Sid(sid),code)						 
 };
-
-something : IDENT something {$1^($2)}
-| IDENT {$1};
-
 

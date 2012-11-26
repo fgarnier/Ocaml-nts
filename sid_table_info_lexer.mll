@@ -43,6 +43,7 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
 
     
   rule token = parse
+  | "ESID_TO_SID_MAP" {DECLMAPESIDTOSID} 
   | ">>" {MAPESIDTOSID}
   | "{{" {OPENGROUP}
   | "}}" {CLOSEGROUP}
@@ -78,8 +79,7 @@ let dotted_identifier = (  '_' | uletter | lletter)+ ( '/' |'.' | '_' | uletter 
     raise (UndefinedLexem(error_msg))
   }
 
-and 
-    rule annot prefix = parse
+and annot prefix = parse
     | "@}}@" {ANNOT(prefix)}
     | eof { raise EofWhileInAComment}
     | _ {
