@@ -17,7 +17,6 @@ type map_2_fcinfos =
 	esid_to_statement_infos : (sid, string) Hashtbl.t;
 	}	
 
-
 type tr_subsystem_table = (string, map_2_fcinfos ) Hashtbl.t
 
 	
