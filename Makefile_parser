@@ -137,6 +137,11 @@ test_parse_sidinfo : test_parse_sid_table.cmo test_parse_sid_table.cmx $(OBJECTS
 	ocamlc -g -o test_parse_sid_table $(LIBNUM) $(OBJECTS) test_parse_sid_table.cmo 
 	ocamlopt -g -o xtest_parse_sid_table  $(LIBXNUM) $(XOBJECTS) test_parse_sid_table.cmx 
 
+trace_upon_statement_info : trace_upon_statement_info.cmo trace_upon_statement_info.cmx $(OBJECTS) $(XOBJECTS)
+	@echo "Compiling trace_upon_statemen_info"
+	ocamlc -g -o trace_upon_statement_info $(LIBNUM) $(OBJECTS) trace_upon_statement_info.cmo 
+	ocamlopt -g -o xtrace_upon_statment_info  $(LIBXNUM) $(XOBJECTS) trace_upon_statement_info.cmx
+
 
 include .depend
 
