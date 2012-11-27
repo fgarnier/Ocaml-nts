@@ -89,7 +89,7 @@ let sid_anot_info_of_opt_esid opt_esid tr_smap =
 
 let sid_infos_of_syscontrol tr_map sysc =
   match sysc with
-    (sysname,statename) -> 
+    Trace_types.Sys_control(sysname,statename) -> 
       begin
 	let tr_smap = 
 	  (

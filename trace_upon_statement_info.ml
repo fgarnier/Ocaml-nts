@@ -41,6 +41,10 @@ let get_trace_from_file fname =
   tr
 
 
+let fold_info_of_trace tr_smap prefix sysc =
+  let (sid,annot) = Trace_analysis.sid_infos_of_syscontrol tr_smap sysc in
+  Format.sprintf "%s %s:%s\n" prefix (Trace.pprint_sid sid) annot
+
 let get_info_table_from_file fname =
   let input_channel =
     openfile_with_guard fname 
@@ -62,7 +66,12 @@ let _ =
 
   let trace = get_trace_from_file Sys.argv.(2) in
   let trmap = get_info_table_from_file Sys.argv.(1) in
-  ()
+  let pprint_folder = fold_info_of_trace trmap in
+  let print_out = List.fold_left pprint_folder "" trace
+  in
+
+  Format.printf "%s trace is : \n %s%!" print_out;
+  exit(0)
     
 
       

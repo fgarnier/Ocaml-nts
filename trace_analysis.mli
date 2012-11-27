@@ -12,4 +12,4 @@ val sid_anot_info_of_opt_esid :
   Trace_types.map_2_fcinfos -> Trace_types.sid * string
 val sid_infos_of_syscontrol :
   Trace_types.tr_subsystem_table ->
-  string * string -> Trace_types.sid * string
+  Trace_types.sys_control -> Trace_types.sid * string
