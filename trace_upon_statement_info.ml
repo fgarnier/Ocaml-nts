@@ -70,7 +70,7 @@ let _ =
   let print_out = List.fold_left pprint_folder "" trace
   in
 
-  Format.printf "%s trace is : \n %s%!" print_out;
+  Format.printf " trace is : \n %s%!" print_out;
   exit(0)
     
 

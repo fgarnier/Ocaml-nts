@@ -12,48 +12,59 @@ exception NoSubsystem of string * tr_subsystem_table
 
 (**  *)
 
-let type_statename sname =
-  let namelen = String.length sname in
-  
-  let type_statename_1 name =
-    let pref = String.sub name 0 1 in
-    match pref with
-      "s" ->
-	begin 
-	  let suffix = String.sub name 1 (namelen-1) in
-	  let id = int_of_string suffix in
-	  FC_ESID(id)
-	end
-    | _ -> raise (UnknownESidDescriptor sname)
-  in
-  let type_statename_5 name =
-    if namelen < 5 then type_statename_1 name 
-    else
-      begin
-	let pref = String.sub name 0 4 in
-	match pref with
-	  "sinit" ->
-	      FLATAC_SINIT
-	   
-	| _ -> type_statename_1 name
-      end
-  in
-  
-  let type_statename_6 name =
-    if namelen < 6 then type_statename_5 name 
-    else 
-      begin
-	let pref = String.sub name 0 5 in
-	match pref with
-	  "sinter" ->
+
+
+let type_statename_1 name =
+  let namelen = String.length name in
+  let pref = String.sub name 0 1 in
+  if (String.compare pref "s" ) = 0 then 
+    begin 
+      let suffix = String.sub name 1 (namelen-1) in
+      let id = 
+	( try int_of_string suffix 
+	  with
+	  | e -> 
 	    begin 
-	      let suffix = String.sub name 6 (namelen-1) in
-	      let id = int_of_string suffix in
-	      FLATAC_SINTER_SID( id)
+	      Format.printf "name : %s, suffix: %s%! \n Fatal error." name suffix;
+	      raise e
 	    end
-	| _ -> type_statename_5 name
-      end
-  in
+	)	    
+      in
+      FC_ESID(id)
+    end
+  else raise (UnknownESidDescriptor name)
+  
+let type_statename_5 name =
+  let namelen = String.length name in
+  if namelen < 5 then type_statename_1 name 
+  else
+    begin
+      let pref = String.sub name 0 5 in
+      if (String.compare pref "sinit")=0 then
+	FLATAC_SINIT
+		
+      else type_statename_1 name
+    end
+  
+  
+let type_statename_6 name =
+  let namelen = String.length name in
+  if namelen < 6 then type_statename_5 name 
+  else 
+    begin
+      let pref = String.sub name 0 6 in
+      if (String.compare pref "sinter" )=0 then
+	begin 
+	  let suffix = String.sub name 6 (namelen-6) in
+	  let id = int_of_string suffix in
+	  FLATAC_SINTER_SID( id)
+	end
+      else type_statename_5 name
+    end
+
+
+
+let type_statename sname =
   type_statename_6 sname
 
 
@@ -77,7 +88,16 @@ let get_sid_statement_of_esid esid subsyst =
 	  ( raise (Unreferenced_esid_in(esid,subsyst.esid_to_sid_map)))
     )
   in
-  let annot=Hashtbl.find subsyst.esid_to_statement_infos sid in
+  let annot=
+    ( try Hashtbl.find subsyst.esid_to_statement_infos sid 
+    with
+    | Not_found -> 
+      begin
+	Format.printf "Can't find sid %s %! \n" (Trace.pprint_sid sid);
+	("/*Dummy ecfg starting point; No Operation*/")
+      end
+    )
+  in
   (sid,annot)
 
 
