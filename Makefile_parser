@@ -3,7 +3,7 @@ TYPES_INCLUDES := ${FRAMA_C_INCLUDES}
 GENSOURCE := ntl_parser.ml ntl_parser.mli ntl_lexer.ml trace_eldarica_lexer.ml trace_eldarica_parser.ml trace_eldarica_parser.mli sid_table_info_parser.ml sid_table_info_lexer.ml
  
 SOURCE_FILES := nts_types.ml nts.ml nts_functor.ml ntsint.ml nts_generic.ml\
-	     dot_driver.ml  parsing_error.ml
+	     dot_driver.ml trace_types.ml trace.ml trace_analysis.ml parsing_error.ml
 
 OCAMLDOC := ocamldoc
 DOCEXPORTDIR := ./api
@@ -12,6 +12,7 @@ DOCFLAGS := -html -d $(DOCEXPORTDIR) *.ml *.mli
 CFLAGS = -g -annot -c
 INTERFACES = ntl_parser.mli
 OBJECTS = nts_types.cmo trace_types.cmo trace.cmo nts.cmo simplification.cmo nts_generic.cmo nts_functor.cmo ntsint.cmo \
+	trace_analysis.cmo \
 	dot_driver.cmo \
 	trace_eldarica_parser.cmo \
 	trace_eldarica_lexer.cmo \
@@ -24,6 +25,7 @@ OBJECTS = nts_types.cmo trace_types.cmo trace.cmo nts.cmo simplification.cmo nts
 
 XOBJECTS = nts_types.cmx trace_types.cmx trace.cmx nts.cmx simplification.cmx nts_generic.cmx nts_functor.cmx ntsint.cmx \
 	dot_driver.cmx \
+	trace_analysis.cmx \
 	trace_eldarica_parser.cmx \
 	trace_eldarica_lexer.cmx \
 	sid_table_info_parser.cmx \

@@ -35,7 +35,7 @@ let get_trace_from_file fname =
   in
   let buf = Lexing.from_channel input_channel
   in
-  let tr =Trace_eldarica_parser.gettrace Trace_eldarica_lexer.token  buf;
+  let tr =Trace_eldarica_parser.gettrace Trace_eldarica_lexer.token  buf in
     close_in input_channel; 
   tr
 
