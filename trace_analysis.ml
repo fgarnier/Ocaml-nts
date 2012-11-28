@@ -1,7 +1,6 @@
 open Trace_types
 open Trace
 
-
 type control_type = FC_ESID of int
   | FLATAC_SINTER_SID of int
   | FLATAC_SINIT
@@ -9,8 +8,6 @@ type control_type = FC_ESID of int
 exception UnknownESidDescriptor of string
 exception Unreferenced_esid_in of esid * (esid,sid) Hashtbl.t
 exception NoSubsystem of string * tr_subsystem_table
-
-(**  *)
 
 
 
@@ -107,23 +104,41 @@ let sid_anot_info_of_opt_esid opt_esid tr_smap =
   | Some(e) -> get_sid_statement_of_esid e tr_smap
 
 
-let sid_infos_of_syscontrol tr_map sysc =
+let sid_infos_of_syscontrol  ?(annot_less_callee = None) tr_map sysc =
   match sysc with
     Trace_types.Sys_control(sysname,statename) -> 
       begin
-	let tr_smap = 
-	  (
-	    try
-	      Hashtbl.find tr_map sysname 
-	    with
-	      Not_found -> ( raise (NoSubsystem(sysname,tr_map)))
-	  )
-	   in
-	  let opt_esid = get_esid_of_statename statename in
+        	  
+	try
+	  let tr_smap = Hashtbl.find tr_map sysname in
+          let opt_esid = get_esid_of_statename statename  in
 	  sid_anot_info_of_opt_esid opt_esid tr_smap
+	with
+	  Not_found -> 
+	    begin
+	      match annot_less_callee with 
+		None -> raise (NoSubsystem(sysname,tr_map))
+	      | Some (lib_def_callee) ->
+		begin
+		  if Hashtbl.mem lib_def_callee sysname 
+		  then 
+		    begin
+		      let opt_esid = get_esid_of_statename statename 
+		      in
+		      (
+			match opt_esid with
+			  None-> (SID(-1),"/*This subsystem belongs to nts lib*/")
+			| Some(ESID(n)) ->
+			  (SID(n),"/*This subsystem belongs to the nts lib, and has not C annotations*/")
+		      )
+		    end
+		      
+		  else
+		    ( raise (NoSubsystem(sysname,tr_map)))
+		end
+	    end    
       end
-	
-
+	      
 (*
 let pprint_c_statement_list_of_trace sys_table tr =
 *)

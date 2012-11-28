@@ -9,6 +9,11 @@ open Sid_table_info_lexer
 open Trace_eldarica_parser
 open Trace_eldarica_lexer
 open Trace_analysis
+open Nts_types
+open Ntl_parser
+open Ntsint
+open Nts_generic
+
 
 
 let openfile_with_guard fname =
@@ -25,6 +30,8 @@ let openfile_with_guard fname =
     ) 
   in
   input_channel
+
+
 
 
 
