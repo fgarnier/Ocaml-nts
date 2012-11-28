@@ -9,6 +9,11 @@ open Sid_table_info_lexer
 open Trace_eldarica_parser
 open Trace_eldarica_lexer
 open Trace_analysis
+open Nts_types
+open Ntl_parser
+open Ntsint
+open Nts_generic
+
 
 
 let openfile_with_guard fname =
@@ -30,6 +35,8 @@ let openfile_with_guard fname =
 
 
 
+
+
 let get_trace_from_file fname =
   let input_channel = 
     openfile_with_guard fname
@@ -40,6 +47,19 @@ let get_trace_from_file fname =
     close_in input_channel; 
   tr
 
+let nts_lib_standards_subsystems =
+  let input_channel = 
+    openfile_with_guard "base_fun.ca_lib"
+  in
+  let buf = Lexing.from_channel input_channel in
+  let nt_system = Ntl_parser.ntldescr Ntl_lexer.token buf in
+  let nt_system = Nts_int.nt_system_var_cleaner nt_system in
+  close_in input_channel;
+  nt_system
+
+let fold_info_of_trace nts_std_lib tr_smap prefix sysc =
+  let (sid,annot) = Trace_analysis.sid_infos_of_syscontrol ~annot_less_callee:(Some(nts_std_lib)) tr_smap sysc in
+  Format.sprintf "%s %s:%s\n" prefix (Trace.pprint_sid sid) annot
 
 let get_info_table_from_file fname =
   let input_channel =
@@ -62,7 +82,12 @@ let _ =
 
   let trace = get_trace_from_file Sys.argv.(2) in
   let trmap = get_info_table_from_file Sys.argv.(1) in
-  ()
+  let pprint_folder = fold_info_of_trace (nts_lib_standards_subsystems.Ntsint.Nts_int.nts_automata) trmap in
+  let print_out = List.fold_left pprint_folder "" trace
+  in
+
+  Format.printf " trace is : \n %s%!" print_out;
+  exit(0)
     
 
       
