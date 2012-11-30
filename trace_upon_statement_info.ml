@@ -59,7 +59,15 @@ let nts_lib_standards_subsystems =
 
 let fold_info_of_trace nts_std_lib tr_smap prefix sysc =
   let (sid,annot) = Trace_analysis.sid_infos_of_syscontrol ~annot_less_callee:(Some(nts_std_lib)) tr_smap sysc in
-  Format.sprintf "%s %s:%s\n" prefix (Trace.pprint_sid sid) annot
+  match annot with
+    (str_annot,None) ->
+    Format.sprintf "%s %s:%s\n" prefix (Trace.pprint_sid sid) str_annot
+  | (str_annot,Some(p)) 
+    -> 
+    begin
+     Format.sprintf "%s %s:%s %s\n" prefix (Trace.pprint_sid sid) str_annot 
+       (Trace.pprint_position p)
+    end
 
 let get_info_table_from_file fname =
   let input_channel =

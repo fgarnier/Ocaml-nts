@@ -23,7 +23,7 @@
   register_kwd "FUNCTION" FUNDECL;;
   register_kwd "ESID_TO_SID_MAP" DECLMAPESIDTOSID;;
   register_kwd "SID_TO_CODE_MAP" DECLARECODEMAP;;
-
+  register_kwd "SOURCE_LEXINFOS" LEXINFOS
 
 
   let new_line lexbuf =
