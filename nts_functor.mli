@@ -113,6 +113,14 @@ sig
 	nts_gvars_init : Nts_types.nts_gen_relation list option;
         nts_system_threads : (string * Big_int.big_int) list option;
       }
+
+
+
+  type num_subrel_in_cautomaton = {
+    subrel_root : control ;
+    sub_vertices : states_container;
+    sub_transitions : transitions_container;
+  }
   
   (** 
       Experimental section 
@@ -165,6 +173,6 @@ sig
   (*val compute_pred_relation : nts_automaton -> 
     (control, (control , unit) Hashtbl.t ) Hashtbl.t*)
   val compute_pred_relation : nts_automaton -> inv_relation_container
-    
+  val subgraph_between : nts_automaton -> control -> control -> num_subrel_in_cautomaton
 end
 

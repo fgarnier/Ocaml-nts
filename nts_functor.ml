@@ -798,7 +798,8 @@ let vertices_in_rel rel =
   
    let subgraph_max = subgraph_rooted_in_c cautomaton max in
    let inv_rel_min = pred_relation_of_relation subgraph_max.sub_transitions in
-   let sub_graph_pruned_relation = prune_rel subgraph_max.sub_transitions inv_rel_min in
+   let sub_graph_pruned_relation = prune_rel subgraph_max.sub_transitions 
+     inv_rel_min in
    
    {
      subrel_root = subgraph_max.subrel_root ;
@@ -808,15 +809,11 @@ let vertices_in_rel rel =
      
    
    
- 
-   
- 
 
  let states_container_of_states_list ( l : control list) =
    let ret_hash = Hashtbl.create 97 in
   List.iter ( fun s -> Hashtbl.add ret_hash s () ) l;
   ret_hash   
-
 
 
 (* Converts the (control * control * tlist) list 
@@ -912,9 +909,6 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     in
     let ret_string = pprint_optional_thread_list nt_system ret_string
     in
-    (*
-    let all_automata = pprint_all_cautomata  nt_system.nts_automata
-    *)
     let all_automata = pprint_automata_lexico_sorted nt_system.nts_automata
     in
     ret_string^all_automata^"\n"
