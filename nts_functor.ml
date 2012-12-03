@@ -311,6 +311,10 @@ struct
      Hashtbl.iter  outter_iterator transc
 
 
+  let iter_state_container statec iterfun =
+    let binding_iter_fun s  () = iterfun s in 
+    Hashtbl.iter binding_iter_fun statec
+
   let add_transition_to_container  transc corg trans_label cdest = 
     if not ( Hashtbl.mem transc corg ) 
     then
@@ -769,21 +773,42 @@ let prune_rel (rel : transitions_container )
   prunned_relation
     
     
+(** Computes and return the collection of all vertices that
+appear at one side of a transition.*)
+
+let vertices_in_rel rel =
+  let vertex_collection = Hashtbl.create 97 in
+  let collect_name_iterator corg _ cdest =
+    if not ( Hashtbl.mem vertex_collection corg ) 
+    then Hashtbl.add vertex_collection corg ()
+    else ();
+    if not ( Hashtbl.mem vertex_collection cdest )
+    then Hashtbl.add vertex_collection cdest ()
+    else ()
+  in
+  iter_transitions_container rel collect_name_iterator;
+  vertex_collection
     
-
-
  (** This function computes the subrelation of the one described in 
  cautomaton, that is composed of all the arrows that are between 
  max and min*)  
 
-(*
+
  let subgraph_between cautomaton max min =
   
    let subgraph_max = subgraph_rooted_in_c cautomaton max in
    let inv_rel_min = pred_relation_of_relation subgraph_max.sub_transitions in
-   ()
+   let sub_graph_pruned_relation = prune_rel subgraph_max.sub_transitions inv_rel_min in
    
-*) 
+   {
+     subrel_root = subgraph_max.subrel_root ;
+     sub_vertices = vertices_in_rel sub_graph_pruned_relation ;
+     sub_transitions = sub_graph_pruned_relation ;
+   }
+     
+   
+   
+ 
    
  
 

@@ -68,6 +68,8 @@ sig
   val add_transition_to_container : transitions_container -> control -> nts_trans_label list -> control  -> unit
 
   val iter_transitions_container : transitions_container ->  ( control -> nts_trans_label list-> control -> unit ) -> unit 
+
+  val iter_state_container : states_container -> ( control -> unit ) -> unit
  (** 
 
       'a is the type of the folded value.
