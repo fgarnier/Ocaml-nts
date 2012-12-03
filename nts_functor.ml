@@ -613,6 +613,71 @@ control state "state" in the subsystem cautomaton.
    invert_table
 
 
+
+
+
+ (* In this block, one define functions that aims at computing the
+    Subgraph having c as root element/root. Bascially, we compute
+ the set of all edges and vertices travesable/reachable from c in
+ the given cautomaton.*)
+
+
+
+ type subrel_in_cautomaton = {
+   subrel_root : control ;
+   sub_vertices : states_container;
+   sub_transitions : transitions_container;
+ }
+
+
+ let copy_out_transition_from_nts_rel t_def =
+   let copied_def = Hashtbl.create 7 in
+   let copy_iterator key tlabel =
+     Hashtbl.add copied_def key tlabel
+   in
+   Hashtbl.iter copy_iterator t_def;
+   copied_def
+
+     
+
+ let subgraph_rooted_in_c cautomaton c =
+   let visited_vertices = Hashtbl.create 97 in
+   let traversed_edges = Hashtbl.create 97 in
+   
+   let rec build_dag_iterator v_current _ =
+     if Hashtbl.mem visited_vertices v_current 
+     then ()
+     else ();
+     
+     if Hashtbl.mem cautomaton.transitions v_current 
+     (*Check whether
+       there exists an outgoing transition from this control
+       state.*)
+     then
+       begin
+	 let outing_edges = 
+	   copy_out_transition_from_nts_rel (Hashtbl.find cautomaton.transitions 
+					       v_current ) 
+	 in
+	 Hashtbl.add traversed_edges v_current outing_edges;
+	 Hashtbl.iter build_dag_iterator  outing_edges 
+       end
+     else ();(* No outgoing transition ? No recursion.*)
+     Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*)
+   in
+
+    build_dag_iterator c []; 
+   
+   {
+     subrel_root = c ;
+     sub_vertices = visited_vertices ;
+     sub_transitions = traversed_edges ;
+   }
+     
+
+
+ 
+
  let states_container_of_states_list ( l : control list) =
    let ret_hash = Hashtbl.create 97 in
   List.iter ( fun s -> Hashtbl.add ret_hash s () ) l;
