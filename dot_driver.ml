@@ -74,7 +74,23 @@ module Make =
 	  ca.NFParam.final_states in_folder  ""
 	  
 	  
-     
+	  
+(** subrel is a subset of the transition of the counter automaton ca.
+ gv color is an optional string.
+*)
+      let dot_of_subgraph ?(color="greenyellow") prefix ca  subrel =
+	let transition_printer prefix control_org l control_dest =   
+	  Format.sprintf "%s%s_%s->%s_%s[color=%s];\n"
+	    prefix 
+	    ca.NFParam.nts_automata_name 
+	    (pprint_control control_org) 
+	    ca.nts_automata_name (pprint_control control_dest)
+	     color
+	in
+	NFParam.fold_transitions_container 
+	  ca.transitions transition_printer prefix
+	
+
       (** Interprocedural calls are represented using a red transition 
       label.*)
       let dot_of_transitions  (ca : nts_automaton ) prefix =
@@ -171,5 +187,12 @@ module Make =
 	in
 	let trace_transitions =  pprint_trace_tansitions tr in
 	Format.sprintf "%s %s } " ret_string trace_transitions
+
+
+      let highlight_graph_between  (ca : nts_automaton) (max : control) 
+	  ( min : control) =
+	let subgraph = subgraph_between ca max min 
+	in
+	dot_of_subgraph "" ca subgraph.sub_transitions 
 	  
 end;;
