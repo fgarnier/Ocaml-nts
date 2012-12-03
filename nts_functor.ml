@@ -162,6 +162,12 @@ struct
 
   let is_state_in_inv_relation table cstate =
     Hashtbl.mem table cstate
+
+  let is_state_pair_in_inv_relation table corg cdest =
+    if Hashtbl.mem table corg then
+      (let cin = Hashtbl.find table corg in Hashtbl.mem cin cdest)
+    else
+      false
     
 
   (**Returns the collection of transitions betwenn sorg and sdests
@@ -305,6 +311,32 @@ struct
      Hashtbl.iter  outter_iterator transc
 
 
+  let add_transition_to_container  transc corg trans_label cdest = 
+    if not ( Hashtbl.mem transc corg ) 
+    then
+      begin
+	let inner = Hashtbl.create 7 
+	in
+	Hashtbl.add inner cdest trans_label;
+	Hashtbl.add transc corg inner ;
+      end
+    else
+      begin
+	let inner= Hashtbl.find transc corg in
+	if not (Hashtbl.mem inner cdest )
+	then
+	  begin
+	    Hashtbl.add inner cdest trans_label
+	  end
+	else 
+	  begin
+	    let lab = Hashtbl.find inner cdest in
+	    if trans_label = lab then ()
+	    else Hashtbl.add inner cdest trans_label
+	  end
+      end
+    
+    
 
   let pprint_inputvars cautomata = 
      Nts_generic.pprint_typeinfo_nts_genvar_list cautomata.input_vars
@@ -588,8 +620,9 @@ control state "state" in the subsystem cautomaton.
      | None -> assert false 
 
 
- let compute_pred_relation cautomaton =
-   let invert_table = Hashtbl.create 7 in
+
+ let pred_relation_of_relation rel =
+   let invert_table = Hashtbl.create 97 in
    let inner_relation_iterator curr_state succs _ =
      if not ( Hashtbl.mem invert_table succs )
      then
@@ -609,8 +642,14 @@ control state "state" in the subsystem cautomaton.
    let outer_relation_iterator curr_state succs_table =
      Hashtbl.iter (inner_relation_iterator curr_state ) succs_table
    in
-   Hashtbl.iter outer_relation_iterator cautomaton.transitions;
+   Hashtbl.iter outer_relation_iterator rel;
    invert_table
+
+
+
+ let compute_pred_relation cautomaton =
+   pred_relation_of_relation cautomaton.transitions
+   
 
 
 
@@ -623,14 +662,15 @@ control state "state" in the subsystem cautomaton.
 
 
 
- type subrel_in_cautomaton = {
+ type num_subrel_in_cautomaton = {
    subrel_root : control ;
    sub_vertices : states_container;
    sub_transitions : transitions_container;
  }
 
+ 
 
- let copy_out_transition_from_nts_rel t_def =
+ let copy_out_transition_from_rel  t_def =
    let copied_def = Hashtbl.create 7 in
    let copy_iterator key tlabel =
      Hashtbl.add copied_def key tlabel
@@ -638,35 +678,67 @@ control state "state" in the subsystem cautomaton.
    Hashtbl.iter copy_iterator t_def;
    copied_def
 
+  
+ (*let copy_out_transition_from_rel t_def =
+   let copied_def = Hashtbl.create 7 in
+   let copy_iterator key labec =
+     Hashtbl.add copied_def key tlabel
+   in
+   Hashtbl.iter copy_iterator t_def;
+   copied_def *)
+
+
+(** Iterator parmetrized by two hashtbl container for collecting the transitive
+closure of  *)
+ let rec build_subg_iterator relation_table visited_vertices 
+     traversed_edges v_current _ =
+   
+   if Hashtbl.mem visited_vertices v_current 
+   then ()
+   else ();
      
+   if Hashtbl.mem relation_table v_current 
+     (*Check whether
+       there exists an outgoing transition from this control
+       state.*)
+   then
+     begin
+	 let outing_edges = 
+	   copy_out_transition_from_rel (Hashtbl.find relation_table 
+					       v_current ) 
+	 in
+	 Hashtbl.add traversed_edges v_current outing_edges;
+	 let recurse_iterator = build_subg_iterator 
+	   relation_table visited_vertices traversed_edges in
+	 Hashtbl.iter recurse_iterator outing_edges 
+     end
+   else ();(* No outgoing transition ? No recursion.*)
+   Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*)
+
+
+
+  (** Takes as input a relation and returns the collection
+of transition that are in the transitive closure of any relation starting 
+from a given control state c *)
+
+
+
+
+
+ let sub_rel_rooted_in relation c =
+   let visited_vertices = Hashtbl.create 97 in
+   let traversed_edges = Hashtbl.create 97 in   
+    ( build_subg_iterator relation visited_vertices
+    traversed_edges) c ();
+   traversed_edges
+ 
 
  let subgraph_rooted_in_c cautomaton c =
    let visited_vertices = Hashtbl.create 97 in
    let traversed_edges = Hashtbl.create 97 in
    
-   let rec build_dag_iterator v_current _ =
-     if Hashtbl.mem visited_vertices v_current 
-     then ()
-     else ();
-     
-     if Hashtbl.mem cautomaton.transitions v_current 
-     (*Check whether
-       there exists an outgoing transition from this control
-       state.*)
-     then
-       begin
-	 let outing_edges = 
-	   copy_out_transition_from_nts_rel (Hashtbl.find cautomaton.transitions 
-					       v_current ) 
-	 in
-	 Hashtbl.add traversed_edges v_current outing_edges;
-	 Hashtbl.iter build_dag_iterator  outing_edges 
-       end
-     else ();(* No outgoing transition ? No recursion.*)
-     Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*)
-   in
-
-    build_dag_iterator c []; 
+   (build_subg_iterator cautomaton.transitions visited_vertices 
+      traversed_edges) c []; 
    
    {
      subrel_root = c ;
@@ -676,6 +748,43 @@ control state "state" in the subsystem cautomaton.
      
 
 
+
+(** This function returns a transition relation, which corresponds
+to *)
+ 
+let prune_rel (rel : transitions_container )  
+     ( con_relation : inv_relation_container ) =
+  
+  let prunned_relation = Hashtbl.create 97 in
+  let iter_adder  lhs_control transit rhs_control  =
+    if is_state_pair_in_inv_relation con_relation rhs_control lhs_control 
+    then
+      let _ = add_transition_to_container prunned_relation 
+	lhs_control transit rhs_control 
+      in ()
+    else
+      ()
+  in
+  iter_transitions_container rel iter_adder;
+  prunned_relation
+    
+    
+    
+
+
+ (** This function computes the subrelation of the one described in 
+ cautomaton, that is composed of all the arrows that are between 
+ max and min*)  
+
+(*
+ let subgraph_between cautomaton max min =
+  
+   let subgraph_max = subgraph_rooted_in_c cautomaton max in
+   let inv_rel_min = pred_relation_of_relation subgraph_max.sub_transitions in
+   ()
+   
+*) 
+   
  
 
  let states_container_of_states_list ( l : control list) =
