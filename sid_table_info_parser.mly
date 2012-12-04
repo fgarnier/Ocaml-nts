@@ -1,13 +1,15 @@
 %{
   open Lexing
   open Trace_types 
-   
+  
+
+  exception ParseLexinfosexception of string * string
   
   let esid_sid_tbl_builder tbl ((l,r) : (esid * sid)) =
     Hashtbl.add tbl l r
       
-  let sid_to_code_tbl_builder tbl ((l,r) : (sid * string)) =
-    Hashtbl.add tbl l r
+  let sid_to_code_tbl_builder tbl ((l,r,s) : (sid * string * (Lexing.position * Lexing.position ) option )) =
+    Hashtbl.add tbl l (r,s)
       
       
   let tr_subsystem_builder_iterator tbl 
@@ -23,7 +25,7 @@
 %token <string> ANNOT
 %token MAPESIDTOSID OPENGROUP CLOSEGROUP CODEBLOCKOPEN CODEBLOCKCLOSE
 %token ENDLINE EQ EOF CCODE SID COLON SEMICOLON FUNDECL DECLMAPESIDTOSID
-%token DECLARECODEMAP
+%token DECLARECODEMAP LEXINFOS POSINFOS
 %start mapextract
 %%
 
@@ -84,6 +86,48 @@ sidtocodelist : sidtocoderel { [$1] }
 sidtocoderel :  SID COLON INT SEMICOLON CCODE ANNOT {
   let sid = $3 in
   let code = $6 in
-  (Trace_types.SID(sid),code)						 
-};
+  (Trace_types.SID(sid),code,None)						 
+}
+|  SID COLON INT SEMICOLON CCODE ANNOT POSINFOS OPENGROUP get_posinfos CLOSEGROUP
+ {
 
+  let sid = $3 in
+  let code = $6 in
+  let posinfos = $9 in
+  (Trace_types.SID(sid),code,Some(posinfos))
+ }
+
+;
+
+
+get_posinfos : get_lexinfos get_lexinfos { ($1,$2) };
+
+
+get_lexinfos : LEXINFOS OPENGROUP IDENT EQ IDENT SEMICOLON IDENT EQ INT SEMICOLON IDENT EQ INT SEMICOLON IDENT EQ INT SEMICOLON  CLOSEGROUP {
+ 
+  if (String.compare "pos_fname" $3)<> 0 then 
+     raise (ParseLexinfosexception("pos_fname = excepted, instead of",$3))
+  else () ;
+  if (String.compare "pos_lnum" $7) <> 0 then
+     raise (ParseLexinfosexception("pos_lnum = excepted, instead of",$7))
+  else () ;
+  if (String.compare  "pos_bol" $11 ) <> 0 then
+   raise (ParseLexinfosexception("pos_bol = excepted, instead of",$11))
+  else () ;
+  if ( String.compare "pos_cnum" $15 )<> 0 then
+    raise  (ParseLexinfosexception("pos_bol = excepted, instead of",$15))
+  else ();
+  
+  let filename = $5 in
+  let begin_line_number = $9 in
+  let begin_of_line = $13 in
+  let col_number = $17 in
+ 
+  {
+    pos_fname = filename;
+    pos_lnum = begin_line_number;
+    pos_bol = begin_of_line ;
+    pos_cnum = col_number;
+  }
+    
+}

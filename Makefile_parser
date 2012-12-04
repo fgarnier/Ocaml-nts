@@ -128,7 +128,7 @@ nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
 	ocamlopt -g -o xnts2dot  $(LIBXNUM) $(XOBJECTS) nts2dot.cmx 
 
 test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XOBJECTS)
-	@echo "Compiling parse_n_print test"
+	@echo "Compiling test parse trace"
 	ocamlc -g -o print_trace $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
 	ocamlopt -g -o xprint_trace  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
 

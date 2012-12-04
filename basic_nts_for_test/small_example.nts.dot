@@ -1,0 +1,10 @@
+digraph small_debug_example { 
+ subgraph cluster_fun1 { 
+ color=blue; label="fun1";  fun1_s0 [style=filled,color=blue];
+  fun1_serr [style=filled,color=red];
+ fun1_sfinal[style=filled,color=green];
+ fun1_s0->fun1_s1;
+fun1_s1->fun1_sfinal;
+fun1_s1->fun1_serr;
+ } }
+ 

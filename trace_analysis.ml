@@ -91,7 +91,7 @@ let get_sid_statement_of_esid esid subsyst =
     | Not_found -> 
       begin
 	Format.printf "Can't find sid %s %! \n" (Trace.pprint_sid sid);
-	("/*Dummy ecfg starting point; No Operation*/")
+	("/*Dummy ecfg starting point; No Operation*/",None)
       end
     )
   in
@@ -100,7 +100,7 @@ let get_sid_statement_of_esid esid subsyst =
 
 let sid_anot_info_of_opt_esid opt_esid tr_smap =
   match opt_esid with
-    None -> (SID(-1),"/*flatac_intermediate_state;*/")
+    None -> (SID(-1),("/*flatac_intermediate_state;*/",None))
   | Some(e) -> get_sid_statement_of_esid e tr_smap
 
 
@@ -127,9 +127,9 @@ let sid_infos_of_syscontrol  ?(annot_less_callee = None) tr_map sysc =
 		      in
 		      (
 			match opt_esid with
-			  None-> (SID(-1),"/*This subsystem belongs to nts lib*/")
+			  None-> (SID(-1),("/*This subsystem belongs to nts lib*/",None))
 			| Some(ESID(n)) ->
-			  (SID(n),"/*This subsystem belongs to the nts lib, and has not C annotations*/")
+			  (SID(n),("/*This subsystem belongs to the nts lib, and has not C annotations*/",None))
 		      )
 		    end
 		      

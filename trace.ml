@@ -6,7 +6,7 @@ type trace = sys_control list
 *)
 
 open Trace_types
-
+open Lexing
 
 
 let print_sys_control s =
@@ -38,9 +38,20 @@ let pprint_esidsid_map tbl =
   ret_str^"}};;"
 
 
-let pprint_folder_sid_code_map key code prefix =
-  Format.sprintf "%s sid : %s ; C-Code%c{{%c%s%c}}%c;;\n" prefix ( pprint_sid key) '@' '@' code '@' '@' 
 
+let pprint_position (lex_b,lex_e) =
+  Format.sprintf "POSINFOS{{pos_fname =%s;pos_lnum=%d;pos_bol=%d;pos_cnum=%d;pos_fname =%s;pos_lnum=%d;pos_bol=%d;pos_cnum=%d;}}" lex_b.pos_fname lex_b.pos_lnum lex_b.pos_bol lex_b.pos_cnum  lex_e.pos_fname lex_e.pos_lnum lex_e.pos_bol lex_e.pos_cnum 
+
+
+let pprint_folder_sid_code_map key code prefix =
+  match code with 
+    (ins,None)->
+   Format.sprintf "%s sid : %s ; C-Code%c{{%c%s%c}}%c;;\n" prefix ( pprint_sid key) '@' '@' ins '@' '@' 
+  | (ins, Some(lex_b,lex_e)) ->
+    begin
+      let code_pos = pprint_position (lex_b,lex_e) in
+      Format.sprintf "%s sid : %s ; C-Code%c{{%c%s%c}}%c %s ;;\n" prefix ( pprint_sid key) '@' '@' ins '@' '@'  code_pos
+    end
 
 let pprint_sid_to_code_info tbl = 
   let ret_str = 
