@@ -235,13 +235,18 @@ module Make =
 					       subsystem*)
 	    else
 	      begin
-		let max_c = control_of_syscontrol prev_sysc in 
-		let min_c = control_of_syscontrol curr_sysc in
-		let ca = ca_of_syscontrol nt curr_sysc in
-		let gprint_out = highlight_graph_between ca max_c min_c
-		in
-		let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
-		(suffix,Some(curr_sysc))	
+		try
+		  let max_c = control_of_syscontrol prev_sysc in 
+		  let min_c = control_of_syscontrol curr_sysc in
+		  let ca = ca_of_syscontrol nt curr_sysc in
+		  let gprint_out = highlight_graph_between ca max_c min_c
+		  in
+		  let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
+		  (suffix,Some(curr_sysc))
+		with
+		  No_such_counter_automata_in_nts_system(_,_) ->
+		    (pre_str,None)
+		  | other_ex -> raise other_ex    
 	      end
 	  end
 
