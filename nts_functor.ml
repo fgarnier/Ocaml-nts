@@ -705,25 +705,26 @@ closure of  *)
    
    if Hashtbl.mem visited_vertices v_current 
    then ()
-   else ();
-     
-   if Hashtbl.mem relation_table v_current 
-     (*Check whether
-       there exists an outgoing transition from this control
-       state.*)
-   then
+   else 
      begin
-	 let outing_edges = 
-	   copy_out_transition_from_rel (Hashtbl.find relation_table 
-					       v_current ) 
-	 in
-	 Hashtbl.add traversed_edges v_current outing_edges;
-	 let recurse_iterator = build_subg_iterator 
-	   relation_table visited_vertices traversed_edges in
-	 Hashtbl.iter recurse_iterator outing_edges 
+       Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*);
+       if Hashtbl.mem relation_table v_current 
+   (*Check whether
+     there exists an outgoing transition from this control
+     state.*)
+       then
+	 begin
+	   let outing_edges = 
+	     copy_out_transition_from_rel (Hashtbl.find relation_table 
+					     v_current ) 
+	   in
+	   Hashtbl.add traversed_edges v_current outing_edges;
+	   let recurse_iterator = build_subg_iterator 
+	     relation_table visited_vertices traversed_edges in
+	   Hashtbl.iter recurse_iterator outing_edges 
+	 end
+       else ();(* No outgoing transition ? No recursion.*)
      end
-   else ();(* No outgoing transition ? No recursion.*)
-   Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*)
 
 
 

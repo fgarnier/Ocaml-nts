@@ -46,7 +46,7 @@ DIST_TAR_NAME = ocaml_ntlib$(DATE).tgz
 clean : 
 	rm -f *.cmo *.o *.cmx *.cmxa *.cmi *.cma *.annot parse_n_print xparse_n_print $(GENSOURCE)
 
-all : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) parse_n_print nts2dot test_parse_sidinfo
+all : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) parse_n_print nts2dot nts2dot_subgraph test_parse_sidinfo
 	@echo "Build successfull"
 
 dist : all clean
@@ -126,6 +126,12 @@ nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling nts2dot"
 	ocamlc -g -o nts2dot $(LIBNUM) $(OBJECTS) nts2dot.cmo 
 	ocamlopt -g -o xnts2dot  $(LIBXNUM) $(XOBJECTS) nts2dot.cmx 
+
+
+nts2dot_subgraph : nts2dot_subgraph_info.cmo nts2dot_subgraph_info.cmx $(OBJECTS) $(XOBJECTS)
+	@echo "Compiling nts2dot"
+	ocamlc -g -o nts2dot_subgraph $(LIBNUM) $(OBJECTS) nts2dot_subgraph_info.cmo 
+	ocamlopt -g -o xnts2dot_subgraph  $(LIBXNUM) $(XOBJECTS) nts2dot_subgraph_info.cmx 
 
 test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling test parse trace"

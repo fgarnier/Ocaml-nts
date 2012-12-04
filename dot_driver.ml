@@ -90,7 +90,7 @@ module Make =
 	     color
 	in
 	NFParam.fold_transitions_container 
-	  ca.transitions transition_printer prefix
+	  subrel transition_printer prefix
 	
 
       (** Interprocedural calls are represented using a red transition 

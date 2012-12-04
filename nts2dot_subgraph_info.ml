@@ -53,7 +53,7 @@ let _ =
       in
       (*Format.printf "I created the file %s \n %!" dump_name;*)
       
-      try
+      (*try*)
 	let buf = Lexing.from_channel input_channel in
 	let nt_system = Ntl_parser.ntldescr Ntl_lexer.token buf in
 	let nt_system = Nts_int.nt_system_var_cleaner nt_system in
@@ -79,7 +79,7 @@ let _ =
 		let trace_l = Trace_eldarica_parser.gettrace 
 		  Trace_eldarica_lexer.token  buf
 		in
-		Dotofintnts.dot_of_trace_upon_nts nt_system trace_l
+		Dotofintnts.dot_of_subcfg_of_nts nt_system trace_l
 
 	      end
 	  )
@@ -90,11 +90,11 @@ let _ =
 	close_out dump_file_descr;
 	
 	exit 0
-      with
+     (* with
 	| _ -> 
 	  begin
 	    prerr_string "Parse error \n";
 	    exit 1
-	  end
+	end *)
     end
    

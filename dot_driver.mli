@@ -32,4 +32,6 @@ module Make :
 	(** Prints a trance upon the hierachical transition system*)
       val dot_of_trace_upon_nts :
         NFParam.nts_system -> Trace_types.trace -> string
+      val dot_of_subcfg_of_nts :
+	NFParam.nts_system -> Trace_types.trace -> string
     end
