@@ -4,6 +4,7 @@ module P :
     type anot_type = unit
     val anot_parser : unit -> unit
     val pprint_keyid : 'a -> 'a
+    val key_val_of_string : 'a -> 'a
     val compare_keyid : String.t -> String.t -> int
     val pprint_anot : 'a -> string
   end
@@ -20,9 +21,13 @@ module Nts_int :
       transitions_container ->
       ('a -> control -> Nts_types.nts_trans_label list -> control -> 'a) ->
       'a -> 'a
+    val add_transition_to_container :
+      transitions_container ->
+      control -> Nts_types.nts_trans_label list -> control -> unit
     val iter_transitions_container :
       transitions_container ->
       (control -> Nts_types.nts_trans_label list -> control -> unit) -> unit
+    val iter_state_container : states_container -> (control -> unit) -> unit
     val is_state_in_inv_relation : inv_relation_container -> control -> bool
     type nts_automaton =
       Nts_functor.Make(P).nts_automaton = {
@@ -43,6 +48,12 @@ module Nts_int :
       nts_automata : (string, nts_automaton) Hashtbl.t;
       nts_gvars_init : Nts_types.nts_gen_relation list option;
       nts_system_threads : (string * Big_int.big_int) list option;
+    }
+    type num_subrel_in_cautomaton =
+      Nts_functor.Make(P).num_subrel_in_cautomaton = {
+      subrel_root : control;
+      sub_vertices : states_container;
+      sub_transitions : transitions_container;
     }
     val pprint_control : control -> string
     val anot_parser : unit -> anotations
@@ -74,4 +85,6 @@ module Nts_int :
     val pprint_nts : nts_system -> string
     val pprint_transitions : string -> nts_automaton -> string
     val compute_pred_relation : nts_automaton -> inv_relation_container
+    val subgraph_between :
+      nts_automaton -> control -> control -> num_subrel_in_cautomaton
   end

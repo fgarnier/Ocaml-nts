@@ -31,6 +31,8 @@ module type NTS_PARAM =
 	instance*)
       
     val pprint_keyid : t -> string (*Types for pprinting anotations*)
+    val key_val_of_string : string -> t (* Generating an identifier value
+					from a string.*) 
     val compare_keyid : t-> t -> int (* comparision function for keyid*)
     val pprint_anot : anot_type -> string
 
@@ -54,7 +56,7 @@ module Make :
 sig 
       
   type anotations (** Type for anotations*)
-  type control   (** Type of a control state*)
+  type control =  Nts_State of Param.t (** Type of a control state*)
   type transitions_container (** Type used to encode transitions
 				 between control states *)
   type states_container  (** Container used to sore a state collection*)
@@ -167,6 +169,8 @@ sig
   val pprint_nts : nts_system -> string 
     (* Here for debuging purposes. Shall be removed for release
     versions*)
+
+  val get_cautomaton_by_name : nts_system -> string -> nts_automaton
   val pprint_transitions : string -> nts_automaton -> string
   
   (** Compute the set of one step predecessors of all control states*)

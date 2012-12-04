@@ -51,6 +51,7 @@ exception Nts_i_have_a_binding
 
 
 
+
  type ('a , 'b) gen_bin_relation =  [`Generic_relation of 'a * 'b]
  
 
@@ -84,6 +85,7 @@ module type NTS_PARAM =
     type anot_type (*Type for anotations*)
     val anot_parser : unit -> anot_type
     val pprint_keyid : t -> string
+    val key_val_of_string : string -> t
     val compare_keyid : t -> t -> int
     val pprint_anot : anot_type -> string (*Types for pprinting anotations*)
   end
@@ -654,6 +656,13 @@ control state "state" in the subsystem cautomaton.
    pred_relation_of_relation cautomaton.transitions
    
 
+
+ let get_cautomaton_by_name ntsys name =
+   try
+     Hashtbl.find ntsys.nts_automata name 
+   with Not_found ->
+     raise 
+       (No_such_counter_automata_in_nts_system(ntsys.nts_system_name,name)) 
 
 
  (* In this block, one define functions that aims at computing the

@@ -2,6 +2,7 @@ open Nts_functor
 open Nts_types
 open Hashtbl
 open Nts_generic
+open Trace_types
 
 
 module Make = 
@@ -13,7 +14,8 @@ module Make =
 	  
       type nts_automaton = NFParam.nts_automaton
       type nts_system = NFParam.nts_system
-
+	
+      let control_out_of_string = Param.key_val_of_string
       open NFParam
 
 
@@ -189,10 +191,78 @@ module Make =
 	Format.sprintf "%s %s } " ret_string trace_transitions
 
 
+      let control_of_syscontrol sysc =
+	match sysc with 
+	  Trace_types.Sys_control(_,s) ->
+	    let s_val = control_out_of_string s 
+	    in
+	    NFParam.Nts_State(s_val)
+     
+	      
+      let ca_name_of_syscontrol sysc =
+	match sysc with 
+	  Trace_types.Sys_control(caname,_) -> caname
+	    
+      let ca_of_syscontrol nt sysc =
+	match sysc with 
+	  Trace_types.Sys_control(sysname,_) ->
+	    NFParam.get_cautomaton_by_name nt sysname
+
+
       let highlight_graph_between  (ca : nts_automaton) (max : control) 
 	  ( min : control) =
 	let subgraph = subgraph_between ca max min 
 	in
 	dot_of_subgraph "" ca subgraph.sub_transitions 
-	  
+
+
+      (** Computes and then concatenates the sequence of arrows that
+      belong to the different control points of a trace, whenever
+      two or more belong to the same nts automaton. *)
+
+      let pprint_subgraph_between_ctr_pair_folder 
+	  nt (pre_str,pre_sysc) curr_sysc =
+	
+	match pre_sysc with
+	  None -> (pre_str,Some(curr_sysc)) (*No previous state visted*)
+	| Some(Sys_control(ca_name,_) as prev_sysc ) 
+	  ->
+	  begin
+	    if (String.compare ca_name (ca_name_of_syscontrol curr_sysc))
+	      <> 0 
+	    then  (pre_str,Some(curr_sysc)) (* Current state and previous
+					       one don't belong to the same 
+					       subsystem*)
+	    else
+	      begin
+		let max_c = control_of_syscontrol prev_sysc in 
+		let min_c = control_of_syscontrol curr_sysc in
+		let ca = ca_of_syscontrol nt curr_sysc in
+		let gprint_out = highlight_graph_between ca max_c min_c
+		in
+		let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
+		(suffix,Some(curr_sysc))	
+	      end
+	  end
+
+
+      let dot_of_subcfg_of_nts (nt : nts_system ) ( tr : Trace_types.trace ) =
+	
+	let automata_folder name caut pre_str =
+	  Format.sprintf "%s\n%s" pre_str (dot_of_cautomaton caut)
+	in
+	let automata_dump = 
+	  Hashtbl.fold automata_folder nt.nts_automata "" 
+	in
+	let ret_string = 
+	  Format.sprintf "digraph %s { %s" nt.nts_system_name automata_dump
+	in
+	let (printout_hgraph,_) = 
+	  List.fold_left (pprint_subgraph_between_ctr_pair_folder nt ) 
+	    ("",None) tr
+	in
+	Format.sprintf "%s%s}" ret_string printout_hgraph
+
+	
+	
 end;;

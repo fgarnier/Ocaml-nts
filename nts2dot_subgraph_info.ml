@@ -65,10 +65,10 @@ let _ =
 	      Dotofintnts.dot_of_nts nt_system 
 	    else
 	      begin
-		if ((String.compare (Sys.argv.(2)) "-ptrace")!=0)
+		if ((String.compare (Sys.argv.(2)) "-interval")!=0)
 		then 
 		  begin
-		    Format.printf "-ptrace option required \n Instead of %s %!" Sys.argv.(2);  
+		    Format.printf "-interval option required \n Instead of %s %!" Sys.argv.(2);  
 		    raise (BadOption(Sys.argv.(2)))
 		  end
 		else ();
