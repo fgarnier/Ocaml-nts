@@ -324,7 +324,7 @@ struct
 	let inner = Hashtbl.create 7 
 	in
 	Hashtbl.add inner cdest trans_label;
-	Hashtbl.add transc corg inner ;
+	Hashtbl.add transc corg inner 
       end
     else
       begin
@@ -633,7 +633,7 @@ control state "state" in the subsystem cautomaton.
      then
        begin
 	 let succs_entry = Hashtbl.create 7 in
-	 Hashtbl.add succs_entry curr_state ();
+	 Hashtbl.add succs_entry  curr_state ();
 	 Hashtbl.add invert_table succs succs_entry 
        end
      else
@@ -689,17 +689,11 @@ control state "state" in the subsystem cautomaton.
    copied_def
 
   
- (*let copy_out_transition_from_rel t_def =
-   let copied_def = Hashtbl.create 7 in
-   let copy_iterator key labec =
-     Hashtbl.add copied_def key tlabel
-   in
-   Hashtbl.iter copy_iterator t_def;
-   copied_def *)
-
+ 
 
 (** Iterator parmetrized by two hashtbl container for collecting the transitive
 closure of  *)
+
  let rec build_subg_iterator relation_table visited_vertices 
      traversed_edges v_current _ =
    
@@ -734,8 +728,6 @@ from a given control state c *)
 
 
 
-
-
  let sub_rel_rooted_in relation c =
    let visited_vertices = Hashtbl.create 97 in
    let traversed_edges = Hashtbl.create 97 in   
@@ -758,6 +750,8 @@ from a given control state c *)
    }
      
 
+
+ 
 
 
 (** This function returns a transition relation, which corresponds
@@ -805,8 +799,9 @@ let vertices_in_rel rel =
   
    let subgraph_max = subgraph_rooted_in_c cautomaton max in
    let inv_rel_min = pred_relation_of_relation subgraph_max.sub_transitions in
-   let sub_graph_pruned_relation = prune_rel subgraph_max.sub_transitions 
-     inv_rel_min in
+   let reach_inv_rel_min = sub_rel_rooted_in  inv_rel_min min in
+   let sub_graph_pruned_relation =  prune_rel subgraph_max.sub_transitions 
+  reach_inv_rel_min in
    
    {
      subrel_root = subgraph_max.subrel_root ;
