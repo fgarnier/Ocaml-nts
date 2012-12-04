@@ -624,7 +624,6 @@ control state "state" in the subsystem cautomaton.
      | None -> assert false 
 
 
-
  let pred_relation_of_relation rel =
    let invert_table = Hashtbl.create 97 in
    let inner_relation_iterator curr_state succs _ =
@@ -654,8 +653,6 @@ control state "state" in the subsystem cautomaton.
  let compute_pred_relation cautomaton =
    pred_relation_of_relation cautomaton.transitions
    
-
-
 
 
 
