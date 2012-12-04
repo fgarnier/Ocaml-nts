@@ -1,0 +1,27 @@
+nts small_debug_example;
+ivar1, ivar2 :int, rvar1, rvar2 : real, ivar3 :int;
+
+fun1 {
+in v1 : int, r2 : real;
+out p1:int, p2 :real;
+
+tmp1 : int, tmp2 : real;
+
+
+
+initial  s0;
+final  sfinal;
+error  serr;
+
+
+s0 -> s1 { tmp1' = v1 *2 and havoc(v1) }
+s1 -> s2 { r2'= r2/2.0 and  havoc(r2) }  
+s1 -> s4 {havoc()}
+s4 -> s3 {havoc()}
+s4 -> s5 {havoc()}
+s5 -> sfinal { havoc()}
+s2 -> s3 { tmp1' = tmp1 + 1 and havoc(tmp1) }
+s3 -> s2 { tmp1 <= 1000 }
+s3 -> sfinal {  -2.0 <= r2 and r2 < 2.0 and p1 = v1 and tmp1 <= 1000 }
+s1 -> serr { -2.0 > r2 or r2 >= 2.0 }
+}
