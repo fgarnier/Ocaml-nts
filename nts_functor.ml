@@ -145,6 +145,12 @@ struct
 
       }
 
+  type num_subrel_in_cautomaton = {
+    subrel_root : control ;
+    sub_vertices : states_container;
+    sub_transitions : transitions_container;
+  }
+
 
 
     let anot_parser = (fun s -> Nts_Anot((Param.anot_parser s)))
@@ -408,7 +414,20 @@ struct
 
  
 
-	  
+  let pprint_transitions_in_transcontainer transc =
+    let transfolder pre org_state label dest_state =
+      let post_script = 
+	Format.sprintf "%s \n %s->%s { %s }" pre ( pprint_control org_state)  ( pprint_control dest_state) 
+	    (pretty_label label) 
+      in
+      post_script
+    in
+    fold_transitions_container transc transfolder "" 
+
+  let pprint_subgraph_transitions subgraph =
+    pprint_transitions_in_transcontainer subgraph.sub_transitions
+
+
   let pprint_transitions (prescript :string) (cautomata : nts_automaton )=
     let dest_table_print_folder ( origin : control ) (dest : control ) label 
 	(prescript : string ) =
@@ -672,12 +691,7 @@ control state "state" in the subsystem cautomaton.
 
 
 
- type num_subrel_in_cautomaton = {
-   subrel_root : control ;
-   sub_vertices : states_container;
-   sub_transitions : transitions_container;
- }
-
+ 
  
 
  let copy_out_transition_from_rel  t_def =

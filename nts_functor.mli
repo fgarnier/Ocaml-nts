@@ -178,5 +178,6 @@ sig
     (control, (control , unit) Hashtbl.t ) Hashtbl.t*)
   val compute_pred_relation : nts_automaton -> inv_relation_container
   val subgraph_between : nts_automaton -> control -> control -> num_subrel_in_cautomaton
+  val pprint_subgraph_transitions : num_subrel_in_cautomaton -> string
 end
 
