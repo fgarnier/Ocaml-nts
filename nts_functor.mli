@@ -152,6 +152,11 @@ sig
   val get_successor_of : nts_automaton -> control -> states_container
   val get_one_state : states_container -> control option
 
+
+  (** returns true iff the third argument is a successor of the second one
+  in the automaton provided as first argument.*)
+  val is_successor_of : nts_automaton -> control -> control -> bool
+
   (** Picks an outing transiton from control in the automaton*)
   val get_one_transition : nts_automaton -> control -> (control * Nts_types.nts_trans_label list) 
     

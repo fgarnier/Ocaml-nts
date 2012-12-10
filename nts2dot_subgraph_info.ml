@@ -17,7 +17,7 @@ let _ =
   if ( num_args != 2 &&  num_args!=4 ) 
   then
     begin
-      Format.printf "Syntax : nts2dot File.nts \n nts2dot -ptrace File.nts trace_file \n  
+      Format.printf "Syntax : nts2dot_subgraph File.nts \n nts2dot -ptrace File.nts trace_file \n  
  Aborting \n %!"
     end
   else

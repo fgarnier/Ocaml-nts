@@ -93,10 +93,31 @@ module Make =
 	  subrel transition_printer prefix
 	
 
+    (** Transition printer folder*)
+      let transition_printer ca prefix control_org l control_dest =
+	let opt_call = get_opt_transition l in
+	  match opt_call with
+	    None ->
+		Format.sprintf "%s%s_%s->%s_%s;\n" prefix 
+		  ca.NFParam.nts_automata_name 
+		  (pprint_control control_org) 
+		  ca.nts_automata_name (pprint_control control_dest)
+	    | Some(CntGenCall ( sysname, _, _)) -> 
+	      begin
+		Format.sprintf "%s%s_%s->%s_%s[color=red,label=\"call to %s \"];\n" prefix 
+		  ca.NFParam.nts_automata_name 
+		  (pprint_control control_org) 
+		  ca.nts_automata_name (pprint_control control_dest)
+		  sysname
+	      end
+	    | Some(_) -> assert false
+	      
+
+
       (** Interprocedural calls are represented using a red transition 
       label.*)
       let dot_of_transitions  (ca : nts_automaton ) prefix =
-	let transition_printer prefix control_org l control_dest =
+	(*let transition_printer prefix control_org l control_dest =
 	  let opt_call = get_opt_transition l in
 	  match opt_call with
 	      None ->
@@ -114,7 +135,8 @@ module Make =
 	      end
 	    | Some(_) -> assert false
 	      
-	in 
+	in*)
+	let transition_printer = transition_printer ca in
 	NFParam.fold_transitions_container 
 	  ca.transitions transition_printer prefix
 	  
@@ -218,7 +240,7 @@ module Make =
 
       (** Computes and then concatenates the sequence of arrows that
       belong to the different control points of a trace, whenever
-      two or more belong to the same nts automaton. *)
+      two or more belong to the same nts automaton. If  *)
 
       let pprint_subgraph_between_ctr_pair_folder 
 	  nt (pre_str,pre_sysc) curr_sysc =
@@ -239,10 +261,31 @@ module Make =
 		  let max_c = control_of_syscontrol prev_sysc in 
 		  let min_c = control_of_syscontrol curr_sysc in
 		  let ca = ca_of_syscontrol nt curr_sysc in
-		  let gprint_out = highlight_graph_between ca max_c min_c
-		  in
-		  let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
-		  (suffix,Some(curr_sysc))
+		  if not (NFParam.is_successor_of ca max_c min_c) then
+		  begin
+		    let gprint_out = highlight_graph_between ca max_c min_c
+		    in
+		    let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
+		    (suffix,Some(curr_sysc))
+		  end
+		  else
+		    begin
+		      let transition_labels = NFParam.get_transition_from
+			ca max_c min_c in
+		      let print_out = 
+			(
+			  match transition_labels
+			  with 
+			    Some(ll) ->
+			      let label = List.hd ll in
+			      transition_printer ca pre_str max_c label min_c
+			
+			  | None -> ""
+			) 
+		      in
+		      (print_out,Some(curr_sysc))
+		    end
+		    
 		with
 		  No_such_counter_automata_in_nts_system(_,_) ->
 		    (pre_str,None)

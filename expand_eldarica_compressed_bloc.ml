@@ -20,6 +20,11 @@ struct
   type nts_system = NFParam.nts_system
     
   let control_out_of_string = Param.key_val_of_string
+  
+
+  type subsystem_call_count = (nts_automaton , int ref) Hashtbl.t
+    
+
   open NFParam
 
   
@@ -39,8 +44,8 @@ struct
     NFParam.pprint_subgraph_transitions subrel
  
 
-  (** *)
-  let get_trans_relation_max_min (ca : nts_automaton) ( max : control ) 
+  (**  *)
+  let get_tran s_relation_max_min (ca : nts_automaton) ( max : control ) 
       ( min : control ) =
     let subgraph = NFParam.subgraph_between ca max min 
     in nts_out_of_subrelation subgraph
@@ -51,13 +56,14 @@ struct
 
 
 
-(*
-let pprint_subgraph_between_ctr_pair_folder 
+
+(*let pprint_subgraph_between_ctr_pair_folder 
 	   nt (pre_str,pre_sysc) curr_sysc =
 	
 	match pre_sysc with
 	  None -> (pre_str,Some(curr_sysc)) (*No previous state visted*)
 	| Some(Sys_control(ca_name,_) as prev_sysc ) 
+
 
 let nts_out_of_subrelation prefix ca subrel =
 	let transition_printer prefix control_org l control_dest =   
@@ -75,44 +81,57 @@ let get_trans_relation_max_min (ca : nts_automaton) ( max : control )
     ( min : control ) =
   let subgraph = subgraph_between ca max min 
   in 
+*)
   
-  
+
+
+
+(** In this function, the parameter nts_out nt_sytems_build_container 
+    describes the generated transition system that will ultimately
+    be exported for flatac.
+
+ nts_lib is the set of functions that does not correspond to compiled
+ C code and 
 *)
 
 
-(*
-let pprint_subgraph_between_ctr_pair_folder 
-	   nt (pre_str,pre_sysc) curr_sysc =
+let get_nts_from_ctr_pair_folder 
+    nts_lib nt call_counts (  trace_system : (string, nts_automaton ) Hashtbl.t ) (pre_str,pre_sysc) curr_sysc =
 	
-	match pre_sysc with
-	  None -> (pre_str,Some(curr_sysc)) (*No previous state visted*)
-	| Some(Sys_control(ca_name,_) as prev_sysc ) 
-	  ->
-	  begin
-	    if (String.compare ca_name (ca_name_of_syscontrol curr_sysc))
-	      <> 0 
-	    then  (pre_str,Some(curr_sysc)) (* Current state and previous
-					       one don't belong to the same 
-					       subsystem*)
-	    else
-	      begin
-		try
-		  let max_c = control_of_syscontrol prev_sysc in 
-		  let min_c = control_of_syscontrol curr_sysc in
-		  let ca = ca_of_syscontrol nt curr_sysc in
-		  let gprint_out = highlight_graph_between ca max_c min_c
-		  in
-		  let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
-		  (suffix,Some(curr_sysc))
-		with
-		  No_such_counter_automata_in_nts_system(_,_) ->
-		    (pre_str,None)
-		  | other_ex -> raise other_ex    
-	      end
-	  end
+  match pre_sysc with
+    None -> (pre_str,Some(curr_sysc)) (*No previous state visted*)
+  | Some(Sys_control(ca_name,_) as prev_sysc ) 
+    ->
+    begin
+      if (String.compare ca_name (ca_name_of_syscontrol curr_sysc))
+	<> 0 
+      then  (pre_str,Some(curr_sysc)) (* Current state and previous
+					 one don't belong to the same 
+					 subsystem*)
+      else
+	begin
+	  try
+	    let max_c = control_of_syscontrol prev_sysc in 
+ 	    let min_c = control_of_syscontrol curr_sysc in
+	    let ca = ca_of_syscontrol nt curr_sysc in
+	    let gprint_out = highlight_graph_between ca max_c min_c
+	    in
+	    let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
+	    (suffix,Some(curr_sysc))
+	  with
+	    No_such_counter_automata_in_nts_system(_,_) ->
+	      (pre_str,None)
+	  | other_ex -> raise other_ex    
+	end
+    end
 
 
-*)
+
+let rec compile_trace_into_nts nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
+  
+
+
+
 
 
 (*
@@ -125,7 +144,7 @@ let flata_nts_of_eldarica_incomplete_trace  (opt_lib : nts_system option) (nt : 
 	  Hashtbl.fold automata_folder nt.nts_automata "" 
 	in
 	let ret_string = 
-	  Format.sprintf "digraph %s { %s" nt.nts_system_name automata_dump
+0	  Format.sprintf "digraph %s { %s" nt.nts_system_name automata_dump
 	in
 	let (printout_hgraph,_) = 
 	  List.fold_left (pprint_subgraph_between_ctr_pair_folder nt ) 

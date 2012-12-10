@@ -178,6 +178,15 @@ struct
       false
     
 
+
+  let is_successor_of cautomaton sorg sdest =
+    try
+      let cin = Hashtbl.find cautomaton.transitions sorg 
+      in 
+      Hashtbl.mem cin sdest	  
+    with
+      Not_found -> false
+
   (**Returns the collection of transitions betwenn sorg and sdests
      The result has type cnt_translabel list list
   *)
