@@ -21,7 +21,8 @@ OBJECTS = nts_types.cmo trace_types.cmo trace.cmo nts.cmo simplification.cmo nts
 	nts_spl_intermediate_language_types.cmo \
 	interproc_driver.cmo \
 	ntl_lexer.cmo parsing_error.cmo \
-	ntl_parser.cmo   
+	ntl_parser.cmo \
+	expand_eldarica_compressed_bloc.cmo  
 
 XOBJECTS = nts_types.cmx trace_types.cmx trace.cmx nts.cmx simplification.cmx nts_generic.cmx nts_functor.cmx ntsint.cmx \
 	dot_driver.cmx \
@@ -33,7 +34,8 @@ XOBJECTS = nts_types.cmx trace_types.cmx trace.cmx nts.cmx simplification.cmx nt
 	nts_spl_intermediate_language_types.cmx \
 	interproc_driver.cmx \
 	ntl_lexer.cmx parsing_error.cmx \
-	ntl_parser.cmx  
+	ntl_parser.cmx \
+	expand_eldarica_compressed_bloc.cmx 
 
 LIBNUM = nums.cma # Contains Big_int module
 LIBXNUM = nums.cmxa
