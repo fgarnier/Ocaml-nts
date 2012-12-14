@@ -357,6 +357,16 @@ struct
 	  end
       end
     
+
+  let is_error_state ca control =
+    Hashtbl.mem  ca.error_states control
+  
+  let is_final_state ca control =
+    Hashtbl.mem  ca.final_states control 
+      
+  let is_initial_state ca control =
+    Hashtbl.mem ca.init_states control
+
     
 
   let pprint_inputvars cautomata = 
@@ -1081,23 +1091,57 @@ list of each automaton has been cleared of non used varibles
     new_table
 
 
+
+
+(** Returns the copy of a transition container.*)
+
+let copy_transitions_container trans =
+  let copy = Hashtbl.create 97 in
+  let copy_iterator key inner_rel =
+    let inncpy = Hashtbl.copy inner_rel in
+    Hashtbl.add copy key inncpy
+  in
+  Hashtbl.iter copy_iterator copy;
+  copy
+
+
+(**
+
+*)
+
+let cautomaton_of_subrelation_cautomaton new_ca_name base_automaton sub_rel =
+{
+  nts_automata_name = new_ca_name;
+  anot = base_automaton.anot;
+  init_states  = Hashtbl.copy base_automaton.init_states;
+  final_states = Hashtbl.copy base_automaton.final_states;
+  error_states = Hashtbl.copy base_automaton.error_states;
+
+  input_vars = base_automaton.input_vars;
+  output_vars = base_automaton.output_vars;
+  local_vars = base_automaton.local_vars;
+
+  transitions = copy_transitions_container sub_rel.sub_transitions;
+
+}    
+    
+
+
+
 (**
  This function returns a numerical transition system where all the subsystem
 are called at some point. Calls might be performed from the same subsystem.
 *)
 
-  let nt_system_uncalled_subsystem_cleaner nt_sys =
-    let called_fun = reference_called_nts nt_sys in
-    let cleaned_call_table =  
-      c_table_having_keys_in nt_sys.nts_automata called_fun 
-    in
-    nts_sys_with_update_cautomaton_table nt_sys cleaned_call_table
+let nt_system_uncalled_subsystem_cleaner nt_sys =
+  let called_fun = reference_called_nts nt_sys in
+  let cleaned_call_table =  
+    c_table_having_keys_in nt_sys.nts_automata called_fun 
+  in
+  nts_sys_with_update_cautomaton_table nt_sys cleaned_call_table
     
 
-    
-
-
-
+   
 
 (**
 

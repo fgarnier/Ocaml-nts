@@ -93,6 +93,9 @@ module Make :
             nts_automaton -> control -> control -> num_subrel_in_cautomaton
           val pprint_subgraph_transitions :
             num_subrel_in_cautomaton -> string
+          val cautomaton_of_subrelation_cautomaton :
+            string ->
+            nts_automaton -> num_subrel_in_cautomaton -> nts_automaton
         end
       type anotations = NFParam.anotations
       type control = NFParam.control

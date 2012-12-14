@@ -144,6 +144,12 @@ sig
 
   val get_varinfo_by_optcautomaton : nts_system -> nts_automaton option ->string -> nts_genrel_var option
     
+
+  val is_error_state : nts_automaton -> control -> bool
+  val is_initial_state : nts_automaton -> control -> bool
+  val is_final_state : nts_automaton -> control -> bool 
+
+
     
   val get_transition_from :
     nts_automaton ->
@@ -184,5 +190,13 @@ sig
   val compute_pred_relation : nts_automaton -> inv_relation_container
   val subgraph_between : nts_automaton -> control -> control -> num_subrel_in_cautomaton
   val pprint_subgraph_transitions : num_subrel_in_cautomaton -> string
+
+
+  (** Creates a new couter automaton, using the definition of a cautomaton
+  -2nd argument- and a subrelation -3rd argument, and call it using the
+  name provided in the first argument.*)
+
+
+  val cautomaton_of_subrelation_cautomaton : string -> nts_automaton -> num_subrel_in_cautomaton -> nts_automaton
 end
 

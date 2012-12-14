@@ -1,6 +1,7 @@
 open Ntsint
 open Nts_functor
 open Nts_generic
+open Nts_types
 open Trace_types
 
 (* Dotofintnts.dot_of_subcfg_of_nts nt_system trace_l *)
@@ -44,48 +45,12 @@ struct
     NFParam.pprint_subgraph_transitions subrel
  
 
-  (**  *)
+ (**  *)
   let get_tran s_relation_max_min (ca : nts_automaton) ( max : control ) 
       ( min : control ) =
     let subgraph = NFParam.subgraph_between ca max min 
     in nts_out_of_subrelation subgraph
   
-  
-  
-
-
-
-
-
-(*let pprint_subgraph_between_ctr_pair_folder 
-	   nt (pre_str,pre_sysc) curr_sysc =
-	
-	match pre_sysc with
-	  None -> (pre_str,Some(curr_sysc)) (*No previous state visted*)
-	| Some(Sys_control(ca_name,_) as prev_sysc ) 
-
-
-let nts_out_of_subrelation prefix ca subrel =
-	let transition_printer prefix control_org l control_dest =   
-	  Format.sprintf "%s%s_%s->%s_%s[color=%s];\n"
-	    prefix 
-	    ca.NFParam.nts_automata_name 
-	    (pprint_control control_org) 
-	    ca.nts_automata_name (pprint_control control_dest)
-	     color
-	in
-	NFParam.fold_transitions_container 
-	  subrel transition_printer prefix
-
-let get_trans_relation_max_min (ca : nts_automaton) ( max : control ) 
-    ( min : control ) =
-  let subgraph = subgraph_between ca max min 
-  in 
-*)
-  
-
-
-
 
 
   let get_contextual_transitions_of_subgraph context subgraph =
@@ -99,17 +64,6 @@ let get_trans_relation_max_min (ca : nts_automaton) ( max : control )
 
 
 
-(** 
-
-*)
- (* let get_single_instruction_interval_content  *) 
-
-(**
-
-*)
-
-
-
 
   let control_of_syscontrol sysc =
     match sysc with 
@@ -117,18 +71,26 @@ let get_trans_relation_max_min (ca : nts_automaton) ( max : control )
 	let s_val = control_out_of_string s 
 	in
 	NFParam.Nts_State(s_val)
-     
+	  
 	      
   let ca_name_of_syscontrol sysc =
     match sysc with 
       Trace_types.Sys_control(caname,_) -> caname
-	    
+	
   let ca_of_syscontrol nt sysc =
     match sysc with 
       Trace_types.Sys_control(sysname,_) ->
 	NFParam.get_cautomaton_by_name nt sysname
+	  
 
+  (**
 
+     nts_lib is collection of nts automaton that compose the nts
+     library.
+
+     nt is another library. It is reasonable to think that both
+     libraries might be merged into a single one in a next version.
+*)
 
   let get_contextual_transition_list_from_pair_folder
       nts_lib nt  (pre_context_tlist,pre_sysc) curr_sysc =
@@ -193,9 +155,61 @@ let get_trans_relation_max_min (ca : nts_automaton) ( max : control )
 
 
 
+  let contextual_transition_list_of_trace nts_lib nt tr =
+    let (res,_)=
+      List.fold_left 
+	(get_contextual_transition_list_from_pair_folder nts_lib nt) 
+	([],None) tr
+    in
+    res
+  
+
+
+(**
+ A context is defined as a nts_cautomaton and a context_id.
+*)
+
+
+  let initial_context_of_ctl_list tr =
+    let (ca,_) = List.hd tr in
+    (ca,0)
 
 
 
+  let nts_subsystem_of_ca_cid ca_name cid =
+    Format.sprintf "%s_%d" ca_name cid
+
+
+(** Updates the name of the called subsystem so that it matches the
+    subsystem generated from the trace itself.
+*)
+
+  let is_transition_a_call l =
+    match l with
+      CntGenCall(sysname,opt_ret,params)::_ -> true
+    | _ -> false
+
+
+ (* let is_new_context ca_def (corg,_,_) =
+     List.mem ca_def.NFParam.init_states cdest
+ *)
+  let is_a_return ca_def (_,_,cdest) =
+   NFParam.is_final_state ca_def cdest
+ 
+  let contextual_call_of_subsystem l (usid_counter : int ref) =
+    match l with
+      CntGenCall(sysname,opt_ret,params)::tl ->
+	begin
+	  usid_counter := !usid_counter + 1;
+	  let contextual_sysname = nts_subsystem_of_ca_cid sysname 
+	    !usid_counter 
+	  in
+	  (CntGenCall(contextual_sysname,opt_ret,params)::tl)
+	end
+    
+    | _ -> l
+
+      
 (** In this function, the parameter nts_out nt_sytems_build_container 
     describes the generated transition system that will ultimately
     be exported for flatac.
@@ -204,66 +218,131 @@ let get_trans_relation_max_min (ca : nts_automaton) ( max : control )
  C code and 
 *)
 
-(*
-let get_nts_from_ctr_pair_mapper
-    nts_lib nt  (  trace_system : (string, nts_automaton ) Hashtbl.t ) (pre_str,pre_sysc) curr_sysc =
-	
-  match pre_sysc with
-    None -> (pre_str,Some(curr_sysc)) (*No previous state visted*)
-  | Some(Sys_control(ca_name,_) as prev_sysc ) 
-    ->
-    begin
-      if (String.compare ca_name (ca_name_of_syscontrol curr_sysc))
-	<> 0 
-      then  (pre_str,Some(curr_sysc)) (* Current state and previous
-					 one don't belong to the same 
-					 subsystem*)
-     
 
-       else
+
+  let get_called_subsystem_name l =
+    match l with
+      CntGenCall(sysname,_,_)::_ ->
 	begin
-	  try
-	    let max_c = control_of_syscontrol prev_sysc in 
-	    let min_c = control_of_syscontrol curr_sysc in
-	    let ca = ca_of_syscontrol nt curr_sysc in
-	    if not (NFParam.is_successor_of ca max_c min_c) then
+	  sysname
+	end	  
+    | _ ->  assert false
+      
+      
+  let get_ca_by_name nts_lib nt name =
+    try
+      Hashtbl.find nt.nts_automata name
+    with
+      Not_found ->
+	Hashtbl.find nts_lib.nts_automata name
+
+
+  let definition_of_called_ca nts_lib nt l =
+    let ca_name = get_called_subsystem_name l in
+    get_ca_by_name nts_lib nt ca_name
+	  
+	  
+
+  let new_context_table_entry catable uid ca_def=
+    Hashtbl.add catable uid (ca_def,[])
+
+  let is_context_switch_ahead curr_context_ca next_op_list =
+    match next_op_list with
+      (ca,_)::_ -> curr_context_ca == ca
+    | [] -> assert false
+
+  let empty_tail tl =
+    match tl with
+      [] -> true
+    | _ -> false
+
+  let add_transtion_in_contextual_trans_sys context_table uid trans =
+    let (ca,tlist) = Hashtbl.find context_table uid in
+    Hashtbl.replace context_table uid (ca,tlist@(trans::[]))
+(**)
+
+  let build_nts_from_contextual_trace nts_lib nt tr =
+    
+    let context_uid = ref 0 in (* Add one to this variable each time
+			       a call is performed.*)
+    let context_table = Hashtbl.create 97 in (* (int  , ( ca, (control, trans list, control))) Hashtbl.t *)
+    let contextual_transition_list = 
+      contextual_transition_list_of_trace nts_lib nt tr in
+    let current_context = initial_context_of_ctl_list 
+      contextual_transition_list in 
+    let context_stack = Stack.create () in
+    Stack.push current_context context_stack;
+
+    
+    let rec build_ctl_iterator ctl = 
+      
+      let ( current_context_ca,current_cid) = 
+	Stack.top context_stack 
+      in
+      (** 
+	  Two transitions migth lead to a final state, that's why
+	  I need to look ahead in the tail to be sure that the next
+	  transition is not within the same context, before removing
+	  the current context description from the stack.
+      *)
+
+      match ctl with 	    
+	(ca,((corg,l,dest) as tlabel))::tl ->
+	  begin
+	    if ( is_transition_a_call l )
+	    then
 	      begin
-		let gprint_out = highlight_graph_between ca max_c min_c
+		let called_subsystem_definition =  
+		  definition_of_called_ca nts_lib nt l 
 		in
-		let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
-		(suffix,Some(curr_sysc))
+		let l = contextual_call_of_subsystem l context_uid 
+		in
+		add_transtion_in_contextual_trans_sys context_table current_cid (corg,l,dest) ;
+		
+		let new_context = (called_subsystem_definition,!context_uid) in
+		Stack.push new_context context_stack
+	      (* Create a new context, and push it on the top of
+		 the stack *)
 	      end
+	   
 	    else
+	    
 	      begin
-		let transition_labels = NFParam.get_transition_from
-		  ca max_c min_c in
-		let print_out = 
-		  (
-		    match transition_labels
-		    with 
-		      Some(ll) ->
-			let label = List.hd ll in
-			transition_printer ca pre_str max_c label min_c
-			  
-		    | None -> ""
-		  ) 
-		in
-		(print_out,Some(curr_sysc))
+		add_transtion_in_contextual_trans_sys 
+		  context_table current_cid (corg,l,dest) ;
+		if is_a_return ca tlabel 
+		then  
+		  begin
+		    if ( empty_tail tl) then
+		      let  _ = Stack.pop context_stack in 
+		      ()
+ 		    else 
+		      begin
+			if ( is_context_switch_ahead ca tl ) 
+			then 
+			let  _ = Stack.pop context_stack
+			in ()
+			else 
+			  ()
+		      end
+		  end
 	      end
-		    
-	  with
-	    No_such_counter_automata_in_nts_system(_,_) ->
-	      (pre_str,None)
-	  | other_ex -> raise other_ex    
-	end
-    end
-    *)
+	  end;
+	  build_ctl_iterator tl (*recursion upon tail list.*)
+      |[] -> ()
+    in
+    build_ctl_iterator contextual_transition_list
+
+
+
 
 (*
 let rec compile_trace_into_nts nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
 *)
 
 end;;
+
+
 
 
 
