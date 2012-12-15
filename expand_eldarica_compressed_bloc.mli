@@ -70,6 +70,9 @@ module Make :
           val get_varinfo_by_optcautomaton :
             nts_system ->
             nts_automaton option -> string -> Nts_types.nts_genrel_var option
+          val is_error_state : nts_automaton -> control -> bool
+          val is_initial_state : nts_automaton -> control -> bool
+          val is_final_state : nts_automaton -> control -> bool
           val get_transition_from :
             nts_automaton ->
             control -> control -> Nts_types.nts_trans_label list list option
@@ -96,6 +99,8 @@ module Make :
           val cautomaton_of_subrelation_cautomaton :
             string ->
             nts_automaton -> num_subrel_in_cautomaton -> nts_automaton
+          val cautomaton_of_transitions_container :
+            string -> nts_automaton -> transitions_container -> nts_automaton
         end
       type anotations = NFParam.anotations
       type control = NFParam.control
@@ -128,4 +133,49 @@ module Make :
         (NFParam.nts_automaton *
          (NFParam.control * Nts_types.nts_trans_label list * NFParam.control))
         list * Trace_types.sys_control option
+      val contextual_transition_list_of_trace :
+        NFParam.nts_system ->
+        NFParam.nts_system ->
+        Trace_types.sys_control list ->
+        (NFParam.nts_automaton *
+         (NFParam.control * Nts_types.nts_trans_label list * NFParam.control))
+        list
+      val initial_context_of_ctl_list : ('a * 'b) list -> 'a * int
+      val nts_subsystem_of_ca_cid : string -> int -> string
+      val is_transition_a_call : Nts_types.nts_trans_label list -> bool
+      val is_a_return :
+        NFParam.nts_automaton -> 'a * 'b * NFParam.control -> bool
+      val contextual_call_of_subsystem :
+        Nts_types.nts_trans_label list ->
+        int ref -> Nts_types.nts_trans_label list
+      val get_called_subsystem_name :
+        Nts_types.nts_trans_label list -> string
+      val get_ca_by_name :
+        NFParam.nts_system ->
+        NFParam.nts_system -> string -> NFParam.nts_automaton
+      val definition_of_called_ca :
+        NFParam.nts_system ->
+        NFParam.nts_system ->
+        Nts_types.nts_trans_label list -> NFParam.nts_automaton
+      val new_context_table_entry :
+        ('a, 'b * 'c list) Hashtbl.t -> 'a -> 'b -> unit
+      val is_context_switch_ahead : 'a -> ('a * 'b) list -> bool
+      val empty_tail : 'a list -> bool
+      val add_transtion_in_contextual_trans_sys :
+        ('a, 'b * 'c list) Hashtbl.t -> 'a -> 'c -> unit
+      val nts_of_transitions_rules_container :
+        (int,
+         NFParam.nts_automaton *
+         (NFParam.control * Nts_types.nts_trans_label list * NFParam.control)
+         list)
+        Hashtbl.t -> (string, NFParam.nts_automaton) Hashtbl.t
+      val build_nts_table_from_contextual_trace :
+        NFParam.nts_system ->
+        NFParam.nts_system ->
+        Trace_types.sys_control list ->
+        (string, NFParam.nts_automaton) Hashtbl.t
+      val nts_out_trace :
+        NFParam.nts_system ->
+        NFParam.nts_system ->
+        Trace_types.sys_control list -> NFParam.nts_system
     end

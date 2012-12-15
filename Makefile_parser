@@ -151,6 +151,11 @@ trace_upon_statement_info : trace_upon_statement_info.cmo trace_upon_statement_i
 	ocamlopt -g -o xtrace_upon_statment_info  $(LIBXNUM) $(XOBJECTS) trace_upon_statement_info.cmx
 
 
+trace2nts : export_trace_nts.cmo export_trace_nts.cmx $(OBJECTS) $(XOBJECTS)
+	@echo "Compiling trace compiler"
+	ocamlc -g -o trace2nts export_trace_nts.cmo $(OBJECTS)
+	ocamlopt -g -o xtrace2nts export_trace_nts.cmx $(OBJECTS)
+
 include .depend
 
 .depend: $(GENSOURCE)  

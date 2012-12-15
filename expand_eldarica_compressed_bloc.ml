@@ -281,7 +281,7 @@ struct
   
     
 
-  let build_nts_from_contextual_trace nts_lib nt tr =
+  let build_nts_table_from_contextual_trace nts_lib nt tr =
     
     let context_uid = ref 0 in (* Add one to this variable each time
 			       a call is performed.*)
@@ -358,10 +358,18 @@ struct
     in
     nts_sys_table
 
-(*
-  let  compile_context_transition_system_into_nts 
-  nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
-*)  
+
+  let nts_out_trace nts_lib nt tr =
+    let trans_table = build_nts_table_from_contextual_trace nts_lib nt tr
+    in
+    {
+      NFParam.nts_system_name = "debug_trace_system";
+      NFParam.nts_global_vars = nt.NFParam.nts_global_vars;
+      NFParam.nts_automata = trans_table ;
+      NFParam.nts_gvars_init = nt.NFParam.nts_gvars_init ;
+      NFParam.nts_system_threads = None
+    }
+    
 
 end;;
 
