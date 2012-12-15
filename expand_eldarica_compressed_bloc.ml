@@ -349,15 +349,18 @@ struct
 	      end
 	  end;
 	  build_ctl_iterator tl (*recursion upon tail list.*)
-      |[] -> ()
+      | [] -> ()
     in
-    build_ctl_iterator contextual_transition_list
-
+    build_ctl_iterator contextual_transition_list;
+   
+    let nts_sys_table = 
+      nts_of_transitions_rules_container context_table
+    in
+    nts_sys_table
 
 (*
-
   let  compile_context_transition_system_into_nts 
-      nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
+  nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
 *)  
 
 end;;
