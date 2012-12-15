@@ -153,21 +153,21 @@ struct
 
 
 
-    let anot_parser = (fun s -> Nts_Anot((Param.anot_parser s)))
+  let anot_parser = (fun s -> Nts_Anot((Param.anot_parser s)))
 
   (*Need not appear in the API*)
   let get_cautomata_names_of_nts nts_sys =
     let key_name_folder vname _ retstring  =
       match retstring with 
-	  "" -> vname
-	| _ -> vname ^","^ retstring
+	"" -> vname
+      | _ -> vname ^","^ retstring
     in
     (Hashtbl.fold key_name_folder  nts_sys.nts_automata "")
-
-
+      
+      
   let control_of_id_param p =
     Nts_State (p)
-
+      
   let is_state_in_inv_relation table cstate =
     Hashtbl.mem table cstate
 
@@ -216,7 +216,7 @@ struct
   let get_varinfo_by_optname nts_sys  (cname : string option) (vname : string) =
     let search_varname_iterator vname ntvar =
       match ntvar with
-	 NtsGenVar(NtsVar(name,_),_)  ->
+	NtsGenVar(NtsVar(name,_),_)  ->
 	  if (String.compare name vname )==0 then
 	    raise (Found_genvar(ntvar))
 	  else ()
@@ -224,7 +224,7 @@ struct
     try
       List.iter (search_varname_iterator vname) nts_sys.nts_global_vars;
       match cname with
-	  Some(cname)-> 
+	Some(cname)-> 
 	    begin
 	      try
 		let c = Hashtbl.find nts_sys.nts_automata cname 
@@ -709,10 +709,6 @@ control state "state" in the subsystem cautomaton.
  the given cautomaton.*)
 
 
-
- 
- 
-
  let copy_out_transition_from_rel  t_def =
    let copied_def = Hashtbl.create 7 in
    let copy_iterator key tlabel =
@@ -1124,6 +1120,25 @@ let cautomaton_of_subrelation_cautomaton new_ca_name base_automaton sub_rel =
   transitions = copy_transitions_container sub_rel.sub_transitions;
 
 }    
+
+
+(** *)
+let cautomaton_of_transitions_container new_ca_name base_automaton sub_trans =
+{
+  
+  nts_automata_name = new_ca_name;
+  anot = base_automaton.anot;
+  init_states  = Hashtbl.copy base_automaton.init_states;
+  final_states = Hashtbl.copy base_automaton.final_states;
+  error_states = Hashtbl.copy base_automaton.error_states;
+
+  input_vars = base_automaton.input_vars;
+  output_vars = base_automaton.output_vars;
+  local_vars = base_automaton.local_vars;
+
+  transitions =  copy_transitions_container sub_trans;
+
+}
     
 
 

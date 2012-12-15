@@ -198,5 +198,6 @@ sig
 
 
   val cautomaton_of_subrelation_cautomaton : string -> nts_automaton -> num_subrel_in_cautomaton -> nts_automaton
+  val cautomaton_of_transitions_container : string -> nts_automaton -> transitions_container -> nts_automaton
 end
 

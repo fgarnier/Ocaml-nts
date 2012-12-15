@@ -261,6 +261,26 @@ struct
     Hashtbl.replace context_table uid (ca,tlist@(trans::[]))
 (**)
 
+
+  let nts_of_transitions_rules_container tbl =
+    let sys_table = Hashtbl.create 97 in
+    let mapper (corg,l,cdest) =
+      (corg,cdest,l)
+    in
+    let trans_table_iterator context_id (ca_def,tlist) =
+      let tlist_map = List.map mapper tlist in
+      let context_sysname = nts_subsystem_of_ca_cid ca_def.nts_automata_name 
+	context_id in
+      let subrel = transitions_container_of_trans_list tlist_map in
+      let context_cautomaton = NFParam.cautomaton_of_transitions_container
+	 context_sysname  ca_def subrel in
+      Hashtbl.add sys_table context_sysname context_cautomaton
+    in
+    Hashtbl.iter trans_table_iterator tbl;
+    sys_table
+  
+    
+
   let build_nts_from_contextual_trace nts_lib nt tr =
     
     let context_uid = ref 0 in (* Add one to this variable each time
@@ -297,16 +317,16 @@ struct
 		in
 		let l = contextual_call_of_subsystem l context_uid 
 		in
-		add_transtion_in_contextual_trans_sys context_table current_cid (corg,l,dest) ;
-		
-		let new_context = (called_subsystem_definition,!context_uid) in
+		add_transtion_in_contextual_trans_sys 
+		  context_table current_cid (corg,l,dest);
+		let new_context = 
+		  (called_subsystem_definition,!context_uid) in
 		Stack.push new_context context_stack
 	      (* Create a new context, and push it on the top of
 		 the stack *)
 	      end
 	   
 	    else
-	    
 	      begin
 		add_transtion_in_contextual_trans_sys 
 		  context_table current_cid (corg,l,dest) ;
@@ -334,11 +354,11 @@ struct
     build_ctl_iterator contextual_transition_list
 
 
-
-
 (*
-let rec compile_trace_into_nts nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
-*)
+
+  let  compile_context_transition_system_into_nts 
+      nts_lib nt call_counts trace_system (pre_str,pre_sysc) = 
+*)  
 
 end;;
 
@@ -348,24 +368,3 @@ end;;
 
 
 
-(*
-let flata_nts_of_eldarica_incomplete_trace  (opt_lib : nts_system option) (nt : nts_system ) ( tr : Trace_types.trace ) =
-	
-	let automata_folder name caut pre_str =
-	  Format.sprintf "%s\n%s" pre_str (dot_of_cautomaton caut)
-	in
-	let automata_dump = 
-	  Hashtbl.fold automata_folder nt.nts_automata "" 
-	in
-	let ret_string = 
-0	  Format.sprintf "digraph %s { %s" nt.nts_system_name automata_dump
-	in
-	let (printout_hgraph,_) = 
-	  List.fold_left (pprint_subgraph_between_ctr_pair_folder nt ) 
-	    ("",None) tr
-	in
-	Format.sprintf "%s%s}" ret_string printout_hgraph
-
-
-end;;
-*)
