@@ -385,7 +385,7 @@ struct
 		in
 		add_transtion_in_contextual_trans_sys 
 		  context_table ca current_cid (corg,l,dest);
-		context_uid := !context_uid+1;
+		(*context_uid := !context_uid+1;*)
 		let new_context = 
 		  (called_subsystem_definition,!context_uid) in
 		Stack.push new_context context_stack;
