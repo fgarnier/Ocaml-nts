@@ -63,8 +63,11 @@ struct
     List.rev inv_list
 
 
-
-
+  let debug_pprint_syscontrol sysc =
+    match sysc with 
+      Trace_types.Sys_control(c,s) ->
+	Format.sprintf "Cautomaton :%s, state :%s" c s
+	  
   let control_of_syscontrol sysc =
     match sysc with 
       Trace_types.Sys_control(_,s) ->
@@ -82,6 +85,27 @@ struct
       Trace_types.Sys_control(sysname,_) ->
 	NFParam.get_cautomaton_by_name nt sysname
 	  
+
+
+  let rec is_transition_a_call l =
+    match l with
+      CntGenCall(sysname,opt_ret,params)::_ -> true
+    | _::tl -> is_transition_a_call tl	
+    | [] -> false
+    
+
+ (* let is_new_context ca_def (corg,_,_) =
+     List.mem ca_def.NFParam.init_states cdest
+ *)
+  let is_a_return ca_def (_,_,cdest) =
+   NFParam.is_final_state ca_def cdest  
+  
+ 
+
+
+
+  (*let get_one_transition_l nts_lib nt =*)
+    
 
   (**
 
@@ -102,14 +126,36 @@ struct
 	->
 	begin
 	  if (String.compare ca_name (ca_name_of_syscontrol curr_sysc))
-	    <> 0 
+	    != 0 
 	  then  
 	    begin
-	  
-	      (pre_context_tlist,Some(curr_sysc)) (* Current state and previous
+	      Format.printf "[Debug] context name change detected : Old context %s, new context %s \n %!" (debug_pprint_syscontrol prev_sysc) (debug_pprint_syscontrol curr_sysc);
+	      
+	      
+		  let max_c = control_of_syscontrol prev_sysc in
+		  
+		  let ca =
+		    (
+		      try
+			ca_of_syscontrol nt prev_sysc
+		      with
+			Not_found -> ca_of_syscontrol nts_lib prev_sysc
+		    )
+		  in
+		  if not (is_a_return ca ((),(),max_c))
+		  then 
+		    begin
+		      let (dest,l) = get_one_transition ca max_c  
+		      in
+		      Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);
+		  
+		      (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
+		    end
+		  else
+		    (pre_context_tlist,Some(curr_sysc)) (* Current state and previous
 						  one don't belong to the same 
-						     subsystem. It is a call to a subsystem.*)
-		
+						     subsystem. It is call return to a subsystem.*)
+				
 	    end
 	  else
 	    begin
@@ -123,7 +169,7 @@ struct
 		  let interval_content = 
 		    get_contextual_transitions_of_subgraph ca subgraph
 		  in
-		  (interval_content,Some(curr_sysc))
+		  (pre_context_tlist@interval_content,Some(curr_sysc))
 		end
 	      else
 		begin
@@ -140,7 +186,7 @@ struct
 		      | None -> []
 		    ) 
 		  in
-		  (interval_content,Some(curr_sysc))
+		  (pre_context_tlist@interval_content,Some(curr_sysc))
 		end
 	    end
 
@@ -151,7 +197,8 @@ struct
     with
       No_such_counter_automata_in_nts_system(_,_) ->
 	_build_list_on_nts_param nts_lib
-    | other_ex -> raise other_ex    
+    | other_ex -> 
+      raise other_ex    
 
 
 
@@ -175,7 +222,6 @@ struct
     (ca,0)
 
 
-
   let nts_subsystem_of_ca_cid ca_name cid =
     Format.sprintf "%s_%d" ca_name cid
 
@@ -184,25 +230,16 @@ struct
     subsystem generated from the trace itself.
 *)
 
-  let is_transition_a_call l =
-    match l with
-      CntGenCall(sysname,opt_ret,params)::_ -> true
-    | _ -> false
-
-
- (* let is_new_context ca_def (corg,_,_) =
-     List.mem ca_def.NFParam.init_states cdest
- *)
-  let is_a_return ca_def (_,_,cdest) =
-   NFParam.is_final_state ca_def cdest
  
   let contextual_call_of_subsystem l (usid_counter : int ref) =
+    Format.printf "contextual call of susbsystem id : %d \n%!" !usid_counter;
     match l with
       CntGenCall(sysname,opt_ret,params)::tl ->
 	begin
+	  Format.printf "[DEBUG] call function %s \n" sysname;
 	  usid_counter := !usid_counter + 1;
 	  let contextual_sysname = nts_subsystem_of_ca_cid sysname 
-	    !usid_counter 
+	    !usid_counter  
 	  in
 	  (CntGenCall(contextual_sysname,opt_ret,params)::tl)
 	end
@@ -256,9 +293,17 @@ struct
       [] -> true
     | _ -> false
 
-  let add_transtion_in_contextual_trans_sys context_table uid trans =
-    let (ca,tlist) = Hashtbl.find context_table uid in
-    Hashtbl.replace context_table uid (ca,tlist@(trans::[]))
+  let add_transtion_in_contextual_trans_sys context_table ca_param uid trans =
+    if Hashtbl.mem context_table uid 
+    then
+      begin
+	let (ca,tlist) = Hashtbl.find context_table uid in
+	Hashtbl.replace context_table uid (ca,tlist@(trans::[]))
+      end
+    else
+      begin
+	Hashtbl.add context_table uid (ca_param,(trans::[]))
+      end
 (**)
 
 
@@ -283,6 +328,8 @@ struct
 
   let build_nts_table_from_contextual_trace nts_lib nt tr =
     
+    Format.printf "[Debug] trace length : %d \n" (List.length tr) ;
+    
     let context_uid = ref 0 in (* Add one to this variable each time
 			       a call is performed.*)
     let context_table = Hashtbl.create 97 in (* (int  , ( ca, (control, trans list, control))) Hashtbl.t *)
@@ -293,9 +340,11 @@ struct
     let context_stack = Stack.create () in
     Stack.push current_context context_stack;
 
+
+    
     
     let rec build_ctl_iterator ctl = 
-      
+      Format.printf "[Debug] Iterating on ctl list, List length %d \n" (List.length ctl);
       let ( current_context_ca,current_cid) = 
 	Stack.top context_stack 
       in
@@ -309,6 +358,7 @@ struct
       match ctl with 	    
 	(ca,((corg,l,dest) as tlabel))::tl ->
 	  begin
+	    Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);
 	    if ( is_transition_a_call l )
 	    then
 	      begin
@@ -318,30 +368,32 @@ struct
 		let l = contextual_call_of_subsystem l context_uid 
 		in
 		add_transtion_in_contextual_trans_sys 
-		  context_table current_cid (corg,l,dest);
+		  context_table ca current_cid (corg,l,dest);
 		let new_context = 
 		  (called_subsystem_definition,!context_uid) in
-		Stack.push new_context context_stack
+		Stack.push new_context context_stack;
+		Format.printf "[Debug]: Got a push \n"
 	      (* Create a new context, and push it on the top of
 		 the stack *)
 	      end
 	   
 	    else
 	      begin
+		Format.printf "Transition is not a call \n";
 		add_transtion_in_contextual_trans_sys 
-		  context_table current_cid (corg,l,dest) ;
+		  context_table ca current_cid (corg,l,dest) ;
 		if is_a_return ca tlabel 
 		then  
 		  begin
 		    if ( empty_tail tl) then
-		      let  _ = Stack.pop context_stack in 
+		      (*let  _ = Stack.pop context_stack in *)
 		      ()
  		    else 
 		      begin
 			if ( is_context_switch_ahead ca tl ) 
 			then 
-			let  _ = Stack.pop context_stack
-			in ()
+			(*let  _ = Stack.pop context_stack
+			in*) Format.printf "[Debug] Got a pop \n"
 			else 
 			  ()
 		      end
@@ -352,11 +404,12 @@ struct
       | [] -> ()
     in
     build_ctl_iterator contextual_transition_list;
-   
     let nts_sys_table = 
       nts_of_transitions_rules_container context_table
     in
     nts_sys_table
+
+
 
 
   let nts_out_trace nts_lib nt tr =

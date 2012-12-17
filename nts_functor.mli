@@ -159,6 +159,9 @@ sig
   val get_one_state : states_container -> control option
 
 
+  (*val get_outgoing_transit : nts_automatont -> control -> 
+    (control * control * ())*)
+
   (** returns true iff the third argument is a successor of the second one
   in the automaton provided as first argument.*)
   val is_successor_of : nts_automaton -> control -> control -> bool

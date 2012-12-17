@@ -961,8 +961,8 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
       Hashtbl.iter log_var_in_transitions_iterator inner_table
     in
     Hashtbl.iter trans_table_iterator nt_aut.transitions
-    ;
-    Format.printf "[locally_used_variables] \n"; (Simplification.pprint_diary diary)
+   (* ;
+    Format.printf "[locally_used_variables] \n"; (Simplification.pprint_diary diary)*)
 
   
   let update_local_list nt_aut loc_vars_list =
@@ -1004,7 +1004,7 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
 	gvar::glist
       else
 	begin
-	  Format.printf "eliminating variable %s \n" (Nts_generic.nts_pprint_genvar  gvar);
+	  (*Format.printf "eliminating variable %s \n" (Nts_generic.nts_pprint_genvar  gvar);*)
 	  glist
 	end
 	
@@ -1071,8 +1071,6 @@ list of each automaton has been cleared of non used varibles
     in
     nts_sys_with_update_cautomaton_table nt_sys clean_system_table
     
- 
-
 
 
 

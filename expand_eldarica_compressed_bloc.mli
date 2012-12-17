@@ -162,7 +162,7 @@ module Make :
       val is_context_switch_ahead : 'a -> ('a * 'b) list -> bool
       val empty_tail : 'a list -> bool
       val add_transtion_in_contextual_trans_sys :
-        ('a, 'b * 'c list) Hashtbl.t -> 'a -> 'c -> unit
+        ('a, 'b * 'c list) Hashtbl.t -> 'b -> 'a -> 'c -> unit
       val nts_of_transitions_rules_container :
         (int,
          NFParam.nts_automaton *
