@@ -150,7 +150,7 @@ struct
 		begin
 		  let (dest,l) = get_one_transition ca max_c  
 		  in
-		  Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);
+		 (* Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);*)
 		  
 		  (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
 		end
@@ -236,14 +236,14 @@ struct
 
  
   let contextual_call_of_subsystem l (usid_counter : int ref) =
-    Format.printf "contextual call of susbsystem id : %d \n%!" !usid_counter;
+    (*Format.printf "contextual call of susbsystem id : %d \n%!" !usid_counter;*)
    
 
     let rec l_iterator accu ll =
     match ll with
       CntGenCall(sysname,opt_ret,params)::tl ->
 	begin
-	  Format.printf "[DEBUG] call function %s \n" sysname;
+	  (*Format.printf "[DEBUG] call function %s \n" sysname;*)
 	  usid_counter := !usid_counter + 1;
 	  let contextual_sysname = nts_subsystem_of_ca_cid sysname 
 	    !usid_counter  
@@ -342,7 +342,7 @@ struct
 
   let build_nts_table_from_contextual_trace nts_lib nt tr =
     
-    Format.printf "[Debug] trace length : %d \n" (List.length tr) ;
+    (*Format.printf "[Debug] trace length : %d \n" (List.length tr) ;*)
     
     let context_uid = ref 0 in (* Add one to this variable each time
 			       a call is performed.*)
@@ -358,7 +358,7 @@ struct
     
     
     let rec build_ctl_iterator ctl = 
-      Format.printf "[Debug] Iterating on ctl list, List length %d \n" (List.length ctl);
+      (*Format.printf "[Debug] Iterating on ctl list, List length %d \n" (List.length ctl);*)
       let ( current_context_ca,current_cid) = 
 	Stack.top context_stack 
       in
@@ -369,12 +369,12 @@ struct
 	  the current context description from the stack.
       *)
 
-      Format.printf "Current cid is %d \n " current_cid;
+      (*Format.printf "Current cid is %d \n " current_cid;*)
 
       match ctl with 	    
 	(ca,((corg,l,dest) as tlabel))::tl ->
 	  begin
-	    Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);
+	    (*Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);*)
 	    if ( is_transition_a_call l )
 	    then
 	      begin
