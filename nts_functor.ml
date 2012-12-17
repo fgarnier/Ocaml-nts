@@ -1095,7 +1095,7 @@ let copy_transitions_container trans =
     let inncpy = Hashtbl.copy inner_rel in
     Hashtbl.add copy key inncpy
   in
-  Hashtbl.iter copy_iterator copy;
+  Hashtbl.iter copy_iterator trans;
   copy
 
 

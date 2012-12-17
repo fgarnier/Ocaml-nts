@@ -132,35 +132,36 @@ struct
 	    != 0 
 	  then  
 	    begin
-	      Format.printf "[Debug] context name change detected : Old context %s, new context %s \n %!" (debug_pprint_syscontrol prev_sysc) (debug_pprint_syscontrol curr_sysc);
+	      (*Format.printf "[Debug] context name change detected : Old context %s, new context %s \n %!" (debug_pprint_syscontrol prev_sysc) (debug_pprint_syscontrol curr_sysc);
+	      *)
 	      
+	      let max_c = control_of_syscontrol prev_sysc in
 	      
-		  let max_c = control_of_syscontrol prev_sysc in
-		  
-		  let ca =
-		    (
-		      try
-			ca_of_syscontrol nt prev_sysc
-		      with
-			Not_found -> ca_of_syscontrol nts_lib prev_sysc
-		    )
+	      let ca =
+		(
+		  try
+		    ca_of_syscontrol nt prev_sysc
+		  with
+		    Not_found -> ca_of_syscontrol nts_lib prev_sysc
+		)
+	      in
+	      if not (is_a_return ca ((),(),max_c))
+	      then 
+		begin
+		  let (dest,l) = get_one_transition ca max_c  
 		  in
-		  if not (is_a_return ca ((),(),max_c))
-		  then 
-		    begin
-		      let (dest,l) = get_one_transition ca max_c  
-		      in
-		      Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);
+		  Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);
 		  
-		      (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
-		    end
-		  else
-		    (pre_context_tlist,Some(curr_sysc)) (* Current state and previous
-						  one don't belong to the same 
-						     subsystem. It is call return to a subsystem.*)
+		  (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
+		end
+	      else
+		(pre_context_tlist,Some(curr_sysc)) (* Current state and previous
+						       one don't belong to the same 
+						       subsystem. It is call return to a subsystem.*)
 				
 	    end
 	  else
+
 	    begin
 	      let max_c = control_of_syscontrol prev_sysc in 
 	      let min_c = control_of_syscontrol curr_sysc in
@@ -185,7 +186,7 @@ struct
 			Some(ll) ->
 			  let label = List.hd ll in
 			  ( ca , (max_c,label, min_c))::[]
-			  
+			    
 		      | None -> []
 		    ) 
 		  in
@@ -203,7 +204,7 @@ struct
     | other_ex -> 
       raise other_ex    
 
-
+	
 
   let contextual_transition_list_of_trace nts_lib nt tr =
     let (res,_)=
@@ -236,7 +237,10 @@ struct
  
   let contextual_call_of_subsystem l (usid_counter : int ref) =
     Format.printf "contextual call of susbsystem id : %d \n%!" !usid_counter;
-    match l with
+   
+
+    let rec l_iterator accu ll =
+    match ll with
       CntGenCall(sysname,opt_ret,params)::tl ->
 	begin
 	  Format.printf "[DEBUG] call function %s \n" sysname;
@@ -244,10 +248,13 @@ struct
 	  let contextual_sysname = nts_subsystem_of_ca_cid sysname 
 	    !usid_counter  
 	  in
-	  (CntGenCall(contextual_sysname,opt_ret,params)::tl)
+	  accu@(CntGenCall(contextual_sysname,opt_ret,params)::tl)
 	end
     
-    | _ -> l
+    | h::tl -> l_iterator (accu@(h::[])) tl 
+    | [] -> accu
+    in
+    l_iterator [] l
 
       
 (** In this function, the parameter nts_out nt_sytems_build_container 
@@ -315,7 +322,9 @@ struct
   let nts_of_transitions_rules_container tbl =
     let sys_table = Hashtbl.create 97 in
     let mapper (corg,l,cdest) =
+     
       (corg,cdest,l)
+
     in
     let trans_table_iterator context_id (ca_def,tlist) =
       let tlist_map = List.map mapper tlist in
@@ -380,14 +389,14 @@ struct
 		let new_context = 
 		  (called_subsystem_definition,!context_uid) in
 		Stack.push new_context context_stack;
-		Format.printf "[Debug]: Got a push \n"
+		(*Format.printf "[Debug]: Got a push \n"*)
 	      (* Create a new context, and push it on the top of
 		 the stack *)
 	      end
 	   
 	    else
 	      begin
-		Format.printf "Transition is not a call \n";
+		(*Format.printf "Transition is not a call \n";*)
 		add_transtion_in_contextual_trans_sys 
 		  context_table ca current_cid (corg,l,dest) ;
 		if is_a_return ca tlabel 
@@ -401,9 +410,9 @@ struct
 			if ( is_context_switch_ahead ca tl ) 
 			then 
 			  (*Hastbl.add*) 
-			  let  (context_id,ca) = Stack.pop context_stack in
+			  let _ = Stack.pop context_stack in()
 			  
-			  Format.printf "[Debug] Got a pop \n"
+			  (*Format.printf "[Debug] Got a pop \n"*)
 			else 
 			  ()
 		      end
