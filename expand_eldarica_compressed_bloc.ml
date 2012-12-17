@@ -148,11 +148,17 @@ struct
 	      if not (is_a_return ca ((),(),max_c))
 	      then 
 		begin
-		  let (dest,l) = get_one_transition ca max_c  
-		  in
+		  try
+		    let (dest,l) = get_one_transition ca max_c  
+		    in
 		 (* Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);*)
 		  
-		  (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
+		    (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
+		  with
+		    Not_found -> 
+		      let ca_name = NFParam.pprint_control max_c in 
+		      Format.printf "%s\n%!" ca_name;
+		      assert false 
 		end
 	      else
 		(pre_context_tlist,Some(curr_sysc)) (* Current state and previous
