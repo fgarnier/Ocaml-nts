@@ -22,7 +22,6 @@ error s2,s6,s7,s9;
 AG_SetStatusAndReturn_24{
 in status,validity__status_,Irp,validity__Irp_,deviceExtension__TargetDeviceObject,validity__deviceExtension__TargetDeviceObject_: int;
 
-__cil_tmp4: int;
 out ret_val_,validity__ret_val__: int;
 initial sinit;
 final s11;
@@ -56,7 +55,7 @@ error s2,s6,s7,s9;
 CdAudio535DeviceControl_10{
 in DeviceObject,validity__DeviceObject_,Irp,validity__Irp_: int;
 
-Irp__Tail__Overlay__CurrentStackLocation,DeviceObject__DeviceExtension,deviceExtension__TargetDeviceObject,Irp__AssociatedIrp__SystemBuffer,srb__Cdb,currentIrpStack__Parameters__DeviceIoControl__IoControlCode,Irp__IoStatus__Information,currentIrpStack__Parameters__DeviceIoControl__OutputBufferLength,currentIrpStack__Parameters__DeviceIoControl__InputBufferLength,srb__CdbLength,cdb__CDB10__OperationCode,srb__TimeOutValue,sizeof__READ_CAPACITY_DATA,lastSession__LogicalBlockAddress,cdaudioDataOut__FirstTrack,cdaudioDataOut__LastTrack,sizeof__CDROM_TOC,sizeof__SUB_Q_CURRENT_POSITION,userPtr__Format,sizeof__CDROM_PLAY_AUDIO_MSF,inputBuffer__StartingM,inputBuffer__EndingM,inputBuffer__StartingS,inputBuffer__EndingS,sizeof__CDROM_SEEK_AUDIO_MSF,currentIrpStack,deviceExtension,cdaudioDataOut,srb,lastSession,cdb,status,i,bytesTransfered,Toc,tmp,tmp___0,tmp___1,tmp___2,tmp___3,tmp___4,tracksToReturn,tracksOnCd,tracksInBuffer,userPtr,SubQPtr,tmp___5,tmp___6,inputBuffer,inputBuffer___0,tmp___7,tmp___8,__cil_tmp58,__cil_tmp59,__cil_tmp60,__cil_tmp61,__cil_tmp62,__cil_tmp63,__cil_tmp64,__cil_tmp65,__cil_tmp66,__cil_tmp67,__cil_tmp68,__cil_tmp69,__cil_tmp70,__cil_tmp71,__cil_tmp72,__cil_tmp73,__cil_tmp74,__cil_tmp75,__cil_tmp76,__cil_tmp77,__cil_tmp78,__cil_tmp79,__cil_tmp80,__cil_tmp81,__cil_tmp82,__cil_tmp83,__cil_tmp84,__cil_tmp85,__cil_tmp86,__cil_tmp87,__cil_tmp88,__cil_tmp89,__cil_tmp90,__cil_tmp91,__cil_tmp92,__cil_tmp93,__cil_tmp94,__cil_tmp95,__cil_tmp96,__cil_tmp97,__cil_tmp98,__cil_tmp99,__cil_tmp100,__cil_tmp101,__cil_tmp102,__cil_tmp103,__cil_tmp104,__cil_tmp105,__cil_tmp107,__cil_tmp108,__cil_tmp109,__retres,validity__tmp___8_,validity__tmp___7_,validity__tmp___6_,validity__tmp___5_,validity__tmp___4_,validity__tmp___3_,validity__tmp___2_,validity__tmp___1_,validity__tmp___0_,validity__tmp_,validity__status_,validity____nts__naffected_ret_val__,__nts__naffected_ret_val_: int;
+validity__status_,__cil_tmp70,__cil_tmp69,__cil_tmp68,__cil_tmp67,__cil_tmp66,__cil_tmp65,__cil_tmp64,__cil_tmp63,__cil_tmp62,__cil_tmp61,__cil_tmp60,__cil_tmp59,__cil_tmp58,SubQPtr,userPtr,status,cdb,srb,cdaudioDataOut,deviceExtension,currentIrpStack,userPtr__Format,sizeof__SUB_Q_CURRENT_POSITION,srb__TimeOutValue,srb__CdbLength,currentIrpStack__Parameters__DeviceIoControl__OutputBufferLength,currentIrpStack__Parameters__DeviceIoControl__IoControlCode,srb__Cdb,Irp__AssociatedIrp__SystemBuffer,DeviceObject__DeviceExtension,Irp__Tail__Overlay__CurrentStackLocation: int;
 out ret_val_,validity__ret_val__: int;
 initial sinit;
 final s107;
@@ -97,7 +96,7 @@ error s1,s10,s102,s104,s105,s110,s113,s115,s116,s118,s12,s122,s124,s127,s130,s13
 CdAudioDeviceControl_8{
 in DeviceObject,validity__DeviceObject_,Irp,validity__Irp_: int;
 
-deviceExtension__Active,status,validity__status_: int;
+validity__status_,status,deviceExtension__Active: int;
 out ret_val_,validity__ret_val__: int;
 initial sinit;
 final s32;
@@ -133,7 +132,7 @@ error s2,s4;
 KeWaitForSingleObject_14{
 in Object,validity__Object_,WaitReason,validity__WaitReason_,WaitMode,validity__WaitMode_,Alertable,validity__Alertable_,Timeout,validity__Timeout_: int;
 
-tmp_ndt_7,__retres,validity__tmp_ndt_7_: int;
+validity__tmp_ndt_7_,__retres,tmp_ndt_7: int;
 out ret_val_,validity__ret_val__: int;
 initial sinit;
 final s36;
@@ -160,7 +159,7 @@ error s11,s13,s16,s17,s19,s21,s25,s27,s3,s30,s32,s5,s6,s9;
 SendSrbSynchronous_12{
 in Extension,validity__Extension_,Srb,validity__Srb_,Buffer,validity__Buffer_,BufferLength,validity__BufferLength_: int;
 
-ioStatus__Status,ioctl,event,irp,status,__cil_tmp10,__cil_tmp11,__cil_tmp12,__cil_tmp13,__cil_tmp14,__cil_tmp15,__cil_tmp16,__cil_tmp17,__cil_tmp18,__retres,__if_ndet_cond__,validity____nts__naffected_ret_val__,__nts__naffected_ret_val_: int;
+__nts__naffected_ret_val_,validity____nts__naffected_ret_val__,__if_ndet_cond__,__retres,__cil_tmp18,__cil_tmp17,__cil_tmp16,__cil_tmp15,__cil_tmp14,__cil_tmp13,__cil_tmp12,__cil_tmp11,__cil_tmp10,status,irp,event,ioctl,ioStatus__Status: int;
 out ret_val_,validity__ret_val__: int;
 initial sinit;
 final s32;
@@ -254,7 +253,7 @@ final s1;
 }
 main_0{
 
-pirp__IoStatus__Status,d,status,irp,we_should_unload,irp_choice,devobj,tmp_ndt_1,tmp_ndt_2,tmp_ndt_3,__retres,validity__tmp_ndt_3_,validity__tmp_ndt_2_,validity__tmp_ndt_1_,validity__status_: int;
+irp: int;
 out ret_val_,validity__ret_val__: int;
 initial sinit;
 final s78;

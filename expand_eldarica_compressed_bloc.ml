@@ -434,6 +434,7 @@ struct
   let nts_out_trace nts_lib nt tr =
     let trans_table = build_nts_table_from_contextual_trace nts_lib nt tr
     in
+    let pre_ret =
     {
       NFParam.nts_system_name = "debug_trace_system";
       NFParam.nts_global_vars = nt.NFParam.nts_global_vars;
@@ -441,6 +442,7 @@ struct
       NFParam.nts_gvars_init = nt.NFParam.nts_gvars_init ;
       NFParam.nts_system_threads = None
     }
+    in NFParam.nt_system_var_cleaner pre_ret
     
 
 end;;
