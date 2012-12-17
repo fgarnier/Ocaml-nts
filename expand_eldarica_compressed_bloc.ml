@@ -441,8 +441,8 @@ struct
       NFParam.nts_automata = trans_table ;
       NFParam.nts_gvars_init = nt.NFParam.nts_gvars_init ;
       NFParam.nts_system_threads = None
-    }
-    in NFParam.nt_system_var_cleaner pre_ret
+    } in pre_ret
+    (*in NFParam.nt_system_var_cleaner pre_ret*)
     
 
 end;;

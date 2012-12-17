@@ -78,7 +78,7 @@ let import_nts_lib_in lib_source nts_target =
   {
     Nts_int.nts_system_name = nts_target.Nts_int.nts_system_name;
     Nts_int.nts_global_vars = nts_target.Nts_int.nts_global_vars @ 
-      nts_target.Nts_int.nts_global_vars;
+      lib_source.Nts_int.nts_global_vars;
     
     Nts_int.nts_automata = merge_table;
     Nts_int.nts_gvars_init = nts_target.Nts_int.nts_gvars_init;
