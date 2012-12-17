@@ -29,6 +29,9 @@ struct
   open NFParam
 
   
+  
+
+
   (**
      function nts_out_of_subrealtion :
 
@@ -257,13 +260,15 @@ struct
 
 
 
-  let get_called_subsystem_name l =
+  let rec get_called_subsystem_name l =
     match l with
       CntGenCall(sysname,_,_)::_ ->
 	begin
 	  sysname
-	end	  
-    | _ ->  assert false
+	end	
+	  
+    | _::tl -> get_called_subsystem_name tl
+    | []->  assert false
       
       
   let get_ca_by_name nts_lib nt name =
@@ -355,6 +360,8 @@ struct
 	  the current context description from the stack.
       *)
 
+      Format.printf "Current cid is %d \n " current_cid;
+
       match ctl with 	    
 	(ca,((corg,l,dest) as tlabel))::tl ->
 	  begin
@@ -369,6 +376,7 @@ struct
 		in
 		add_transtion_in_contextual_trans_sys 
 		  context_table ca current_cid (corg,l,dest);
+		context_uid := !context_uid+1;
 		let new_context = 
 		  (called_subsystem_definition,!context_uid) in
 		Stack.push new_context context_stack;
@@ -386,14 +394,16 @@ struct
 		then  
 		  begin
 		    if ( empty_tail tl) then
-		      (*let  _ = Stack.pop context_stack in *)
+		      let  _ = Stack.pop context_stack in 
 		      ()
  		    else 
 		      begin
 			if ( is_context_switch_ahead ca tl ) 
 			then 
-			(*let  _ = Stack.pop context_stack
-			in*) Format.printf "[Debug] Got a pop \n"
+			  (*Hastbl.add*) 
+			  let  (context_id,ca) = Stack.pop context_stack in
+			  
+			  Format.printf "[Debug] Got a pop \n"
 			else 
 			  ()
 		      end

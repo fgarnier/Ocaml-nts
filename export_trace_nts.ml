@@ -61,6 +61,30 @@ let get_nts_from_file fname =
   close_in ichannel;
   nt_system
     
+
+
+
+(** *)
+let import_nts_lib_in lib_source nts_target =
+  let merge_iterator table_merge cname automaton =
+    Hashtbl.add  table_merge cname automaton
+  in
+  let merge_table = Hashtbl.create 97 in
+  Hashtbl.iter  
+    (merge_iterator merge_table) nts_target.Nts_int.nts_automata;
+  Hashtbl.iter 
+    (merge_iterator merge_table) lib_source.Nts_int.nts_automata;
+
+  {
+    Nts_int.nts_system_name = nts_target.Nts_int.nts_system_name;
+    Nts_int.nts_global_vars = nts_target.Nts_int.nts_global_vars @ 
+      nts_target.Nts_int.nts_global_vars;
+    
+    Nts_int.nts_automata = merge_table;
+    Nts_int.nts_gvars_init = nts_target.Nts_int.nts_gvars_init;
+    Nts_int.nts_system_threads =  nts_target.Nts_int.nts_system_threads;
+}
+
   
 (** Main function of this utility program*)
 let _ =
@@ -73,6 +97,7 @@ let _ =
 
   let trace = get_trace_from_file Sys.argv.(2) in
   let nt = get_nts_from_file Sys.argv.(1) in
+  let nt = import_nts_lib_in nts_lib_standards_subsystems nt in
   let nts_out = 
     INtstrace.nts_out_trace nts_lib_standards_subsystems nt trace 
   in
