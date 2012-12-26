@@ -83,7 +83,9 @@ sig
 									        *)
     
   val is_state_in_inv_relation : inv_relation_container -> control -> bool
+  val is_state_in_transition_container : control -> transitions_container -> bool
 
+ 
 
     
   (** counter automata with inputs and
@@ -124,6 +126,8 @@ sig
     sub_transitions : transitions_container;
   }
   
+
+ val is_state_in_cautomaton : control -> nts_automaton -> bool 
   (** 
       Experimental section 
   *)

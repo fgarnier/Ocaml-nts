@@ -103,22 +103,22 @@ struct
   let is_a_return ca_def (_,_,cdest) =
    NFParam.is_final_state ca_def cdest  
   
- 
-
-
+ (*
+  let is_state_in_ca ca state =
+    
+ *)
 
   (*let get_one_transition_l nts_lib nt =*)
     
-
   (**
-
+     
      nts_lib is collection of nts automaton that compose the nts
      library.
-
+     
      nt is another library. It is reasonable to think that both
      libraries might be merged into a single one in a next version.
-*)
-
+  *)
+     
   let get_contextual_transition_list_from_pair_folder
       nts_lib nt  (pre_context_tlist,pre_sysc) curr_sysc =
     
@@ -132,32 +132,31 @@ struct
 	    != 0 
 	  then  
 	    begin
-	      (*Format.printf "[Debug] context name change detected : Old context %s, new context %s \n %!" (debug_pprint_syscontrol prev_sysc) (debug_pprint_syscontrol curr_sysc);
-	      *)
-	      
+	     (* Format.printf "[Debug] context name change detected : Old context %s, new context %s \n %!" (debug_pprint_syscontrol prev_sysc) (debug_pprint_syscontrol curr_sysc);
+	     *)
 	      let max_c = control_of_syscontrol prev_sysc in
-	      
-	      let ca =
-		(
+	      let ca = ca_of_syscontrol nt prev_sysc in
+		(* (
 		  try
 		    ca_of_syscontrol nt prev_sysc
 		  with
 		    Not_found -> ca_of_syscontrol nts_lib prev_sysc
 		)
-	      in
+	      in*)
 	      if not (is_a_return ca ((),(),max_c))
 	      then 
 		begin
 		  try
-		    let (dest,l) = get_one_transition ca max_c  
-		    in
-		 (* Format.printf "Label is %s \n" (nts_pprint_gen_trans_label_list l);*)
-		  
+		    let (dest,l) = get_one_transition ca max_c  in
+		    (*in
+		    Format.printf "[Debug] Funcall is Label is %s \n" (nts_pprint_gen_trans_label_list l);
+		    *)
 		    (pre_context_tlist@((ca,(max_c,l,dest))::[]),Some(curr_sysc))
 		  with
 		    Not_found -> 
-		      let ca_name = NFParam.pprint_control max_c in 
-		      Format.printf "%s\n%!" ca_name;
+		      
+		      let control_name = NFParam.pprint_control max_c in 
+		      Format.printf "No successor known for automata/state %s %s\n%!" ca.nts_automata_name control_name;
 		      assert false 
 		end
 	      else
@@ -166,6 +165,7 @@ struct
 						       subsystem. It is call return to a subsystem.*)
 				
 	    end
+
 	  else
 
 	    begin
@@ -236,15 +236,16 @@ struct
     Format.sprintf "%s_%d" ca_name cid
 
 
-(** Updates the name of the called subsystem so that it matches the
+(** 
+    Updates the name of the called subsystem so that it matches the
     subsystem generated from the trace itself.
 *)
 
  
   let contextual_call_of_subsystem l (usid_counter : int ref) =
-    (*Format.printf "contextual call of susbsystem id : %d \n%!" !usid_counter;*)
+    (*Format.printf "contextual call of susbsystem id : %d \n%!"
+      !usid_counter;*)
    
-
     let rec l_iterator accu ll =
     match ll with
       CntGenCall(sysname,opt_ret,params)::tl ->
@@ -263,12 +264,13 @@ struct
     l_iterator [] l
 
       
-(** In this function, the parameter nts_out nt_sytems_build_container 
+(** 
+    In this function, the parameter nts_out nt_sytems_build_container 
     describes the generated transition system that will ultimately
     be exported for flatac.
 
- nts_lib is the set of functions that does not correspond to compiled
- C code and 
+    nts_lib is the set of functions that does not correspond to compiled
+    C code and 
 *)
 
 
@@ -297,13 +299,13 @@ struct
     get_ca_by_name nts_lib nt ca_name
 	  
 	  
-
   let new_context_table_entry catable uid ca_def=
     Hashtbl.add catable uid (ca_def,[])
 
   let is_context_switch_ahead curr_context_ca next_op_list =
     match next_op_list with
-      (ca,_)::_ -> curr_context_ca == ca
+      (ca,_)::_ -> not (curr_context_ca.NFParam.nts_automata_name = 
+	  ca.NFParam.nts_automata_name)
     | [] -> assert false
 
   let empty_tail tl =
@@ -325,6 +327,24 @@ struct
 (**)
 
 
+
+  let context_table_pprinter tbl =
+    let trans_folder pre (corg,l,cdest) =
+    Format.sprintf "%s %s->%s{ %s } \n"
+      pre
+      (NFParam.pprint_control corg)
+      (NFParam.pprint_control cdest) 
+      (Nts_generic.nts_pprint_gen_trans_label_list l)
+    in
+    let _folder context_id (ca,tlist) prefix =
+      let rules_printout = 
+	List.fold_left trans_folder "" tlist 
+      in
+      Format.sprintf "%s %s_%d : %s \n" prefix ca.nts_automata_name context_id 
+	rules_printout
+    in
+    Hashtbl.fold _folder tbl "" 
+	
   let nts_of_transitions_rules_container tbl =
     let sys_table = Hashtbl.create 97 in
     let mapper (corg,l,cdest) =
@@ -403,10 +423,14 @@ struct
 	    else
 	      begin
 		(*Format.printf "Transition is not a call \n";*)
-		add_transtion_in_contextual_trans_sys 
-		  context_table ca current_cid (corg,l,dest) ;
-		if is_a_return ca tlabel 
-		then  
+		assert ((NFParam.is_state_in_cautomaton corg ca));
+		if not ( is_a_return ca ((),(),corg)) 
+		then
+		  begin
+		    add_transtion_in_contextual_trans_sys 
+		      context_table ca current_cid (corg,l,dest) ;
+		  end;
+		if (is_a_return ca ((),(),corg) || is_a_return ca ((),(),dest)) then
 		  begin
 		    if ( empty_tail tl) then
 		      let  _ = Stack.pop context_stack in 
@@ -417,18 +441,25 @@ struct
 			then 
 			  (*Hastbl.add*) 
 			  let _ = Stack.pop context_stack in()
-			  
+							  
 			  (*Format.printf "[Debug] Got a pop \n"*)
 			else 
 			  ()
 		      end
 		  end
-	      end
-	  end;
+	      end;
 	  build_ctl_iterator tl (*recursion upon tail list.*)
+	  end
+	  
       | [] -> ()
     in
     build_ctl_iterator contextual_transition_list;
+
+    (*let debug_out = 
+      context_table_pprinter context_table
+    in
+    Format.printf "[Debug : CONTEXT TABLE] %s \n " debug_out;
+    *)
     let nts_sys_table = 
       nts_of_transitions_rules_container context_table
     in

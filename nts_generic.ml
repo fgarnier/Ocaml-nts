@@ -70,8 +70,8 @@ let pprint_typeinfo_nts_genvar_list l  =
     match ctype with
         Some(NtsIntType) -> ": int"
       | Some(NtsRealType) -> ": real"
-      | Some(NtsBoolType) -> ":bool"
-      | Some(NtsUnTyped) -> ":untyped"
+      | Some(NtsBoolType) -> ": bool"
+      | Some(NtsUnTyped) -> ": untyped"
       | None -> ""
   in
   let outputstring_folder ( prefix , ctype ) nvar  =

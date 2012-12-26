@@ -171,6 +171,32 @@ struct
   let is_state_in_inv_relation table cstate =
     Hashtbl.mem table cstate
 
+
+  exception Found_control_state_exception
+    
+  let is_state_in_transition_container cstate cont =
+    let inner_rel_iterator _ inner_table =
+      if Hashtbl.mem inner_table cstate then
+	raise Found_control_state_exception
+      else ()
+    in
+    try
+      if not (Hashtbl.mem cont cstate) 
+      then
+	begin
+	  Hashtbl.iter inner_rel_iterator cont;
+	  false
+	end
+      else true
+    with
+      Found_control_state_exception -> true
+	
+  let is_state_in_cautomaton state caut =
+    if Hashtbl.mem  caut.init_states state then true
+    else if Hashtbl.mem  caut.final_states state then true
+    else if Hashtbl.mem  caut.error_states state then true 
+    else is_state_in_transition_container state caut.transitions
+
   let is_state_pair_in_inv_relation table corg cdest =
     if Hashtbl.mem table corg then
       (let cin = Hashtbl.find table corg in Hashtbl.mem cin cdest)
@@ -1048,6 +1074,8 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
     in
     iter_transitions_container  cautomaton.transitions called_fun_of_transition  
     
+
+
 
 
       

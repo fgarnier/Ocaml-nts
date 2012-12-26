@@ -29,6 +29,8 @@ module Make :
             states_container -> (control -> unit) -> unit
           val is_state_in_inv_relation :
             inv_relation_container -> control -> bool
+          val is_state_in_transition_container :
+            control -> transitions_container -> bool
           type nts_automaton =
             Nts_functor.Make(Param).nts_automaton = {
             mutable nts_automata_name : string;
@@ -55,6 +57,7 @@ module Make :
             sub_vertices : states_container;
             sub_transitions : transitions_container;
           }
+          val is_state_in_cautomaton : control -> nts_automaton -> bool
           val pprint_control : control -> string
           val anot_parser : unit -> anotations
           val states_container_of_states_list :
@@ -118,11 +121,15 @@ module Make :
         ('a *
          (NFParam.control * Nts_types.nts_trans_label list * NFParam.control))
         list
+      val debug_pprint_syscontrol : Trace_types.sys_control -> string
       val control_of_syscontrol : Trace_types.sys_control -> NFParam.control
       val ca_name_of_syscontrol : Trace_types.sys_control -> string
       val ca_of_syscontrol :
         NFParam.nts_system ->
         Trace_types.sys_control -> NFParam.nts_automaton
+      val is_transition_a_call : Nts_types.nts_trans_label list -> bool
+      val is_a_return :
+        NFParam.nts_automaton -> 'a * 'b * NFParam.control -> bool
       val get_contextual_transition_list_from_pair_folder :
         NFParam.nts_system ->
         NFParam.nts_system ->
@@ -142,9 +149,6 @@ module Make :
         list
       val initial_context_of_ctl_list : ('a * 'b) list -> 'a * int
       val nts_subsystem_of_ca_cid : string -> int -> string
-      val is_transition_a_call : Nts_types.nts_trans_label list -> bool
-      val is_a_return :
-        NFParam.nts_automaton -> 'a * 'b * NFParam.control -> bool
       val contextual_call_of_subsystem :
         Nts_types.nts_trans_label list ->
         int ref -> Nts_types.nts_trans_label list
@@ -159,10 +163,17 @@ module Make :
         Nts_types.nts_trans_label list -> NFParam.nts_automaton
       val new_context_table_entry :
         ('a, 'b * 'c list) Hashtbl.t -> 'a -> 'b -> unit
-      val is_context_switch_ahead : 'a -> ('a * 'b) list -> bool
+      val is_context_switch_ahead :
+        NFParam.nts_automaton -> (NFParam.nts_automaton * 'a) list -> bool
       val empty_tail : 'a list -> bool
       val add_transtion_in_contextual_trans_sys :
         ('a, 'b * 'c list) Hashtbl.t -> 'b -> 'a -> 'c -> unit
+      val context_table_pprinter :
+        (int,
+         NFParam.nts_automaton *
+         (NFParam.control * Nts_types.nts_trans_label list * NFParam.control)
+         list)
+        Hashtbl.t -> string
       val nts_of_transitions_rules_container :
         (int,
          NFParam.nts_automaton *
