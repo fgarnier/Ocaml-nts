@@ -28,10 +28,6 @@ struct
 
   open NFParam
 
-  
-  
-
-
   (**
      function nts_out_of_subrealtion :
 
@@ -96,6 +92,7 @@ struct
     | _::tl -> is_transition_a_call tl	
     | [] -> false
     
+
 
  (* let is_new_context ca_def (corg,_,_) =
      List.mem ca_def.NFParam.init_states cdest
@@ -293,6 +290,30 @@ struct
   let new_context_table_entry catable uid ca_def=
     Hashtbl.add catable uid (ca_def,[])
 
+
+
+  (** 
+      l is the label of the current transition and tl is the tail of the
+      trace list. Basically the head of tail is the next contextual operation.
+  *)
+
+  let rec is_transition_a_call_actually_called  l tl =
+    if is_transition_a_call l 
+    then
+      begin
+	match tl with
+	  (ca,(corg,lnext,dest))::_ ->
+	    begin
+	      let called_subsystem = get_called_subsystem_name l in
+	      let context_name_of_next_op = ca.NFParam.nts_automata_name in
+	      called_subsystem = context_name_of_next_op
+	    end
+	| [] -> true
+      end
+    else
+      false
+
+
   let is_context_switch_ahead curr_context_ca next_op_list =
     match next_op_list with
       (ca,_)::_ ->  (String.compare curr_context_ca.NFParam.nts_automata_name 
@@ -315,6 +336,8 @@ struct
       begin
 	Hashtbl.add context_table uid (ca_param,(trans::[]))
       end
+
+
 (**)
 
 
@@ -401,9 +424,10 @@ struct
 	(ca,((corg,l,dest) as tlabel))::tl ->
 	  begin
 	 
-	   Format.printf "[DEBUG] %s \n" (pprint_ctl_ele (ca,tlabel));
-	  
-	    if ( (is_transition_a_call l) && (not (empty_tail tl)) )
+	   (*Format.printf "[DEBUG] %s \n" (pprint_ctl_ele (ca,tlabel));
+	   *)
+
+	    if ( (is_transition_a_call_actually_called  l tl) && (not (empty_tail tl)) )
 	    then 
 	      begin 
 		if (is_context_switch_ahead ca tl )
@@ -420,8 +444,10 @@ struct
 		    let new_context = 
 		      (called_subsystem_definition,!context_uid) in
 		    Stack.push new_context context_stack;
-	      Format.printf "[Debug]: Got a push \n"
-	      (* Create a new context, and push it on the top of
+	      (*
+		Format.printf "[Debug]: Got a push \n"
+	      *)
+		  (* Create a new context, and push it on the top of
 		 the stack *)
 		  end
 	      end
@@ -460,7 +486,9 @@ struct
 		    else if ( is_context_switch_ahead ca tl ) 	
 		    then
 		      begin
+			(*
 			Format.printf "[Debug] Got a pop \n";
+			*)
 			let _ = Stack.pop context_stack 
 			in ()
 		      end
