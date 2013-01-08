@@ -94,19 +94,15 @@ struct
     
 
 
- (* let is_new_context ca_def (corg,_,_) =
-     List.mem ca_def.NFParam.init_states cdest
- *)
+ 
   let is_a_return ca_def (_,_,cdest) =
    NFParam.is_final_state ca_def cdest  
   
- (*
-  let is_state_in_ca ca state =
+ 
     
- *)
+  let is_transition_relation_a_call corg label cdest =
+    is_transition_a_call label
 
-  (*let get_one_transition_l nts_lib nt =*)
-    
   (**
      
      nts_lib is collection of nts automaton that compose the nts
@@ -162,7 +158,9 @@ struct
 	      let ca = ca_of_syscontrol nts_param curr_sysc in
 	      if not (NFParam.is_successor_of ca max_c min_c) then
 		begin
-		  let subgraph = NFParam.subgraph_between ca max_c min_c
+		  let subgraph = NFParam.subgraph_between_cond_on_edges 
+		    ( fun corg l cdest -> not (is_transition_relation_a_call corg l cdest)) 
+		   ca max_c min_c
 		  in
 		  let interval_content = 
 		    get_contextual_transitions_of_subgraph ca subgraph

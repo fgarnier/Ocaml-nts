@@ -384,6 +384,15 @@ struct
       end
     
 
+(** Both target and source are transition containers. target will
+be added all element of source. *)
+  let union_of_transition_container target source =
+    let adder_iterator corg label cdest =
+      add_transition_to_container target corg label cdest 
+    in
+    iter_transitions_container source adder_iterator 
+
+
   let is_error_state ca control =
     Hashtbl.mem  ca.error_states control
   
@@ -391,16 +400,14 @@ struct
     Hashtbl.mem  ca.final_states control 
       
   let is_initial_state ca control =
-    Hashtbl.mem ca.init_states control
-
-    
+    Hashtbl.mem ca.init_states control    
 
   let pprint_inputvars cautomata = 
-     Nts_generic.pprint_typeinfo_nts_genvar_list cautomata.input_vars
+    Nts_generic.pprint_typeinfo_nts_genvar_list cautomata.input_vars
       
   let pprint_outputvars cautomata =
     Nts_generic.pprint_typeinfo_nts_genvar_list cautomata.output_vars
-
+      
   let pprint_localvars cautomata =
     Nts_generic.pprint_typeinfo_nts_genvar_list cautomata.local_vars
     
@@ -731,8 +738,8 @@ control state "state" in the subsystem cautomaton.
 
  (* In this block, one define functions that aims at computing the
     Subgraph having c as root element/root. Bascially, we compute
- the set of all edges and vertices travesable/reachable from c in
- the given cautomaton.*)
+    the set of all edges and vertices travesable/reachable from c in
+    the given cautomaton.*)
 
 
  let copy_out_transition_from_rel  t_def =
@@ -744,11 +751,21 @@ control state "state" in the subsystem cautomaton.
    copied_def
 
   
+ let transition_out_of_control_state cstate transition =
+   let new_transition_container = Hashtbl.create 97 in
+   let copy_iterator corg label cdest =
+     if corg == cstate 
+     then
+	 add_transition_to_container new_transition_container corg label cdest
+     else ()
+   in
+   iter_transitions_container transition copy_iterator;
+   new_transition_container
  
 
 (** Iterator parmetrized by two hashtbl container for collecting the transitive
 closure of  *)
-
+(*
  let rec build_subg_iterator relation_table visited_vertices 
      traversed_edges v_current _ =
    
@@ -758,9 +775,9 @@ closure of  *)
      begin
        Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*);
        if Hashtbl.mem relation_table v_current 
-   (*Check whether
-     there exists an outgoing transition from this control
-     state.*)
+       (*Check whether
+	 there exists an outgoing transition from this control
+	 state.*)
        then
 	 begin
 	   let outing_edges = 
@@ -774,13 +791,83 @@ closure of  *)
 	 end
        else ();(* No outgoing transition ? No recursion.*)
      end
+*)
+
+(** 
+Selects the set of transitions of transitions which applied upon
+edge_accept_fun evaluates to true.
+*)
+
+ let select_accepted_edges edge_accept_fun transitions =
+   let new_rel = Hashtbl.create 97 in
+   let select_iterator corg label cdest = 
+     if edge_accept_fun corg label cdest 
+     then
+       add_transition_to_container new_rel corg label cdest 
+     else
+       ()
+   in
+   iter_transitions_container transitions select_iterator;
+   new_rel
+
+ let select_edges_from_inner_table edge_accept corg inner_table =
+   let new_rel = Hashtbl.create 97 in
+   let select_iterator  cdest label = 
+     if edge_accept corg label cdest 
+     then
+       Hashtbl.add new_rel cdest label 
+     else
+       ()
+   in
+   Hashtbl.iter select_iterator inner_table;
+   new_rel
 
 
-
+ let rec build_subg_iterator ?(edge_accept_fun = fun corg label cdest -> true ) relation_table visited_vertices 
+    traversed_edges v_current _ =
+   
+   if (Hashtbl.mem visited_vertices v_current) 
+   then ()
+   else 
+     begin
+       Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*);
+       if Hashtbl.mem relation_table v_current 
+       (*Check whether
+	 there exists an outgoing transition from this control
+	 state.*)
+          
+       then
+	 begin
+	   (*let outing_edges = transition_out_of_control_state v_current 
+	     relation_table 
+	   *)
+	   let outing_edges_table = Hashtbl.find relation_table 
+					     v_current
+	   in
+	   let outing_edges_table = Hashtbl.copy outing_edges_table 
+	   
+	   (*
+	     copy_out_transition_from_rel (Hashtbl.find relation_table 
+					     v_current ) *)
+	   in
+	   let outing_edges =
+	     select_edges_from_inner_table edge_accept_fun v_current outing_edges_table 
+	   in
+	   (*union_of_transition_container traversed_edges outing_edges;*)
+	   Hashtbl.add traversed_edges v_current outing_edges;
+	   let recurse_iterator = (build_subg_iterator 
+	     ~edge_accept_fun:edge_accept_fun 
+	     relation_table visited_vertices traversed_edges) in
+	   Hashtbl.iter recurse_iterator outing_edges 
+	     
+	 end
+       else ();(* No outgoing transition ? No recursion.*)
+     end
+       
+       
   (** Takes as input a relation and returns the collection
 of transition that are in the transitive closure of any relation starting 
 from a given control state c *)
-
 
 
  let sub_rel_rooted_in relation c =
@@ -791,7 +878,7 @@ from a given control state c *)
    traversed_edges
  
 
- let subgraph_rooted_in_c cautomaton c =
+ let subgraph_rooted_in_c  cautomaton c =
    let visited_vertices = Hashtbl.create 97 in
    let traversed_edges = Hashtbl.create 97 in
    
@@ -805,7 +892,19 @@ from a given control state c *)
    }
      
 
-
+let subgraph_rooted_in_c_edge_condition edge_accept cautomaton c =
+   let visited_vertices = Hashtbl.create 97 in
+   let traversed_edges = Hashtbl.create 97 in
+   
+   (build_subg_iterator ~edge_accept_fun:edge_accept cautomaton.transitions visited_vertices 
+      traversed_edges) c []; 
+   
+   {
+     subrel_root = c ;
+     sub_vertices = visited_vertices ;
+     sub_transitions = traversed_edges ;
+   }
+     
  
 
 
@@ -865,7 +964,102 @@ let vertices_in_rel rel =
    }
      
    
+
+ let subgraph_between_cond_on_edges edge_accept cautomaton max min =
+   let subgraph_max = subgraph_rooted_in_c_edge_condition 
+     edge_accept cautomaton max in
+   let inv_rel_min = pred_relation_of_relation subgraph_max.sub_transitions in
+   let reach_inv_rel_min = sub_rel_rooted_in  inv_rel_min min in
+   let sub_graph_pruned_relation =  prune_rel subgraph_max.sub_transitions 
+  reach_inv_rel_min in
    
+   {
+     subrel_root = subgraph_max.subrel_root ;
+     sub_vertices = vertices_in_rel sub_graph_pruned_relation ;
+     sub_transitions = sub_graph_pruned_relation ;
+   }
+
+
+(** Checks that a control state does not belong to a path, encoded as
+a list of transitions. You must make sure that two following transitions
+ave value such that (a,b,_)(b,c,_)(c,d,_) etc ... *)
+
+ let not_looping inv_prefix_path curr_state next_state =
+   let rec not_looping_history h next_state =
+     match h with
+       [] -> true
+     | (pre,last,_) :: [] ->  ( next_state <> pre ) && (next_state <> last)
+     | (pre,_,_)::h' -> 
+       if ( next_state <> pre ) 
+       then (* Not looping here, see one step back in history*)
+	 begin
+	   not_looping_history h' next_state
+	 end
+       else
+	 false (* Equality means it's looping*)
+	 
+   in
+   if next_state = curr_state then false (*It's looping*)
+   else 
+     not_looping_history inv_prefix_path next_state
+     
+   
+(** Computes the subgraph of subgraph_param that is formed of all the
+vertices, resp. edges that are reachable, resp. travesable, form
+the root of subgraph_param through a chain of edges that are all 
+accepted by the function accept_fun. 
+
+Parameter min represents the accepting control state, i.e. the set
+of all transitions is the set of all transition that apprear in
+a path starting from the root of subgraph_parm and whose last transition
+rhs is min, and for each transition t of that path accept_fun(t) evaluates
+to true.
+
+accept_fun maps the transition to the booleans.
+*)
+
+
+ (*
+
+
+ let subgraph_between_edge_condition accept_fun subgraph_param min =
+   let valid_vertices = Hashtbl.create 97 in
+   let accepted_edges = Hashtbl.create 97 in
+   
+
+   (* The last transition is the one at the head of the list, empty list for 
+      starting point *)
+   let rec path_iterator 
+       ( inv_prefix_path : ( control * control * Nts_types.nts_trans_label list) list) curr_state
+       =  
+     if curr_state <> min 
+     then
+       begin
+	 try
+	   let successors = Hashtbl.find subgraph_param curr_state 
+	   in
+	   let f_cond_recurse_iterator next_state label =
+	     if ( not accept_fun (currs_state,next_state,label)) 
+	     then ()
+	     else 
+	       begin
+		 if Hashtbl.mem valid_vertices next_state 
+		 then 
+		   register_edges_vertices_path ((curr_state,next_state,label)::inv_prefix_path) 
+		 (** This path + next steps leads to a state from with a valid chain
+		     of operations allows reach min, hence it is valid.*)
+		     
+		 else if ( not_looping inv_prefix_path curr_state next_state) 
+		 then
+		   path_iterator ((curr_state,next_state,label)::inv_prefix_path) next_state
+	       end
+	 with
+	   Not_found -> begin end
+       end
+     else
+       register_edges_vertices_of_path 
+ *)
+
 
  let states_container_of_states_list ( l : control list) =
    let ret_hash = Hashtbl.create 97 in
@@ -896,17 +1090,17 @@ let transitions_container_of_trans_list ( tlist :  (control * control * Nts_type
   List.iter build_iterator tlist; ret_hash
 
 
-  let pprint_all_cautomata cautomata_table =
-    let pprint_automata_folder cname cautomaton prev_str =
-      match prev_str with
-	  "" ->  (pprint_to_nts cautomaton) 
-	| _ ->
-	  begin
-	    let ret_str = prev_str ^"\n"^(pprint_to_nts cautomaton)
-	    in ret_str
-	  end
-    in
-    Hashtbl.fold pprint_automata_folder cautomata_table "" 
+let pprint_all_cautomata cautomata_table =
+  let pprint_automata_folder cname cautomaton prev_str =
+    match prev_str with
+      "" ->  (pprint_to_nts cautomaton) 
+    | _ ->
+      begin
+	let ret_str = prev_str ^"\n"^(pprint_to_nts cautomaton)
+	in ret_str
+      end
+  in
+  Hashtbl.fold pprint_automata_folder cautomata_table "" 
 
 
 
