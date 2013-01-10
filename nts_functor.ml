@@ -521,8 +521,42 @@ given automaton.*)
 	Not_found -> 0
   
 
+  let in_degree_of_control_state (control_state : control)
+      (inv_rel : inv_relation_container ) =
+    let count_folder a b sharp_entry =
+      sharp_entry + 1
+    in
+    try
+      let control_table = 
+	Hashtbl.find inv_rel control_state 
+      in
+      (Hashtbl.fold count_folder control_table 0)
+    with
+	Not_found -> 0
+  
  
 
+  let is_cstate_merge_point (control_state : control ) 
+      inv_rel =
+    let deg_in_cstate = in_degree_of_control_state control_state inv_rel 
+    in
+    ( deg_in_csate > 1 )   
+
+
+  let is_cstate_branching (control_state :control ) 
+      cautomaton = 
+    let deg_out_csate = out_degree_of_control_state control_state cautomaton
+    in
+    ( deg_out_cstate > 1)
+
+
+  let is_csate_in_linear_chain (control_state : control ) cautomaton
+      inv_rel =
+    let deg_in =  out_degree_of_control_state control_state cautomaton in
+    let deg_out = deg_in_cstate = in_degree_of_control_state control_state inv_rel 
+    in
+    (deg_in = 1)&&(deg_out= 1)
+    
   (** This function aims at printing all the transitions in a fixed 
       order, using the lexicographical order on the couples of orig and
 destination states.*)

@@ -143,6 +143,7 @@ sig
   val control_of_id_param : Param.t -> control 
   
   val out_degree_of_control_state :  control ->  nts_automaton -> int
+  val in_degree_of_control_state : control -> inv_relation_container -> int
 
   val get_varinfo_by_optname : nts_system -> string option -> string -> nts_genrel_var option 
 
@@ -245,6 +246,9 @@ sig
     nts_local_vars : nts_genrel_var list;
     nts_blocks_transitions : ( string , nts_basic_block ) Hashtbl.t
   }
+
+
+
 
 end
 
