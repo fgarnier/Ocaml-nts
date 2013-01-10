@@ -1019,47 +1019,7 @@ accept_fun maps the transition to the booleans.
 *)
 
 
- (*
-
-
- let subgraph_between_edge_condition accept_fun subgraph_param min =
-   let valid_vertices = Hashtbl.create 97 in
-   let accepted_edges = Hashtbl.create 97 in
-   
-
-   (* The last transition is the one at the head of the list, empty list for 
-      starting point *)
-   let rec path_iterator 
-       ( inv_prefix_path : ( control * control * Nts_types.nts_trans_label list) list) curr_state
-       =  
-     if curr_state <> min 
-     then
-       begin
-	 try
-	   let successors = Hashtbl.find subgraph_param curr_state 
-	   in
-	   let f_cond_recurse_iterator next_state label =
-	     if ( not accept_fun (currs_state,next_state,label)) 
-	     then ()
-	     else 
-	       begin
-		 if Hashtbl.mem valid_vertices next_state 
-		 then 
-		   register_edges_vertices_path ((curr_state,next_state,label)::inv_prefix_path) 
-		 (** This path + next steps leads to a state from with a valid chain
-		     of operations allows reach min, hence it is valid.*)
-		     
-		 else if ( not_looping inv_prefix_path curr_state next_state) 
-		 then
-		   path_iterator ((curr_state,next_state,label)::inv_prefix_path) next_state
-	       end
-	 with
-	   Not_found -> begin end
-       end
-     else
-       register_edges_vertices_of_path 
- *)
-
+ 
 
  let states_container_of_states_list ( l : control list) =
    let ret_hash = Hashtbl.create 97 in
@@ -1269,10 +1229,6 @@ let pprint_all_cautomata cautomata_table =
     iter_transitions_container  cautomaton.transitions called_fun_of_transition  
     
 
-
-
-
-      
   let reference_called_nts nt_system =
     let called_fun = Simplification.create_fun_name_in_call_table () 
     in
@@ -1768,7 +1724,7 @@ relation upon success, an exception if some operation failed*)
 
   type nts_basic_block = {
     mutable head_label : string ;
-    mutable block : (control * nts_trans_label list) list; 
+    mutable block : (control * nts_trans_label list * control) list; 
     (** Current control state,
 	nts_trans_label_list corresponds
 	to what changes/is called before
@@ -1795,6 +1751,8 @@ relation upon success, an exception if some operation failed*)
     nts_local_vars : nts_genrel_var list;
     nts_blocks_transitions : ( string , nts_basic_block ) Hashtbl.t
   }
+
+
 
 
 end
