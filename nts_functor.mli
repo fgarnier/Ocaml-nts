@@ -218,7 +218,8 @@ sig
       
 
   type nts_basic_block = {
-    mutable head_label : string ;
+    block_head_label : string ;
+    block_head_state : control;
     mutable block : (control * nts_trans_label list * control) list; 
     (** Current control state,
 	nts_trans_label_list corresponds

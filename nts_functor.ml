@@ -540,22 +540,28 @@ given automaton.*)
       inv_rel =
     let deg_in_cstate = in_degree_of_control_state control_state inv_rel 
     in
-    ( deg_in_csate > 1 )   
+    ( deg_in_cstate > 1 )   
 
 
   let is_cstate_branching (control_state :control ) 
       cautomaton = 
-    let deg_out_csate = out_degree_of_control_state control_state cautomaton
+    let deg_out_cstate = out_degree_of_control_state control_state cautomaton
     in
     ( deg_out_cstate > 1)
 
 
   let is_csate_in_linear_chain (control_state : control ) cautomaton
       inv_rel =
-    let deg_in =  out_degree_of_control_state control_state cautomaton in
-    let deg_out = deg_in_cstate = in_degree_of_control_state control_state inv_rel 
+    let deg_out =  out_degree_of_control_state control_state cautomaton in
+    let deg_in =  in_degree_of_control_state control_state inv_rel 
     in
     (deg_in = 1)&&(deg_out= 1)
+
+
+  let has_successor control_state cautomaton =
+    let deg_out_cstate = out_degree_of_control_state control_state cautomaton
+    in
+    deg_out_cstate >= 1
     
   (** This function aims at printing all the transitions in a fixed 
       order, using the lexicographical order on the couples of orig and
@@ -759,8 +765,6 @@ control state "state" in the subsystem cautomaton.
 
  let compute_pred_relation cautomaton =
    pred_relation_of_relation cautomaton.transitions
-   
-
 
  let get_cautomaton_by_name ntsys name =
    try
@@ -1757,7 +1761,8 @@ relation upon success, an exception if some operation failed*)
       
 
   type nts_basic_block = {
-    mutable head_label : string ;
+    block_head_label : string ;
+    block_head_state : control;
     mutable block : (control * nts_trans_label list * control) list; 
     (** Current control state,
 	nts_trans_label_list corresponds
@@ -1787,6 +1792,217 @@ relation upon success, an exception if some operation failed*)
   }
 
 
+
+ (* *)
+  exception  Basic_block_already_registered of nts_basic_block
+
+  type visited_table = Visited of (control, unit ) Hashtbl.t
+  type label_index = Label_index of (string , control ) Hashtbl.t
+  type control_label_index = Control_label of (control , string ) Hashtbl.t
+  type block_control_index = Control_block_index of ( control, nts_basic_block ) Hashtbl.t
+  type block_label_index = Label_block_index of (string , nts_basic_block ) Hashtbl.t
+
+  let mark_cstate_as_visited cstate vtable =
+    match vtable with
+      Visited(tbl) ->	
+	if not (Hashtbl.mem tbl cstate)
+	then Hashtbl.add tbl cstate ()
+	else ()
+ 
+
+  let is_cstate_in cstate cindex =
+    match cindex with
+      Control_label(tbl) ->
+	Hashtbl.mem tbl cstate
+
+  let get_label_of_cstate cstate cindex =
+    match cindex with
+      Control_label(tbl) ->
+	Hashtbl.find tbl cstate
+
+  let bind_label_to_cstate label cstate lindex =
+    match lindex with
+      Label_index(tbl) ->
+	Hashtbl.add tbl label cstate
+      
+  let is_label_in label lindex =
+    match lindex with
+      Label_index(tbl) ->
+	Hashtbl.mem tbl label
+
+  let get_cstate_of_label label lindex =
+    match lindex with 
+      Label_index(tbl) ->
+	Hashtbl.find tbl label
+	  
+  let bind_cstate_to_label cstate label cindex =
+    match cindex with
+      Control_label(tbl) ->
+	Hashtbl.add tbl cstate label
+	  
+  let add_block_to_bindex block bindex =
+    match bindex with 
+      Label_block_index( tbl) ->
+	Hashtbl.add tbl block.block_head_label block
+	  
+
+  let is_block_of_label_in label bindex =
+    match bindex with 
+      Label_block_index( tbl) ->
+	Hashtbl.mem tbl label
+
+  let get_block_of_label label bindex = 
+    match bindex with 
+      Label_block_index( tbl) ->
+	Hashtbl.find tbl label
+    
+ 
+
+  (** creates a basic block that have cstate as head control state
+      if this state is not yes contained in cindex. 
+  *)
+
+  let create_block_of_control_state cstate cindex lindex bindex 
+      ( label_id : int ref)
+      cautomaton =
+   
+    if not (is_cstate_in cstate cindex) 
+    then
+      begin
+	label_id := !label_id + 1;
+	let label_of_block =  Format.sprintf "block_%d" !label_id in
+	bind_cstate_to_label cstate label_of_block cindex;
+	bind_label_to_cstate label_of_block cstate lindex;
+	
+	let ret_block =
+	  {
+	    block_head_label = label_of_block;
+	    block_head_state = cstate;
+	    block = [];
+	    block_succs = None
+	  }
+	in
+	add_block_to_bindex  ret_block bindex;
+	ret_block
+      end
+    else
+      let registered_block_label = get_label_of_cstate cstate cindex in
+      let block = get_block_of_label registered_block_label bindex  in
+      raise ( Basic_block_already_registered(block))
+       
+
+
+  (** When several transition go out of a control state :
+  
+      s_i -> s_j1 {guard_1 and op_1}
+      ...
+      s_i -> s_jn {guard_n and op_n}
+
+      one create :
+
+      s1 -> s'_i {havoc}
+      and 
+      for all 1<= k <= n
+
+      s_jk->s_jk' {op_k}
+
+      and 
+
+      block(s_i) -> block(s_jk) {guard_k}
+
+      Here block(s_i) describes the block that contains the single
+      transition s_i->s_i'{havoc}
+  *)
+
+(*
+  let split_branching_blocks bblock (vtable : visted_table) 
+      (lindex : label_index) (cindex : control_label_index)
+      (bindex : block_index) cautomaton
+      (label_uid_counter : int ref ) =
+    
+
+    let (bblock_head,_,_) = List.hd bblock.block in
+    assert (is_cstate_branching cautomaton);
+
+  *)  
+
+
+
+
+    (** 
+	_ cstate label : associates control states with a label
+	for contril states that are at the begining of a basic
+	block.
+
+	_ lindex : associates labels to their basic blocks/ first
+	control state of a basic block.
+	
+    
+    
+  let fill_basic_blocs cstate_labels visited_state_index cautomaton_ref 
+      cfg_build control_start ( bblock_uid_ref : int ref ) =
+    *)
+
+
+
+(*
+  let fill_basic_block bblock (vtable : visited_table ) 
+      (lindex : label_index) (cindex : control_lablel_index )
+      (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
+      cautomaton 
+      (label_id : int ref )  = 
+  
+    let rec add_elem_of_segment current_control =
+      if is_csate_in_linear_chain current_control pred_relation
+      then
+	begin
+	  let out_relation = Hashtbl.find 
+	    cautomaton.transitions current_control in
+	  let (ctr, trans_list ) =  pick_elem_in_hastbl out_relation in
+	  bblock.block <- (bblock.block @ (ctr,trans_list)) ;
+	  add_elem_of_segment ctr
+	end
+      else if is_cstate_branching current_control cautomaton
+      then (*
+	     One return the collection of successor block, one need
+	     create, label and reference them in bindex, if not yet done.
+	     One need to associate the head control state of each following
+	     block with the block label in cindex.
+	   *)
+	begin
+	end
+      else if is_cstate_merge_point control pred_relation 
+      then
+	begin
+	  (*
+	    One single successor, however it's a mergepoint, hence
+	    it belongs to another block. The same process as above
+	    needs to be applied upon this same control state/block Head.
+	  *)
+	end
+      else if ( not (has_successor current_control cautomaton))
+      then  
+	(*
+	  No outgoing transition from the current control block.
+	  one need to return an empty successor descriptor.
+	*)
+	begin
+	  
+	end
+    in
+
+
+
+	    
+  (* In this case, the current element given as parameter, is
+     the first element of another block. It is either branching
+     or have many predecessors, or have no succesor at all.*)
+	
+  
+  in
+*)
+    
+  (*let cfg_of_nts_automaton cautomaton = *)
 
 
 end
