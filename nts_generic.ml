@@ -580,3 +580,16 @@ let nts_pprint_gen_trans_label_list ( tlabellist : nts_trans_label list ) =
 
 
 
+ (** 
+this function aims at splitting one transition list in two parts :
+_ The guards  
+_ The operations.
+
+ *)
+
+
+
+(*
+let split_folder (pre_guards,pre_op) curr_label =
+  match curr_label with
+*)  

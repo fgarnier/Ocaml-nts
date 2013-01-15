@@ -550,7 +550,7 @@ given automaton.*)
     ( deg_out_cstate > 1)
 
 
-  let is_csate_in_linear_chain (control_state : control ) cautomaton
+  let is_cstate_in_linear_chain (control_state : control ) cautomaton
       inv_rel =
     let deg_out =  out_degree_of_control_state control_state cautomaton in
     let deg_in =  in_degree_of_control_state control_state inv_rel 
@@ -1802,6 +1802,15 @@ relation upon success, an exception if some operation failed*)
   type block_control_index = Control_block_index of ( control, nts_basic_block ) Hashtbl.t
   type block_label_index = Label_block_index of (string , nts_basic_block ) Hashtbl.t
 
+
+
+  
+
+  let is_cstate_visited cstate vtable =
+    match vtable with 
+      Visited(tbl) ->
+	Hashtbl.mem tbl cstate
+    
   let mark_cstate_as_visited cstate vtable =
     match vtable with
       Visited(tbl) ->	
@@ -1856,7 +1865,9 @@ relation upon success, an exception if some operation failed*)
       Label_block_index( tbl) ->
 	Hashtbl.find tbl label
     
- 
+ let block_of_head cstate cindex bindex =
+    let label = get_label_of_cstate cstate cindex in
+    get_block_of_label label bindex
 
   (** creates a basic block that have cstate as head control state
       if this state is not yes contained in cindex. 
@@ -1892,8 +1903,145 @@ relation upon success, an exception if some operation failed*)
        
 
 
-  (** When several transition go out of a control state :
+ 
+
+    
+
+    (** 
+	_ cstate label : associates control states with a label
+	for contril states that are at the begining of a basic
+	block.
+
+	_ lindex : associates labels to their basic blocks/ first
+	control state of a basic block.
+	
+    
+    
+	let fill_basic_blocs cstate_labels visited_state_index cautomaton_ref 
+	cfg_build control_start ( bblock_uid_ref : int ref ) =
+    *)
+
+
+ 
+
+  let fill_basic_block bblock (vtable : visited_table ) 
+      (lindex : label_index) (cindex : control_lablel_index )
+      (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
+      cautomaton 
+      (label_id : int ref )  = 
   
+    (** Recursively fills a segment and the successor field of the 
+    current block.
+	Deals with branching control state --those which have more
+	than on successor, merging control states.
+
+	This function need to
+    *)
+
+    
+    let rec add_elem_of_segment current_control =
+      let add_transition_to_next_element_if_single_succs current_control =
+	let out_relation = Hashtbl.find 
+	  cautomaton.transitions current_control in
+	let (ctr, trans_list ) =  pick_elem_in_hastbl out_relation in
+	bblock.block <- (bblock.block @ (current_control,trans_list,ctr)) ;
+	  (** Ici, traiter les deux cas suivants : 
+	      _ The next control state belongs to the same block
+	      _ The next state is at the head of another block,
+	      hence one need to recurse after creating a new block
+	      or fetching the block which head is the next control
+	      state if such a state is already registered in bindex.
+	  *)
+	if (is_csate_in_linear_chain ctr pred_relation ) 
+	then (* The next state is in the same block : recursion*)
+	  add_elem_of_segment ctr
+	else 
+	  begin 
+	      (** The current control state is the last of the
+		  current block. Hence one need to create and 
+		  label the next block if it is not yet referenced in bindex 
+		  --block index, and select this block as the current block
+		  only successor.
+	    
+		  If the "next" block is alredy references, no need to
+		  create it, just add it as only successor.
+	      *)
+
+	    try
+	      let next_block_ref =  ref (block_of_head ctr bindex) 
+	      in
+	      let trans_next_list =  (next_block_ref, trans_list)::[] 
+	      in
+	      bblock.block_succs <- trans_next_list
+	    with
+	      Not_found ->
+		begin
+		  let next_block_ref = ref 
+		    ( create_block_of_control_state ctr
+			cindex lindex bindex label_id)
+		  in
+		  let trans_next_list = (next_block_ref,trans_list)::[] 
+		  in
+		  bblock.block_succs <- trans_next_list
+		end
+	  end
+		  
+      in
+      if is_csate_in_linear_chain current_control pred_relation
+      then
+	add_transition_to_next_element_if_single_succs current_control
+	  
+      else if (is_cstate_branching current_control cautomaton)
+      then 
+	    (*
+	      One return the collection of successor block, one need
+	      create, label and reference them in bindex, if not yet done.
+	      One need to associate the head control state of each following
+	      block with the block label in cindex.
+	    *)
+	begin
+	  assert (current_state = bblock.block_head_state);
+	  let branching_block = 
+	    make_branching_blocks bblock vtable
+	      lindex cindex bindex cautomaton label_uid 
+	  in ()
+	  
+	end
+      else if (is_cstate_merge_point control pred_relation)
+      then
+	begin
+	  assert (current_state = block_head_state);
+	  
+	  (*
+	    One single successor, however it's a mergepoint, hence
+	    it must be at the head of a block. The same process as above
+	    needs to be applied upon this same control state/block Head.
+	  *)
+	      
+	  add_transition_to_next_element_if_single_succs current_state
+	end
+      else if ( not (has_successor current_control cautomaton))
+      then  
+	(*
+	  No outgoing transition from the current control block.
+	  one need to return an empty successor descriptor.
+	*)
+	begin
+	  block_of_final_statement bblock vtable cautomaton
+	end
+	  
+
+
+
+	    
+  (* In this case, the current element given as parameter, is
+     the first element of another block. It is either branching
+     or have many predecessors, or have no succesor at all.*)
+	  
+  
+	  
+  (** When several transition go out of a control state :
+      
       s_i -> s_j1 {guard_1 and op_1}
       ...
       s_i -> s_jn {guard_n and op_n}
@@ -1914,93 +2062,65 @@ relation upon success, an exception if some operation failed*)
       transition s_i->s_i'{havoc}
   *)
 
-(*
-  let split_branching_blocks bblock (vtable : visted_table) 
-      (lindex : label_index) (cindex : control_label_index)
-      (bindex : block_index) cautomaton
-      (label_uid_counter : int ref ) =
-    
 
-    let (bblock_head,_,_) = List.hd bblock.block in
-    assert (is_cstate_branching cautomaton);
+  and make_branching_blocks bblock (vtable : visted_table) 
+	(lindex : label_index) (cindex : control_label_index)
+	  (bindex : block_label_index) cautomaton
+	  (label_uid_counter : int ref ) =
+      
 
-  *)  
-
-
-
-
-    (** 
-	_ cstate label : associates control states with a label
-	for contril states that are at the begining of a basic
-	block.
-
-	_ lindex : associates labels to their basic blocks/ first
-	control state of a basic block.
-	
-    
-    
-  let fill_basic_blocs cstate_labels visited_state_index cautomaton_ref 
-      cfg_build control_start ( bblock_uid_ref : int ref ) =
+    (*
+      let (bblock_head,_,_) = List.hd bblock.block in
+      assert (is_cstate_branching cautomaton);
     *)
 
-
-
-(*
-  let fill_basic_block bblock (vtable : visited_table ) 
-      (lindex : label_index) (cindex : control_lablel_index )
-      (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
-      cautomaton 
-      (label_id : int ref )  = 
-  
-    let rec add_elem_of_segment current_control =
-      if is_csate_in_linear_chain current_control pred_relation
-      then
-	begin
-	  let out_relation = Hashtbl.find 
-	    cautomaton.transitions current_control in
-	  let (ctr, trans_list ) =  pick_elem_in_hastbl out_relation in
-	  bblock.block <- (bblock.block @ (ctr,trans_list)) ;
-	  add_elem_of_segment ctr
-	end
-      else if is_cstate_branching current_control cautomaton
-      then (*
-	     One return the collection of successor block, one need
-	     create, label and reference them in bindex, if not yet done.
-	     One need to associate the head control state of each following
-	     block with the block label in cindex.
-	   *)
-	begin
-	end
-      else if is_cstate_merge_point control pred_relation 
-      then
-	begin
-	  (*
-	    One single successor, however it's a mergepoint, hence
-	    it belongs to another block. The same process as above
-	    needs to be applied upon this same control state/block Head.
-	  *)
-	end
-      else if ( not (has_successor current_control cautomaton))
-      then  
-	(*
-	  No outgoing transition from the current control block.
-	  one need to return an empty successor descriptor.
-	*)
-	begin
-	  
-	end
+      assert( is_cstate_branching bblock.block_head_state cautomaton );
+    
+    (* I need to split transitions label between guards and operations
+       Not yet done.
+    *)
+    let dummy_cstate_id = key_val_of_string "dummy_branching_block_state" in
+    let dummy_cstate = control_of_id_param dummy_cstate_id in
+    let single_trans = (bblock.block_head_state,Nts_types.CntGenHavoc([]),
+			dummy_cstate) 
     in
-
-
-
-	    
-  (* In this case, the current element given as parameter, is
-     the first element of another block. It is either branching
-     or have many predecessors, or have no succesor at all.*)
-	
-  
-  in
-*)
+    let basic_block_iterator  next_cstate trans_list =
+      if (is_block_of_label next_cstate vtable) 
+      then
+	begin
+	  let bref = ref (get_block_of_label blabel next_cstate) 
+	  in
+	  let trans_descr = (bref,trans_list) in
+	  bblock.block_succs <- (trans_descr::bblock.block_succs)
+	end
+      else
+	begin
+	  let succs_bloc_ref = ref (create_bloc_of_control_state 
+				  next_cstate cindex bindex cautomaton
+				  label_uid) in
+	  let trans_descr = (succs_bloc_ref,trans_list) in
+	  bblock.block_succs <- (trans_descr::bblock.block_succs)
+	end
+	  
+    in
+    let succs_state_table = Hashtbl.find cautomaton.transitions 
+      bblock.block_head_state in
+    Hashtbl.iter basic_bloc_folder succs_state_table
+    
+      
+  (** This function fills a block which head control state is
+      a final control state in cautomaton. One just add a dummy
+      transition, and the set of successor block is set as the empty
+      set .*)
+      
+    and block_of_final_statement bblock vtable cautomaton =
+      assert (is_final_state cautomaton bblock.block_head_state);
+      let dummy_cstate = control_of_id_param dummy_cstate_id in
+      let single_trans = (bblock.block_head_state,Nts_types.CntGenHavoc([]),
+			  dummy_cstate) in
+      bblock.block <- ( single_trans :: [])
+      ;    
+      bblock.block_succs <- []
     
   (*let cfg_of_nts_automaton cautomaton = *)
 
