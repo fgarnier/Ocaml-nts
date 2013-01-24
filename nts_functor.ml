@@ -703,7 +703,11 @@ ordering on their name. *)
    returned_table
 
 
-     
+
+(**
+Returns a binding of the hashtbl tbl.
+*)     
+
  let get_one_binding tbl =
    let gen_binding = ref None in
     let get_first_elem_iterator a b =
@@ -716,6 +720,27 @@ ordering on their name. *)
     with
 	Nts_i_have_a_binding -> !gen_binding
    
+
+(**
+ Same as above, but raises a Not_found_exception if tbl is empty.
+*)
+
+ let one_binding tbl =
+   let gen_binding = ref None in
+    let get_first_elem_iterator a b =
+      gen_binding := Some( ( a , b ) );
+      raise Nts_i_have_a_binding
+    in
+    try 
+      Hashtbl.iter get_first_elem_iterator tbl;
+      raise Not_found
+    with
+	Nts_i_have_a_binding ->
+	  begin
+	    match !gen_binding with
+	      Some(s)->s
+	    | None -> assert false
+	  end
 
  let get_one_state tbl =
    let one_binding = get_one_binding tbl in
@@ -1865,15 +1890,31 @@ relation upon success, an exception if some operation failed*)
       Label_block_index( tbl) ->
 	Hashtbl.find tbl label
     
- let block_of_head cstate cindex bindex =
+ let block_of_head cstate cindex blabel_index =
     let label = get_label_of_cstate cstate cindex in
-    get_block_of_label label bindex
+    get_block_of_label label blabel_index
+
+
+ let append_opt_list a b =
+   match a,b with 
+     None,None -> None
+   | Some(l),None | None,Some(l) -> Some(l)
+   | Some(g),Some(d) -> Some(g@d)
+
 
   (** creates a basic block that have cstate as head control state
       if this state is not yes contained in cindex. 
   *)
 
-  let create_block_of_control_state cstate cindex lindex bindex 
+ let opt_block_of_head cstate cindex bindex =
+   try
+     let b = block_of_head cstate cindex bindex in
+     Some(b)
+   with
+     Not_found -> None
+
+
+  let create_block_of_control_state cstate cindex lindex blabel_index 
       ( label_id : int ref)
       cautomaton =
    
@@ -1893,17 +1934,37 @@ relation upon success, an exception if some operation failed*)
 	    block_succs = None
 	  }
 	in
-	add_block_to_bindex  ret_block bindex;
+	add_block_to_bindex  ret_block blabel_index;
 	ret_block
       end
     else
-      let registered_block_label = get_label_of_cstate cstate cindex in
-      let block = get_block_of_label registered_block_label bindex  in
-      raise ( Basic_block_already_registered(block))
-       
+      begin
+	let registered_block_label = get_label_of_cstate cstate cindex in
+	let block = get_block_of_label registered_block_label blabel_index  in
+	raise ( Basic_block_already_registered(block))
+      end
 
 
  
+    (*
+      trans_ref_list_of_succs_transition_folder aims at extracting the list
+      of the transition description from the blocks when the latter
+      are filled and their reference has been initialized.
+      
+    *)
+
+  let trans_ref_list_of_succs_transition_folder 
+      prev_list control_ref translist =
+    (control_ref,translist)::prev_list
+      
+
+
+  let get_succs_ref_list_of_block bl =
+    match bl.block_succs with
+      None -> []
+    | Some(tbl_succs) -> 
+      tbl_succs
+
 
     
 
@@ -1919,14 +1980,32 @@ relation upon success, an exception if some operation failed*)
     
 	let fill_basic_blocs cstate_labels visited_state_index cautomaton_ref 
 	cfg_build control_start ( bblock_uid_ref : int ref ) =
+
+
+	fill_basic_block and make_branching_block and make_final_block
+	-- i.e. all three functions defined below returns the
+	collection of the non visited block successor header. 
+	Basically, when a non empty container of basic block
+	is returned, it means that :
+
+	_ A block starting at some non yet visited control state
+	has been created, and it has been marked as the successor
+	of the block that one of the tree functions below was
+	called upon.
+	Such a block need to be filled, and shall be scheduled for
+	filling process, until no more of such block is returned.
     *)
 
 
- 
 
-  let fill_basic_block bblock (vtable : visited_table ) 
-      (lindex : label_index) (cindex : control_lablel_index )
-      (bindex : block_index) (pred_relation : (control , unit) Hashtbl.t )
+
+  
+
+  let rec fill_basic_block bblock (vtable : visited_table ) 
+      (lindex : label_index) (cindex : control_label_index )
+      (bindex : block_control_index)
+      (blabel_index : block_label_index )
+      (pred_relation : inv_relation_container )
       cautomaton 
       (label_id : int ref )  = 
   
@@ -1940,77 +2019,86 @@ relation upon success, an exception if some operation failed*)
 
     
     let rec add_elem_of_segment current_control =
-      let add_transition_to_next_element_if_single_succs current_control =
+      let add_transition_to_next_element_if_single_succs 
+	  current_control =
 	let out_relation = Hashtbl.find 
 	  cautomaton.transitions current_control in
-	let (ctr, trans_list ) =  pick_elem_in_hastbl out_relation in
-	bblock.block <- (bblock.block @ (current_control,trans_list,ctr)) ;
-	  (** Ici, traiter les deux cas suivants : 
-	      _ The next control state belongs to the same block
-	      _ The next state is at the head of another block,
-	      hence one need to recurse after creating a new block
-	      or fetching the block which head is the next control
-	      state if such a state is already registered in bindex.
-	  *)
-	if (is_csate_in_linear_chain ctr pred_relation ) 
+	let (ctr, trans_list ) =  one_binding out_relation in
+	bblock.block <- (bblock.block @( (current_control,trans_list,ctr)::[])) ;
+	(** In this part we have to deal with two cases : 
+	    _ The next control state belongs to the same block
+	    _ The next state is at the head of another block,
+	    hence one need to recurse after creating a new block
+	    or we have to fetch the block which head is the next control
+	    state if such a state is already registered in bindex.
+	*)
+	
+	if (is_cstate_in_linear_chain ctr cautomaton pred_relation ) 
 	then (* The next state is in the same block : recursion*)
 	  add_elem_of_segment ctr
 	else 
 	  begin 
-	      (** The current control state is the last of the
-		  current block. Hence one need to create and 
-		  label the next block if it is not yet referenced in bindex 
-		  --block index, and select this block as the current block
+	    (** The current control state is the last of the
+		current block. Hence one need to create and 
+		label the next block if it is not yet referenced in bindex 
+		--block index, and select this block as the current block
 		  only successor.
 	    
-		  If the "next" block is alredy references, no need to
-		  create it, just add it as only successor.
-	      *)
+		If the "next" block is alredy references, no need to
+		create it, just add it as only successor.
+	    *)
 
 	    try
-	      let next_block_ref =  ref (block_of_head ctr bindex) 
+	      let next_block_ref =  
+		ref (block_of_head ctr cindex blabel_index) 
 	      in
-	      let trans_next_list =  (next_block_ref, trans_list)::[] 
+	      let trans_next_list =  Some((next_block_ref, trans_list)::[]) 
 	      in
-	      bblock.block_succs <- trans_next_list
+	      bblock.block_succs <- trans_next_list;
+	      get_succs_ref_list_of_block bblock
 	    with
 	      Not_found ->
 		begin
 		  let next_block_ref = ref 
 		    ( create_block_of_control_state ctr
-			cindex lindex bindex label_id)
+			cindex lindex blabel_index label_id cautomaton)
 		  in
-		  let trans_next_list = (next_block_ref,trans_list)::[] 
+		  let trans_next_list = Some((next_block_ref,trans_list)::[]) 
 		  in
-		  bblock.block_succs <- trans_next_list
+		  bblock.block_succs <- trans_next_list;
+		  get_succs_ref_list_of_block bblock
 		end
 	  end
-		  
+	    
       in
-      if is_csate_in_linear_chain current_control pred_relation
+      if is_cstate_in_linear_chain current_control cautomaton pred_relation
       then
-	add_transition_to_next_element_if_single_succs current_control
-	  
-      else if (is_cstate_branching current_control cautomaton)
-      then 
-	    (*
-	      One return the collection of successor block, one need
-	      create, label and reference them in bindex, if not yet done.
-	      One need to associate the head control state of each following
-	      block with the block label in cindex.
-	    *)
 	begin
-	  assert (current_state = bblock.block_head_state);
+	  add_transition_to_next_element_if_single_succs current_control
+	end
+      else 
+	if (is_cstate_branching current_control cautomaton)
+	then 
+	(*
+	  One return the collection of successor block, one need
+	  create, label and reference them in bindex, if not yet done.
+	  One need to associate the head control state of each following
+	  block with the block label in cindex.
+	*)
+	begin
+	  assert (current_control = bblock.block_head_state);
 	  let branching_block = 
 	    make_branching_blocks bblock vtable
-	      lindex cindex bindex cautomaton label_uid 
-	  in ()
+	      lindex cindex blabel_index cautomaton label_id 
+	  in
+	  get_succs_ref_list_of_block branching_block
+	  
 	  
 	end
-      else if (is_cstate_merge_point control pred_relation)
+      else if (is_cstate_merge_point current_control pred_relation)
       then
 	begin
-	  assert (current_state = block_head_state);
+	  assert (current_control = bblock.block_head_state);
 	  
 	  (*
 	    One single successor, however it's a mergepoint, hence
@@ -2018,8 +2106,10 @@ relation upon success, an exception if some operation failed*)
 	    needs to be applied upon this same control state/block Head.
 	  *)
 	      
-	  add_transition_to_next_element_if_single_succs current_state
+	  add_transition_to_next_element_if_single_succs current_control
 	end
+	
+     
       else if ( not (has_successor current_control cautomaton))
       then  
 	(*
@@ -2027,11 +2117,14 @@ relation upon success, an exception if some operation failed*)
 	  one need to return an empty successor descriptor.
 	*)
 	begin
-	  block_of_final_statement bblock vtable cautomaton
+	  block_of_final_statement bblock vtable cautomaton;
+	  [] (*Returning the set of successor as the empty set*)
 	end
-	  
-
-
+      else assert false
+      
+    in  
+    add_elem_of_segment bblock.block_head_state
+    
 
 	    
   (* In this case, the current element given as parameter, is
@@ -2063,10 +2156,10 @@ relation upon success, an exception if some operation failed*)
   *)
 
 
-  and make_branching_blocks bblock (vtable : visted_table) 
-	(lindex : label_index) (cindex : control_label_index)
-	  (bindex : block_label_index) cautomaton
-	  (label_uid_counter : int ref ) =
+  and make_branching_blocks bblock (vtable : visited_table) 
+      (lindex : label_index) (cindex : control_label_index)
+      (blabel_index : block_label_index) cautomaton
+      (label_uid_counter : int ref ) =
       
 
     (*
@@ -2079,49 +2172,60 @@ relation upon success, an exception if some operation failed*)
     (* I need to split transitions label between guards and operations
        Not yet done.
     *)
-    let dummy_cstate_id = key_val_of_string "dummy_branching_block_state" in
+    (*let dummy_cstate_id = Param.key_val_of_string "dummy_branching_block_state" in
     let dummy_cstate = control_of_id_param dummy_cstate_id in
     let single_trans = (bblock.block_head_state,Nts_types.CntGenHavoc([]),
 			dummy_cstate) 
-    in
+    in*)
+    
+    
     let basic_block_iterator  next_cstate trans_list =
-      if (is_block_of_label next_cstate vtable) 
-      then
+      let oblock = opt_block_of_head next_cstate cindex blabel_index in
+      match oblock with
+	Some(blck) ->
+	  begin
+	    let bref = ref blck 
+	    in
+	    let trans_descr = Some((bref,trans_list)::[]) in
+	    bblock.block_succs <- (append_opt_list trans_descr bblock.block_succs)
+	  end
+	    
+      | None ->
 	begin
-	  let bref = ref (get_block_of_label blabel next_cstate) 
+	  let succs_bloc_ref = ref (create_block_of_control_state 
+				      next_cstate cindex lindex blabel_index
+				      label_uid_counter cautomaton) 
 	  in
-	  let trans_descr = (bref,trans_list) in
-	  bblock.block_succs <- (trans_descr::bblock.block_succs)
-	end
-      else
-	begin
-	  let succs_bloc_ref = ref (create_bloc_of_control_state 
-				  next_cstate cindex bindex cautomaton
-				  label_uid) in
-	  let trans_descr = (succs_bloc_ref,trans_list) in
-	  bblock.block_succs <- (trans_descr::bblock.block_succs)
+	  let trans_descr = Some((succs_bloc_ref,trans_list)::[]) 
+	  in
+	  bblock.block_succs <- (append_opt_list trans_descr bblock.block_succs)
 	end
 	  
     in
     let succs_state_table = Hashtbl.find cautomaton.transitions 
       bblock.block_head_state in
-    Hashtbl.iter basic_bloc_folder succs_state_table
-    
+    Hashtbl.iter basic_block_iterator succs_state_table;
+    bblock
       
-  (** This function fills a block which head control state is
-      a final control state in cautomaton. One just add a dummy
-      transition, and the set of successor block is set as the empty
-      set .*)
       
+    (** This function fills a block which head control state is
+	a final control state in cautomaton. One just add a dummy
+	transition, and the set of successor block is set as the empty
+	set.
+    *)
+   
+ 
     and block_of_final_statement bblock vtable cautomaton =
       assert (is_final_state cautomaton bblock.block_head_state);
+      let dummy_cstate_id = Param.key_val_of_string  "fake final contol state" in
       let dummy_cstate = control_of_id_param dummy_cstate_id in
-      let single_trans = (bblock.block_head_state,Nts_types.CntGenHavoc([]),
-			  dummy_cstate) in
-      bblock.block <- ( single_trans :: [])
-      ;    
-      bblock.block_succs <- []
+      let single_trans = (bblock.block_head_state,(Nts_types.CntGenHavoc([])::[]),
+			  dummy_cstate) 
+      in
+      bblock.block <- ( single_trans :: []);    
+      bblock.block_succs <- None
     
+	
   (*let cfg_of_nts_automaton cautomaton = *)
 
 
