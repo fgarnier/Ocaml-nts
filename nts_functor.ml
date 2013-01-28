@@ -172,7 +172,7 @@ struct
     Hashtbl.mem table cstate
 
 
-  exception Found_control_state_exception
+succ  exception Found_control_state_exception
     
   let is_state_in_transition_container cstate cont =
     let inner_rel_iterator _ inner_table =
@@ -1828,8 +1828,26 @@ relation upon success, an exception if some operation failed*)
   type block_label_index = Label_block_index of (string , nts_basic_block ) Hashtbl.t
 
 
-
+  let make_visited_table () =
+    let t = Hashtbl.make () in
+    Visited(t)
   
+  let make_label_index () =
+    let t =Hashtbl.make () in
+    Label_index (t)
+
+  let make_control_label_index () =
+    let t = Hashtbl.make () in
+    Control_label(t)
+
+  let make_block_control_label () = 
+    let t = Hashtbl.make () in
+    Control_block_index(t)
+  
+  let make_block_label_index () =
+    let t = Hashtbl.make () in
+    Label_block_index(t)
+
 
   let is_cstate_visited cstate vtable =
     match vtable with 
@@ -1912,6 +1930,15 @@ relation upon success, an exception if some operation failed*)
      Some(b)
    with
      Not_found -> None
+
+
+  (** Marks a block as visited in vtable*)
+ let mark_block_header_as_visited bblock vtable =
+   mark_cstate_as_visited bblock.block_head_state
+   
+ (** Checks whether some block header is marked as visited*)
+ let is_block_header_marked_as_visited bblock vtable =
+   is_cstate_visited cstate vtable
 
 
   let create_block_of_control_state cstate cindex lindex blabel_index 
@@ -2131,8 +2158,7 @@ relation upon success, an exception if some operation failed*)
      the first element of another block. It is either branching
      or have many predecessors, or have no succesor at all.*)
 	  
-  
-	  
+ 	  
   (** When several transition go out of a control state :
       
       s_i -> s_j1 {guard_1 and op_1}
@@ -2229,4 +2255,71 @@ relation upon success, an exception if some operation failed*)
   (*let cfg_of_nts_automaton cautomaton = *)
 
 
+
+  let blocks_compression_of_nts cautomaton =
+    (** scheduler contains the set of the basic blocks that have not
+    yet be filled. 
+
+    Initially, this queue contains the set of blocks that starts with
+    the set of initial states.
+    *)
+
+    let label_uid = ref 0 in
+    let vtable = make_visited_table () in
+    let lindex = make_label_index () in
+    let cindex = make_control_label_index () in
+    let bindex = make_block_control_label () in
+    let blabel_index = make_block_label_index () in
+   
+    let pred_relation = compute_pred_relation cautomaton in
+      
+    
+    let scheduler = Queue.create () 
+    in
+    (* Iterator used to schedule the initial basic blocks*)
+    let initilize_scheduler_iterator control_state =
+      let new_block  = 
+	create_block_of_control_state control_state cindex lindex
+	  blabel_index label_uid 
+      in
+      Queue.push new_block scheduler 
+    in
+
+    (* Actual initialisation of the basic blocks *)
+    iter_state_container cautomaton.initial_states initialize_scheduler_iterator ;
+
+    (* This iterator is used in the main loop, to schedule the non yet
+    filled basic-blocks for processing *)
+    let schedule_next_element_iterator (bblock_ref, _ ) =
+      if not (is_block_header_marked_as_visited (!bblock_ref) ) 
+      then
+	Queue.push (!bblock_ref) scheduler
+      else
+	()
+    in
+
+
+
+
+
+    (* 
+       Here is the main loop. 
+    *)
+    while (not (Queue.is_empty scheduler )) 
+    do
+    
+      let curr_bloc = Queue.pop scheduler in
+      let successors_list = fill_basic_block curr_block vtable lindex cindex
+	bindex blabel_index pred_relation 
+      in
+      List.iter schedule_next_element_iterator successors_list
+
+    done;
+    
+    
+    
+
+
+
+	
 end
