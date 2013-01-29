@@ -1810,11 +1810,49 @@ relation upon success, an exception if some operation failed*)
     nts_cfg_init_block : (string , unit ) Hashtbl.t;
     nts_cfg_final_block : (string , unit ) Hashtbl.t;
     nts_cfg_error_block : (string , unit ) Hashtbl.t;
+    
     nts_input_vars : nts_genrel_var list; (*Variable ordering is important*)
     nts_output_vars : nts_genrel_var list;
     nts_local_vars : nts_genrel_var list;
     nts_blocks_transitions : ( string , nts_basic_block ) Hashtbl.t
   }
+
+
+
+
+(**
+
+ Creates a nts_automaton_cfg with all non mutable fields filled,
+using a nts_automaton definition. 
+
+*)
+  let nts_automaton_cfg_header_of_cautomaton ca =
+    {
+      nts_cfg_name = ca.nts_automata_name ;
+      cfg_anot = ca.anotation ;
+      nts_cfg_init_block = Hashtbl.create 97;
+      nts_cfg_final_block =  Hashtbl.create 97;
+      nts_cfg_error_block = Hashtbl.create 97;
+      nts_input_vars = ca.input_vars ;
+      nts_output_var = ca.output_vars ;
+      nts_local_vars = ca.local_vars ;
+      
+      nts_blocks_transitions = Hashtbl.create 97 ;
+    }
+
+
+  let add_init_block_to_nts_cfg block nts_cfg =
+    Hashtbl.add nts_cfg.nts_cfg_init_block block.block_head_label block
+      
+  let add_final_block_to_nts_cfg block nts_cfg =
+    Hashtbl.add nts_cfg.nts_cfg_final_block block.block_head_label block
+
+  let add_error_block_to_nts_cfg block nts_cfg =
+    Hashtbl.add nts_cfg.nts_cfg_error_block block.block_head_label block
+
+  let add_block_transitions_to_nts_cfg block nts_cfg =
+    Hashtbl.add nts_cfg.nts_block_transitions block.block_head_label block
+
 
 
 
@@ -1907,6 +1945,9 @@ relation upon success, an exception if some operation failed*)
     match bindex with 
       Label_block_index( tbl) ->
 	Hashtbl.find tbl label
+
+  let get_label_of_block block =
+    block.block_head_label
     
  let block_of_head cstate cindex blabel_index =
     let label = get_label_of_cstate cstate cindex in
@@ -2273,6 +2314,8 @@ relation upon success, an exception if some operation failed*)
    
     let pred_relation = compute_pred_relation cautomaton in
       
+
+    let ret_nts_cfg = nts_automaton_cfg_header_of_cautomaton cautomaton in
     
     let scheduler = Queue.create () 
     in
@@ -2282,7 +2325,8 @@ relation upon success, an exception if some operation failed*)
 	create_block_of_control_state control_state cindex lindex
 	  blabel_index label_uid 
       in
-      Queue.push new_block scheduler 
+      Hashtbl.add  
+      Queue.push new_block scheduler
     in
 
     (* Actual initialisation of the basic blocks *)
@@ -2297,8 +2341,8 @@ relation upon success, an exception if some operation failed*)
       else
 	()
     in
-
-
+    
+    
 
 
 
@@ -2309,11 +2353,12 @@ relation upon success, an exception if some operation failed*)
     do
     
       let curr_bloc = Queue.pop scheduler in
-      let successors_list = fill_basic_block curr_block vtable lindex cindex
+      let successors_list = fill_basic_block 
+	curr_block vtable lindex cindex
 	bindex blabel_index pred_relation 
       in
       List.iter schedule_next_element_iterator successors_list
-
+	
     done;
     
     
