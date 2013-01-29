@@ -1854,9 +1854,54 @@ using a nts_automaton definition.
     Hashtbl.add nts_cfg.nts_block_transitions block.block_head_label block
 
 
+  let is_block_initial block ca =
+    is_initial_state ca block.block_head_state
+
+  let is_block_error block ca =
+    let (last_translhs,_,last_trans_rhs) = List.tl block.block 
+    in
+    if not
+    ( is_error_state ca last_translhs ) 
+    then 
+      begin
+	is_error_state ca last_transrhs
+      end
+    else true
 
 
- (* *)
+  let is_block_final block ca =
+    let (last_translhs,_,last_trans_rhs) = List.tl block.block 
+    in
+    if not
+    ( is_final_state ca last_translhs ) 
+    then 
+      begin
+	is_final_state ca last_transrhs
+      end
+    else true
+
+   (** This function adds a block in the initial/final/error/transition
+       section w.r.t. the fact that block given as parameter contains
+       initial/final/error state or no such control states.
+   *)
+  let add_block_in_proper_section_of_nts_cfg block nts_cfg ca_def =
+    if is_block_initial block ca_def 
+    then
+      add_initial_block_to_nts_cfg block nts_cfg
+    else if is_block_final block ca_def
+    then
+      add_final_block_to_nts_cfg block nts_cfg
+      
+    else if is_block_error block error 
+    then
+      add_error_block_to_nts_cfg block nts_cfg
+    else
+      add_block_transitions_to_nts_cfg block nts_cfg
+
+
+  (* 
+     The types below are used for building the 
+  *)
   exception  Basic_block_already_registered of nts_basic_block
 
   type visited_table = Visited of (control, unit ) Hashtbl.t
@@ -2342,9 +2387,7 @@ using a nts_automaton definition.
 	()
     in
     
-    
-
-
+   
 
     (* 
        Here is the main loop. 
@@ -2357,11 +2400,13 @@ using a nts_automaton definition.
 	curr_block vtable lindex cindex
 	bindex blabel_index pred_relation 
       in
-      List.iter schedule_next_element_iterator successors_list
+      List.iter schedule_next_element_iterator successors_list;
+      add_block_in_proper_section_of_nts_cfg curr_block ret_nts_cfg 
+	cautomaton
 	
     done;
     
-    
+    ret_nts_cfg
     
 
 
