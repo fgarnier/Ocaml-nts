@@ -2342,7 +2342,7 @@ using a nts_automaton definition.
 
 
 
-  let blocks_compression_of_nts cautomaton =
+  let blocks_compression_of_nts_automaton cautomaton =
     (** scheduler contains the set of the basic blocks that have not
     yet be filled. 
 
