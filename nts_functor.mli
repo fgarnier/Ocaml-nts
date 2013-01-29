@@ -239,9 +239,9 @@ sig
     mutable nts_cfg_name : string; 
     mutable cfg_anot : anotations;
     (*states : (control , unit ) Hashtbl.t;*)
-    nts_cfg_init_block : (string , unit ) Hashtbl.t;
-    nts_cfg_final_block : (string , unit ) Hashtbl.t;
-    nts_cfg_error_block : (string , unit ) Hashtbl.t;
+    nts_cfg_init_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_cfg_final_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_cfg_error_block : (string , nts_basic_block ) Hashtbl.t;
     nts_input_vars : nts_genrel_var list; (*Variable ordering is important*)
     nts_output_vars : nts_genrel_var list;
     nts_local_vars : nts_genrel_var list;

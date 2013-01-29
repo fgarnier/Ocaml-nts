@@ -172,7 +172,7 @@ struct
     Hashtbl.mem table cstate
 
 
-succ  exception Found_control_state_exception
+ exception Found_control_state_exception
     
   let is_state_in_transition_container cstate cont =
     let inner_rel_iterator _ inner_table =
@@ -1807,9 +1807,9 @@ relation upon success, an exception if some operation failed*)
     mutable nts_cfg_name : string; 
     mutable cfg_anot : anotations;
     (*states : (control , unit ) Hashtbl.t;*)
-    nts_cfg_init_block : (string , unit ) Hashtbl.t;
-    nts_cfg_final_block : (string , unit ) Hashtbl.t;
-    nts_cfg_error_block : (string , unit ) Hashtbl.t;
+    nts_cfg_init_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_cfg_final_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_cfg_error_block : (string , nts_basic_block ) Hashtbl.t;
     
     nts_input_vars : nts_genrel_var list; (*Variable ordering is important*)
     nts_output_vars : nts_genrel_var list;
@@ -1829,12 +1829,12 @@ using a nts_automaton definition.
   let nts_automaton_cfg_header_of_cautomaton ca =
     {
       nts_cfg_name = ca.nts_automata_name ;
-      cfg_anot = ca.anotation ;
+      cfg_anot = ca.anot ;
       nts_cfg_init_block = Hashtbl.create 97;
       nts_cfg_final_block =  Hashtbl.create 97;
       nts_cfg_error_block = Hashtbl.create 97;
       nts_input_vars = ca.input_vars ;
-      nts_output_var = ca.output_vars ;
+      nts_output_vars = ca.output_vars ;
       nts_local_vars = ca.local_vars ;
       
       nts_blocks_transitions = Hashtbl.create 97 ;
@@ -1851,14 +1851,14 @@ using a nts_automaton definition.
     Hashtbl.add nts_cfg.nts_cfg_error_block block.block_head_label block
 
   let add_block_transitions_to_nts_cfg block nts_cfg =
-    Hashtbl.add nts_cfg.nts_block_transitions block.block_head_label block
+    Hashtbl.add nts_cfg.nts_blocks_transitions block.block_head_label block
 
 
   let is_block_initial block ca =
     is_initial_state ca block.block_head_state
 
   let is_block_error block ca =
-    let (last_translhs,_,last_trans_rhs) = List.tl block.block 
+    let (last_translhs,_,last_transrhs) = List.hd ( List.rev block.block) 
     in
     if not
     ( is_error_state ca last_translhs ) 
@@ -1870,7 +1870,7 @@ using a nts_automaton definition.
 
 
   let is_block_final block ca =
-    let (last_translhs,_,last_trans_rhs) = List.tl block.block 
+    let (last_translhs,_,last_transrhs) = List.hd (List.rev block.block) 
     in
     if not
     ( is_final_state ca last_translhs ) 
@@ -1887,12 +1887,12 @@ using a nts_automaton definition.
   let add_block_in_proper_section_of_nts_cfg block nts_cfg ca_def =
     if is_block_initial block ca_def 
     then
-      add_initial_block_to_nts_cfg block nts_cfg
+      add_init_block_to_nts_cfg block nts_cfg
     else if is_block_final block ca_def
     then
       add_final_block_to_nts_cfg block nts_cfg
       
-    else if is_block_error block error 
+    else if is_block_error block ca_def 
     then
       add_error_block_to_nts_cfg block nts_cfg
     else
@@ -1912,23 +1912,23 @@ using a nts_automaton definition.
 
 
   let make_visited_table () =
-    let t = Hashtbl.make () in
+    let t = Hashtbl.create 97 in
     Visited(t)
   
   let make_label_index () =
-    let t =Hashtbl.make () in
+    let t =Hashtbl.create 97 in
     Label_index (t)
 
   let make_control_label_index () =
-    let t = Hashtbl.make () in
+    let t = Hashtbl.create 97 in
     Control_label(t)
 
   let make_block_control_label () = 
-    let t = Hashtbl.make () in
+    let t = Hashtbl.create 97 in
     Control_block_index(t)
   
   let make_block_label_index () =
-    let t = Hashtbl.make () in
+    let t = Hashtbl.create 97 in
     Label_block_index(t)
 
 
@@ -2024,7 +2024,7 @@ using a nts_automaton definition.
    
  (** Checks whether some block header is marked as visited*)
  let is_block_header_marked_as_visited bblock vtable =
-   is_cstate_visited cstate vtable
+   is_cstate_visited bblock.block_head_state vtable
 
 
   let create_block_of_control_state cstate cindex lindex blabel_index 
@@ -2365,22 +2365,21 @@ using a nts_automaton definition.
     let scheduler = Queue.create () 
     in
     (* Iterator used to schedule the initial basic blocks*)
-    let initilize_scheduler_iterator control_state =
+    let initialize_scheduler_iterator control_state =
       let new_block  = 
 	create_block_of_control_state control_state cindex lindex
-	  blabel_index label_uid 
+	  blabel_index label_uid cautomaton
       in
-      Hashtbl.add  
       Queue.push new_block scheduler
     in
 
     (* Actual initialisation of the basic blocks *)
-    iter_state_container cautomaton.initial_states initialize_scheduler_iterator ;
+    iter_state_container cautomaton.init_states initialize_scheduler_iterator ;
 
     (* This iterator is used in the main loop, to schedule the non yet
     filled basic-blocks for processing *)
     let schedule_next_element_iterator (bblock_ref, _ ) =
-      if not (is_block_header_marked_as_visited (!bblock_ref) ) 
+      if not (is_block_header_marked_as_visited (!bblock_ref) vtable ) 
       then
 	Queue.push (!bblock_ref) scheduler
       else
@@ -2395,10 +2394,10 @@ using a nts_automaton definition.
     while (not (Queue.is_empty scheduler )) 
     do
     
-      let curr_bloc = Queue.pop scheduler in
+      let curr_block = Queue.pop scheduler in
       let successors_list = fill_basic_block 
 	curr_block vtable lindex cindex
-	bindex blabel_index pred_relation 
+	bindex blabel_index pred_relation cautomaton label_uid
       in
       List.iter schedule_next_element_iterator successors_list;
       add_block_in_proper_section_of_nts_cfg curr_block ret_nts_cfg 
