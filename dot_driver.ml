@@ -294,5 +294,82 @@ module Make =
 	Format.sprintf "%s%s}" ret_string printout_hgraph
 
 	
+
+      (*
+	In this section, we define the set of functions that
+	allows to draw the control flow graph from a numerical
+	transition system. 
+      *)
+	  
+      type nts_block_type = Block_transition
+			    | Error_block
+			    | Init_block
+			    | Final_block
+
+
+      let decorate_block_by_type ntblock_type =
+	match ntblock_type with
+	  Block_transition -> ""
+	| Error_block -> "[color=red]"
+	| Init_block -> "[color=blue]"
+	| Final_block -> "[color=green]"
+
+      let dot_of_basic_block ?(block_type = Block_transition) bblock =
+	let block_opt_by_type = decorate_block_by_type block_type 
+	in
+	let trans_block_print_folder prefix (corg,_,cdest) =
+	  Format.sprintf "%s %s_%s->%s_%s %s;\n" 
+	    prefix bblock.block_head_label
+	    (pprint_control corg) bblock.block_head_label (pprint_control cdest) block_opt_by_type
+	in
+	let inner_block_transitions  = 
+	  List.fold_left trans_block_print_folder "" bblock.block in
+	let block_out = Format.sprintf "subgraph cluster_%s { \n color=red; label=\"%s\"; %s }" bblock.block_head_label bblock.block_head_label inner_block_transitions in
+	block_out
+
+
+	  
+      let get_list_of_opt_list ol =
+	match ol with 
+	  None -> []
+	| Some(l) -> l
+
+      let link_basic_blocks_of_nts_cfg nts_cfg =
+	let link_block_table_folder  _ bblock pre =
+
+	  let block_link_folder curr_block curr_block_last_cstate 
+	      pre (bref,_) =
+	    let next_block = !bref 
+	    in
+	    Format.sprintf "%s  %s_%s -> %s_%s [color=\"red\"]; \n" pre
+	      curr_block.block_head_label (pprint_control curr_block_last_cstate) next_block.block_head_label (pprint_control next_block.block_head_state)   
+	  in    
+	  let curr_block_last_cstate = 
+	    NFParam.get_last_control_state_of_bblock bblock 
+	  in
+	  List.fold_left (block_link_folder bblock 
+			    curr_block_last_cstate) pre 
+	    ( get_list_of_opt_list bblock.block_succs) 
+	in
+	let print_out = 
+	  Hashtbl.fold link_block_table_folder  nts_cfg.nts_cfg_init_block "" 
+	in
+	let print_out =
+	  Hashtbl.fold link_block_table_folder  nts_cfg.nts_blocks_transitions print_out
+	in
+	print_out
+      
+	  
+(*
+      let dot_of_nts_cfg nts_cfg = 
+	
+	let dot_table_folder ?(block_type = Block_Transition) vlabel bblock pre =
+	  Format.sprintf "%s \n %s" pre (dot_of_basic_block block_type bblock)
+	in
+	let print_out = Hashtbl.fold (dot_table_folder ~block_type:Init_block) nts_cfg.nts_cfg_init_block "" in
+	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Final_block) nts_cfg.nts_cfg_final_block print_out in
+	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Error_block) nts_cfg.nts_cfg_error_block print_out in
+	let print_out = Hashtbl.fold dot_table_folded nts_cfg.nts_blocks_transitions print_out in
+*)	
 	
 end;;

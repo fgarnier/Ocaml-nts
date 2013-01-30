@@ -248,6 +248,7 @@ sig
     nts_blocks_transitions : ( string , nts_basic_block ) Hashtbl.t
   }
 
+  val get_last_control_state_of_bblock : nts_basic_block -> control
   val blocks_compression_of_nts_automaton : nts_automaton -> nts_automaton_cfg 
 
 end

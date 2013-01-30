@@ -1854,11 +1854,28 @@ using a nts_automaton definition.
     Hashtbl.add nts_cfg.nts_blocks_transitions block.block_head_label block
 
 
+  exception Empty_basic_block
+
+  let last_transition_of_basic_block block =
+    let rec pick_last_trans blist =
+      match blist with
+	a::[] -> a
+      | [] -> raise Empty_basic_block
+      | a::l -> pick_last_trans l
+    in
+    pick_last_trans block.block
+
+  let get_last_control_state_of_bblock block =
+    let (_,_,ret_c) = last_transition_of_basic_block block in
+    ret_c
+
   let is_block_initial block ca =
     is_initial_state ca block.block_head_state
 
   let is_block_error block ca =
-    let (last_translhs,_,last_transrhs) = List.hd ( List.rev block.block) 
+    let (last_translhs,_,last_transrhs) = 
+      last_transition_of_basic_block 
+	block 
     in
     if not
     ( is_error_state ca last_translhs ) 
@@ -1870,7 +1887,8 @@ using a nts_automaton definition.
 
 
   let is_block_final block ca =
-    let (last_translhs,_,last_transrhs) = List.hd (List.rev block.block) 
+    let (last_translhs,_,last_transrhs) =
+      last_transition_of_basic_block block 
     in
     if not
     ( is_final_state ca last_translhs ) 
