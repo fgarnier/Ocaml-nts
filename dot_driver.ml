@@ -360,16 +360,17 @@ module Make =
 	print_out
       
 	  
-(*
+
       let dot_of_nts_cfg nts_cfg = 
 	
-	let dot_table_folder ?(block_type = Block_Transition) vlabel bblock pre =
-	  Format.sprintf "%s \n %s" pre (dot_of_basic_block block_type bblock)
+	let dot_table_folder ?(block_type = Block_transition) vlabel bblock pre =
+	  Format.sprintf "%s \n %s" pre (dot_of_basic_block ~block_type:block_type bblock)
 	in
 	let print_out = Hashtbl.fold (dot_table_folder ~block_type:Init_block) nts_cfg.nts_cfg_init_block "" in
 	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Final_block) nts_cfg.nts_cfg_final_block print_out in
 	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Error_block) nts_cfg.nts_cfg_error_block print_out in
-	let print_out = Hashtbl.fold dot_table_folded nts_cfg.nts_blocks_transitions print_out in
-*)	
+	let print_out = Hashtbl.fold dot_table_folder nts_cfg.nts_blocks_transitions print_out in
+	let print_inter_block_links = link_basic_blocks_of_nts_cfg nts_cfg in
+	Format.printf "digraph %s { %s\n %s }\n" nts_cfg.nts_cfg_name print_out print_inter_block_links
 	
 end;;
