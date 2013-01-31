@@ -34,4 +34,8 @@ module Make :
         NFParam.nts_system -> Trace_types.trace -> string
       val dot_of_subcfg_of_nts :
 	NFParam.nts_system -> Trace_types.trace -> string
+	
+      val dot_of_all_subsystem_of_nts :
+	NFParam.nts_system -> string
+	
     end

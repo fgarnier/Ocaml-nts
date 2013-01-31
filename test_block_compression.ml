@@ -1,13 +1,13 @@
-
 open Lexing
 open Ntl_lexer
-open Nts_parser
+open Ntl_parser
 open Nts_generic
 open Nts_functor
-open Dot_driver
+open Ntsint
 
 
-module Dotofintnts = Dot_Driver.Make(Ntsint.P)
+
+module Dotofintnts = Dot_driver.Make(Ntsint.P)
 
 
 let openfile_with_guard fname =

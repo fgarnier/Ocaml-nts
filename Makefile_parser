@@ -156,6 +156,10 @@ trace2nts : export_trace_nts.cmo export_trace_nts.cmx $(OBJECTS) $(XOBJECTS)
 	ocamlc -g -o trace2nts $(LIBNUM) $(OBJECTS) export_trace_nts.cmo 
 	ocamlopt -g -o xtrace2nts $(LIBXNUM) $(XOBJECTS)  export_trace_nts.cmx 
 
+test_block_compression : test_block_compression.cmo test_block_compression.cmx $(OBJECTS) $(XOBJECTS)
+	@echo "Compiling test block comression"
+	ocamlc -g -o test_block_compress $(LIBNUM) $(OBJECTS) test_block_compression.cmo
+	ocamlopt -g -o xtest_block_compress $(LIBXNUM) $(XOBJECTS) test_block_compression.cmx
 include .depend
 
 .depend: $(GENSOURCE)  
