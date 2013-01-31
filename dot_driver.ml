@@ -314,13 +314,13 @@ module Make =
 	| Init_block -> "[color=blue]"
 	| Final_block -> "[color=green]"
 
-      let dot_of_basic_block ?(block_type = Block_transition) bblock =
+      let dot_of_basic_block nts_cfg ?(block_type = Block_transition) bblock =
 	let block_opt_by_type = decorate_block_by_type block_type 
 	in
 	let trans_block_print_folder prefix (corg,_,cdest) =
 	  Format.sprintf "%s %s_%s->%s_%s %s;\n" 
-	    prefix bblock.block_head_label
-	    (pprint_control corg) bblock.block_head_label (pprint_control cdest) block_opt_by_type
+	    prefix nts_cfg.nts_cfg_name
+	    (pprint_control corg) nts_cfg.nts_cfg_name (pprint_control cdest) block_opt_by_type
 	in
 	let inner_block_transitions  = 
 	  List.fold_left trans_block_print_folder "" bblock.block in
@@ -342,7 +342,7 @@ module Make =
 	    let next_block = !bref 
 	    in
 	    Format.sprintf "%s  %s_%s -> %s_%s [color=\"red\"]; \n" pre
-	      curr_block.block_head_label (pprint_control curr_block_last_cstate) next_block.block_head_label (pprint_control next_block.block_head_state)   
+	      nts_cfg.NFParam.nts_cfg_name (pprint_control curr_block_last_cstate) nts_cfg.NFParam.nts_cfg_name (pprint_control next_block.block_head_state)   
 	  in    
 	  let curr_block_last_cstate = 
 	    NFParam.get_last_control_state_of_bblock bblock 
@@ -361,16 +361,39 @@ module Make =
       
 	  
 
-      let dot_of_nts_cfg nts_cfg = 
+      let dot_of_nts_cfg ?(standalone = true) nts_cfg = 
 	
 	let dot_table_folder ?(block_type = Block_transition) vlabel bblock pre =
-	  Format.sprintf "%s \n %s" pre (dot_of_basic_block ~block_type:block_type bblock)
+	  Format.sprintf "%s \n %s" pre (dot_of_basic_block nts_cfg ~block_type:block_type bblock)
 	in
 	let print_out = Hashtbl.fold (dot_table_folder ~block_type:Init_block) nts_cfg.nts_cfg_init_block "" in
 	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Final_block) nts_cfg.nts_cfg_final_block print_out in
 	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Error_block) nts_cfg.nts_cfg_error_block print_out in
 	let print_out = Hashtbl.fold dot_table_folder nts_cfg.nts_blocks_transitions print_out in
 	let print_inter_block_links = link_basic_blocks_of_nts_cfg nts_cfg in
-	Format.printf "digraph %s { %s\n %s }\n" nts_cfg.nts_cfg_name print_out print_inter_block_links
+	let header = 
+	  ( 
+	    if standalone then "digraph"
+	    else "subgraph"
+	  ) 
+	in
+	Format.sprintf "%s %s { %s\n %s }\n" header nts_cfg.nts_cfg_name print_out print_inter_block_links
+
+
+
+      let dot_of_all_subsystem_of_nts nts = 
+
+	let all_dot_folder _ cautomaton pre =
+	  let nts_cfg = NFParam.blocks_compression_of_nts_automaton 
+	    cautomaton in
+	  let dot_out = dot_of_nts_cfg ~standalone:false nts_cfg in
+	  Format.sprintf "%s %s \n" pre dot_out 
+	in
+	let dot_out = Hashtbl.fold all_dot_folder nts.NFParam.nts_automata
+	  "" in
+	Format.sprintf "digraph blocks_of_%s { %s }" 
+	  nts.NFParam.nts_system_name dot_out
+	  
+	  
 	
 end;;
