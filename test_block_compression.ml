@@ -50,8 +50,8 @@ let _ =
   if ( num_args != 2 &&  num_args!=4 ) 
   then
     begin
-      Format.printf "Syntax : nts2dot File.nts \n nts2dot -ptrace File.nts trace_file \n  
- Aborting \n %!"
+      Format.printf "Syntax : %s File.nts \n  
+ Aborting \n %!" Sys.argv.(0)
     end
   else
     
@@ -61,10 +61,15 @@ let _ =
       let base_file_name = Filename.basename filename in
       let dir_name = Filename.dirname filename in
       let dump_name = dir_name^"/"^base_file_name^".dot" in
-      let dump_file_descr = create_output_file dump_name in
+      let dump_channel = create_output_file dump_name in
       let buf = Lexing.from_channel input_channel in
       let nt_system = Ntl_parser.ntldescr Ntl_lexer.token buf in
       let nt_system = Nts_int.nt_system_var_cleaner nt_system in
+      let output_string = Dotofintnts.dot_of_all_subsystem_of_nts 
+	nt_system in
+      Format.fprintf dump_chanel "%s" output_string;
+      close_out dump_channel;
+      close_in input_channel;
       
     end
 
