@@ -172,6 +172,13 @@ struct
     Hashtbl.mem table cstate
 
 
+  let list_of_opt_list opt_l =
+    match opt_l with 
+      None -> []
+    | Some(l) -> l
+
+
+
  exception Found_control_state_exception
     
   let is_state_in_transition_container cstate cont =
@@ -1784,9 +1791,12 @@ relation upon success, an exception if some operation failed*)
   (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
    
- type nts_type_basic_block = Nts_branching_blocks
+ type nts_type_basic_block = Nts_branching_block
 			     | Nts_standard_block
    
+
+
+
 
   type nts_basic_block = {
     block_head_label : string ;
@@ -1831,10 +1841,16 @@ relation upon success, an exception if some operation failed*)
     in
     let blocks_instr = List.fold_left blocks_list_folder "" bblock.block
     in
-    Format.sprintf "block{ label : %s \n head_cstate : %s \n %s \n}\n"
+    let pprint_type_of_block btype =
+      match btype with
+	Nts_branching_block -> "branching"
+      | Nts_standard_block -> "standard"
+    in
+    Format.sprintf "block{ label : %s \n head_cstate : %s \n btype : %s\n %s \n}\n"
       bblock.block_head_label 
       (pprint_control bblock.block_head_state)
       blocks_instr
+      (pprint_type_of_block bblock.block_type)
 
 
 (**
@@ -1933,6 +1949,12 @@ using a nts_automaton definition.
     else
       add_block_transitions_to_nts_cfg block nts_cfg
 
+
+
+  let type_of_bblock_starting_with_cstate head_state cautomaton =
+    if ( is_cstate_branching head_state cautomaton)
+    then Nts_branching_block
+    else Nts_standard_block
 
   (* 
      The types below are used for building the 
@@ -2045,7 +2067,7 @@ using a nts_automaton definition.
       if this state is not yes contained in cindex. 
   *)
 
- let opt_block_of_head btype cstate cindex bindex =
+ let opt_block_of_head  cstate cindex bindex =
    try
      let b = block_of_head  cstate cindex bindex in
      Some(b)
@@ -2061,8 +2083,8 @@ using a nts_automaton definition.
  let is_block_header_marked_as_visited bblock vtable =
    is_cstate_visited bblock.block_head_state vtable
 
-
-  let create_block_of_control_state btype cstate cindex lindex blabel_index 
+(* removed first argument btype*)
+  let create_block_of_control_state cstate cindex lindex blabel_index 
       ( label_id : int ref)
       cautomaton =
    
@@ -2073,7 +2095,7 @@ using a nts_automaton definition.
 	let label_of_block =  Format.sprintf "block_%d" !label_id in
 	bind_cstate_to_label cstate label_of_block cindex;
 	bind_label_to_cstate label_of_block cstate lindex;
-	
+	let btype =  type_of_bblock_starting_with_cstate cstate cautomaton in
 	let ret_block =
 	  {
 	    block_head_label = label_of_block;
@@ -2208,6 +2230,7 @@ using a nts_automaton definition.
 	    with
 	      Not_found ->
 		begin
+		  
 		  let next_block_ref = ref 
 		    ( create_block_of_control_state ctr
 			cindex lindex blabel_index label_id cautomaton)
@@ -2271,7 +2294,7 @@ using a nts_automaton definition.
 	end
       else
 	begin
-	  Format.printf "Neither Branching, not merging nor linear control
+	  Format.printf "Neither Branching, nor merging nor linear control
 state %s\n%!" (pprint_control current_control);
 	  Format.printf "Counter automaton is : %s \n %!" 
 	    ( pprint_to_nts cautomaton );
@@ -2280,8 +2303,20 @@ state %s\n%!" (pprint_control current_control);
       assert false
 	end
     in  
-    add_elem_of_segment bblock.block_head_state
-    
+    (
+      if (bblock.block_type == Nts_standard_block) then
+	add_elem_of_segment bblock.block_head_state
+      else 
+	let branching_block = 
+	  make_branching_blocks bblock vtable
+	    lindex cindex blabel_index cautomaton label_id 
+	in
+	get_succs_ref_list_of_block branching_block
+
+	(*let ret_v = list_of_opt_list
+	bblock.block_succs in 
+	ret_v*)
+    ) 
 
 	    
   (* In this case, the current element given as parameter, is
@@ -2289,7 +2324,7 @@ state %s\n%!" (pprint_control current_control);
      or have many predecessors, or have no succesor at all.*)
 	  
  	  
-  (** When several transition go out of a control state :
+  (** When several transitions go out of a control state :
       
       s_i -> s_j1 {guard_1 and op_1}
       ...

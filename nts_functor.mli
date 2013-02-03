@@ -251,7 +251,7 @@ sig
     (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
  
-  type nts_type_basic_block = Nts_branching_blocks
+  type nts_type_basic_block = Nts_branching_block
 			     | Nts_standard_block    
 
   type nts_basic_block = {
