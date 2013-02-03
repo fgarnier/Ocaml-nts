@@ -555,7 +555,7 @@ given automaton.*)
     let deg_out =  out_degree_of_control_state control_state cautomaton in
     let deg_in =  in_degree_of_control_state control_state inv_rel 
     in
-    (deg_in = 1)&&(deg_out= 1)
+    (deg_in <= 1)&&(deg_out= 1)
 
 
   let has_successor control_state cautomaton =
@@ -1783,11 +1783,16 @@ relation upon success, an exception if some operation failed*)
 
   (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
-      
+   
+ type nts_type_basic_block = Nts_branching_blocks
+			     | Nts_standard_block
+   
 
   type nts_basic_block = {
     block_head_label : string ;
     block_head_state : control;
+    block_type : nts_type_basic_block ;
+
     mutable block : (control * nts_trans_label list * control) list; 
     (** Current control state,
 	nts_trans_label_list corresponds
@@ -1818,6 +1823,18 @@ relation upon success, an exception if some operation failed*)
   }
 
 
+
+  let pprint_nts_basic_bloc bblock =
+    let blocks_list_folder pre (corg,label,cdest) =
+      Format.sprintf "%s %s->%s {%s}\n" pre (pprint_control corg)
+	(pprint_control cdest)  (pretty_label label)
+    in
+    let blocks_instr = List.fold_left blocks_list_folder "" bblock.block
+    in
+    Format.sprintf "block{ label : %s \n head_cstate : %s \n %s \n}\n"
+      bblock.block_head_label 
+      (pprint_control bblock.block_head_state)
+      blocks_instr
 
 
 (**
@@ -2028,9 +2045,9 @@ using a nts_automaton definition.
       if this state is not yes contained in cindex. 
   *)
 
- let opt_block_of_head cstate cindex bindex =
+ let opt_block_of_head btype cstate cindex bindex =
    try
-     let b = block_of_head cstate cindex bindex in
+     let b = block_of_head  cstate cindex bindex in
      Some(b)
    with
      Not_found -> None
@@ -2045,7 +2062,7 @@ using a nts_automaton definition.
    is_cstate_visited bblock.block_head_state vtable
 
 
-  let create_block_of_control_state cstate cindex lindex blabel_index 
+  let create_block_of_control_state btype cstate cindex lindex blabel_index 
       ( label_id : int ref)
       cautomaton =
    
@@ -2061,6 +2078,7 @@ using a nts_automaton definition.
 	  {
 	    block_head_label = label_of_block;
 	    block_head_state = cstate;
+	    block_type = btype ;
 	    block = [];
 	    block_succs = None
 	  }
@@ -2080,7 +2098,7 @@ using a nts_automaton definition.
     (*
       trans_ref_list_of_succs_transition_folder aims at extracting the list
       of the transition description from the blocks when the latter
-      are filled and their reference has been initialized.
+      are filled and their reference have been initialized.
       
     *)
 
@@ -2251,8 +2269,16 @@ using a nts_automaton definition.
 	  block_of_final_statement bblock vtable cautomaton;
 	  [] (*Returning the set of successor as the empty set*)
 	end
-      else assert false
-      
+      else
+	begin
+	  Format.printf "Neither Branching, not merging nor linear control
+state %s\n%!" (pprint_control current_control);
+	  Format.printf "Counter automaton is : %s \n %!" 
+	    ( pprint_to_nts cautomaton );
+	  if is_cstate_in_linear_chain current_control cautomaton pred_relation then Format.printf "%s is in a linear component \n %!" (pprint_control current_control )
+      else Format.printf "%s is not in a linear component \n %!"(pprint_control current_control) ;
+      assert false
+	end
     in  
     add_elem_of_segment bblock.block_head_state
     
@@ -2302,15 +2328,17 @@ using a nts_automaton definition.
     (* I need to split transitions label between guards and operations
        Not yet done.
     *)
-    (*let dummy_cstate_id = Param.key_val_of_string "dummy_branching_block_state" in
+    let dummy_cstate_id = Param.key_val_of_string "dummy_branching_block_state" in
     let dummy_cstate = control_of_id_param dummy_cstate_id in
-    let single_trans = (bblock.block_head_state,Nts_types.CntGenHavoc([]),
+    let single_trans = (bblock.block_head_state,Nts_types.CntGenHavoc([])::[],
 			dummy_cstate) 
-    in*)
+    in
+    bblock.block <- single_trans::[];
     
     
     let basic_block_iterator  next_cstate trans_list =
       let oblock = opt_block_of_head next_cstate cindex blabel_index in
+      
       match oblock with
 	Some(blck) ->
 	  begin
@@ -2409,21 +2437,35 @@ using a nts_automaton definition.
     (* 
        Here is the main loop. 
     *)
-    while (not (Queue.is_empty scheduler )) 
-    do
-    
-      let curr_block = Queue.pop scheduler in
-      let successors_list = fill_basic_block 
-	curr_block vtable lindex cindex
-	bindex blabel_index pred_relation cautomaton label_uid
-      in
-      List.iter schedule_next_element_iterator successors_list;
-      add_block_in_proper_section_of_nts_cfg curr_block ret_nts_cfg 
-	cautomaton
+    begin
+     (* try *) 
+	while (not (Queue.is_empty scheduler )) 
+	do
+	  
+	let curr_block = Queue.pop scheduler in
+	(*try*)
+	let successors_list = fill_basic_block 
+	  curr_block vtable lindex cindex
+	  bindex blabel_index pred_relation cautomaton label_uid
+	in
+	Format.printf "current block is %s \n %! " 
+	  (pprint_nts_basic_bloc 
+	     curr_block);
+	List.iter schedule_next_element_iterator successors_list;
+	add_block_in_proper_section_of_nts_cfg curr_block ret_nts_cfg 
+	  cautomaton;
+      (*with
+	_ -> Format.printf "current block is %s \n %! " 
+      (pprint_nts_basic_bloc 
+	curr_block)
+      *)
 	
-    done;
-    
-    ret_nts_cfg
+	done
+      (*with
+	e -> Format.printf "Failure : current cautomaton is : %s \n%!" 
+	  (pprint_to_nts cautomaton); raise e*)
+    end;
+	ret_nts_cfg
     
 
 

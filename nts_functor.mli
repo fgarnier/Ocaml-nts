@@ -9,7 +9,42 @@ For questions and/or remarks :
  Write to florent dot garnier at imag dot fr
 
 
+This files contains the implementation of the Numerical Transition Library 
+--see http://richmodels.epfl.ch/ntscomp-- main objects, namely :
+
+_ Numerical transitions subsystems, (i.e. parametric counter automaton
+  with return values upon return)
+_ Hyerarchical transistions subsystems .
+
+
+Plus a parser, a pretty printer as well as cleanup functions.
+A type checker will be added.
+
+
+
+Written by Florent Garnier, at Verimag Labs  2012 
+Contact florent dot garnier at gmail dot com for  further informations.
+
+This files is released under the terms of the LGPL v2.1 Licence.
+
+ 
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA  02110-1301  USA
+
 *)
+
 
 
 open Nts_types
@@ -215,11 +250,14 @@ sig
 
     (** Types and functions used to generate a control flow graph
       from the numerical transition system description*)
-      
+ 
+  type nts_type_basic_block = Nts_branching_blocks
+			     | Nts_standard_block    
 
   type nts_basic_block = {
     block_head_label : string ;
     block_head_state : control;
+    block_type : nts_type_basic_block ;
     mutable block : (control * nts_trans_label list * control) list; 
     (** Current control state,
 	nts_trans_label_list corresponds
