@@ -66,7 +66,7 @@ let create_output_file dump_name =
 
 
 
-(** Main programm *)
+(* Main program *)
 
 let _ =
   let num_args =  Array.length  Sys.argv in

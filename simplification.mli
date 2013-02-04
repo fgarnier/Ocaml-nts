@@ -35,6 +35,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
 
 *)
 
+(**
+This module defines a set of function that allows to clean numerical 
+transitions systems from non called subsystems and subsystems from
+unused variables.
+*)
 
 (* Type of a variable diary *)
 type vars_entry (*= UVars_diary of (string, unit) Hashtbl.t*)

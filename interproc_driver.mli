@@ -1,6 +1,7 @@
-(** Functor for defining a nts using basic blocks and a control flow graph.
- Needed to perform the first of two stages for the translation from a nts
-to the Interproc SPL language. 
+(** 
+
+ This functor aims at definiting an interface.
+between nts control flow graphs and interproc SPL languge.
 
  For any comment or question, please write to :
 
@@ -8,7 +9,11 @@ to the Interproc SPL language.
  or
  florent dot garnier at gmail dot com
 
- (c) Verimag 2012, until released Under an Open Licence.
+ (c) Verimag 2012, released under LGPL v.2.1.
+	 
+
+WARNING : This current developpement is on the verge to 
+be modified soon --Febuary 2013.
 *)
 
 

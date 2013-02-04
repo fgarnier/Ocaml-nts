@@ -4,7 +4,7 @@ This file contains the types definitions for the arithmetical
 expressions used in counter automata transitions and guards.
 
 
-Questions, remarks, suggestions : y.x@imag.fr, substitute x with garnier and
+Questions, remarks, suggestions : y.x__at__imag.fr, substitute x with garnier and
 y with florent.
 
 
