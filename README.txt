@@ -146,7 +146,11 @@ simplification(.ml/.mli) : function used to remove unused defined variable
 
 
 
-(c) Verimag 2012-2013.
- For any question or remark, please write to florent dot garnier at gmail dot com 
+Developped in the Verimag Lab,  2012-2013. 
+
+Library and its content is released under the terms of the GNU-LGPL version 2.1
+Licence.
+
+For any question or remark, please write to florent dot garnier at gmail dot com 
 
 
