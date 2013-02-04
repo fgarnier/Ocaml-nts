@@ -6,9 +6,24 @@ This folder contains the files that define the OCAML version
 of the Numerical Transition Systel Library, which sepecification
 is available here : http://richmodels.epfl.ch/ntscomp.
 
-Requirements :
+
+I)  Requirements :
+------------------
+
+
  _ Ocaml compiler v3.12 or over.
  _ Python interpreter. 
+
+
+II) Compilation :
+-----------------
+
+_ make all : Builds all objects modules and utilities tools.
+_ make docgen : Builds the html api using ocamldoc.
+
+
+III) General Description :
+-------------------------
 
 The files nts_functor.ml and nts_functor.mli define a fonctorial 
 interface which allows to deal with a wide range of numerical 
@@ -40,18 +55,9 @@ In its current state of developpement, this library contains :
  or eldarica.   
 
 
- _ Syntactic and type checking : Developpment in progress.
 
-To build and test the library :
-
- make  all
-
-The api can be generated using the docgen targe of the aforementionned
-makefile.
-
-make docgen
- 
-
+IV) Utilities tools :
+-------------------
 
 Tools generated during the compilation : 
 
@@ -107,6 +113,35 @@ E.g : The satisfiability of traces provided using eldarica were checked using
 
 
  
+V) Modules Decription :
+----------------------
+
+
+nts_functor(.ml/.mli) : Types definition for numerical transitions subsystems
+		       and numerical transition systems, as well as functions
+		       used for : Pretty printing, parsin and normalizing 
+		       subsystems.
+
+
+nts_types(.ml/mli) : Type definition for nts arithmetic and
+		    nts subsystems transitions.
+nts(.ml/mli) and
+nts_generic(.ml/mi) : Operations used to handle arithmetical expressions and
+		      numerical systems transitions. E.g: Pretty printing,
+		      some basic simplifications and other operations on
+		      syntactic trees.
+
+
+ntl_lexer.mll/ntl_parser.mly : lexer and parser generator file for nts parser.
+
+
+dot_driver(.ml/.mli) : functor used to generate a graphical representation
+		     of nts files into the .dot graphviz format. Handle
+		     subgraph representations and drawing trace enveloppe
+		     from trace.
+
+simplification(.ml/.mli) : function used to remove unused defined variable
+			 in nts and some unsat transitions.   
 
 
 
