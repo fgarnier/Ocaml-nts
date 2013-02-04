@@ -1,30 +1,7 @@
-(**
+(*
 
-Generic interface for numerical transitions systems.
-
+Florent Garnier
 (C) Verimag 2012
-
-For questions and/or remarks :
-
- Write to florent dot garnier at imag dot fr
-
-
-This files contains the implementation of the Numerical Transition Library 
---see http://richmodels.epfl.ch/ntscomp-- main objects, namely :
-
-_ Numerical transitions subsystems, (i.e. parametric counter automaton
-  with return values upon return)
-_ Hyerarchical transistions subsystems .
-
-
-Plus a parser, a pretty printer as well as cleanup functions.
-A type checker will be added.
-
-
-
-Written by Florent Garnier, at Verimag Labs  2012 
-Contact florent dot garnier at gmail dot com for  further informations.
-
 This files is released under the terms of the LGPL v2.1 Licence.
 
  
@@ -45,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
 
 *)
 
+(** Type definition for execution traces.*)
 
 type sys_control = Sys_control of string * string
 type trace = sys_control list

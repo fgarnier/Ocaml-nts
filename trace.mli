@@ -36,6 +36,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
 *)
 
 
+
+(**
+Trace defines a set of function that allows to pretty print 
+traces and printing Lexing informations from control state
+identifier --called sid, using Frama-C terminology.
+
+This is helpfull to map a counter example trace back to
+source code -- e.g. C source code from witch a nts based
+model has been extraced using the flata-c plugin.
+*)
+
 val print_sys_control : Trace_types.sys_control -> string
 val print_trace_l_folder : string -> Trace_types.sys_control -> string
 val print_trace : Trace_types.sys_control list -> string

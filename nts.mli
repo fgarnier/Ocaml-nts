@@ -24,7 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
  Boston, MA  02110-1301  USA
 *)
 
-
+(**
+Most basic operations over nts types definition.
+*)
 
 exception CntInvalidExpression
 val nts_pprint_nts_var : Nts_types.nts_var -> string

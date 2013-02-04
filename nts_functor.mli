@@ -42,10 +42,16 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor,
  Boston, MA  02110-1301  USA
-
 *)
 
+(**
+This files provide a functorial interface for the numerical transition
+system definition. 
 
+Nts_functor.Make contains all types and functions definitions.
+--Click on module Make to get a comprehensive list when browsing
+the html API.
+*)
 
 open Nts_types
 open Hashtbl
