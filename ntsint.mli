@@ -11,7 +11,7 @@ module P :
 module Nts_int :
   sig
     type anotations = Nts_functor.Make(P).anotations
-    type control = Nts_functor.Make(P).control
+    type control = Nts_functor.Make(P).control = Nts_State of P.t
     type transitions_container = Nts_functor.Make(P).transitions_container
     type states_container = Nts_functor.Make(P).states_container
     type inv_relation_container = Nts_functor.Make(P).inv_relation_container
@@ -74,6 +74,7 @@ module Nts_int :
       control -> control -> Nts_types.nts_trans_label list list option
     val get_successor_of : nts_automaton -> control -> states_container
     val get_one_state : states_container -> control option
+    val is_successor_of : nts_automaton -> control -> control -> bool
     val get_one_transition :
       nts_automaton -> control -> control * Nts_types.nts_trans_label list
     val pprint_inputvars : nts_automaton -> string
@@ -83,8 +84,12 @@ module Nts_int :
     val nt_system_uncalled_subsystem_cleaner : nts_system -> nts_system
     val pprint_to_nts : nts_automaton -> string
     val pprint_nts : nts_system -> string
+    val get_cautomaton_by_name : nts_system -> string -> nts_automaton
     val pprint_transitions : string -> nts_automaton -> string
     val compute_pred_relation : nts_automaton -> inv_relation_container
     val subgraph_between :
       nts_automaton -> control -> control -> num_subrel_in_cautomaton
+    val pprint_subgraph_transitions : num_subrel_in_cautomaton -> string
+    val cautomaton_of_subrelation_cautomaton :
+      string -> nts_automaton -> num_subrel_in_cautomaton -> nts_automaton
   end

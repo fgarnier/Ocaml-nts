@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
 
 
 
-
 open Sid_table_info_parser
 open Sid_table_info_lexer
 open Trace_eldarica_parser
@@ -55,7 +54,6 @@ let openfile_with_guard fname =
     ) 
   in
   input_channel
-
 
 
 

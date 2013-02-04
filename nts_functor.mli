@@ -9,7 +9,42 @@ For questions and/or remarks :
  Write to florent dot garnier at imag dot fr
 
 
+This files contains the implementation of the Numerical Transition Library 
+--see http://richmodels.epfl.ch/ntscomp-- main objects, namely :
+
+_ Numerical transitions subsystems, (i.e. parametric counter automaton
+  with return values upon return)
+_ Hyerarchical transistions subsystems .
+
+
+Plus a parser, a pretty printer as well as cleanup functions.
+A type checker will be added.
+
+
+
+Written by Florent Garnier, at Verimag Labs  2012 
+Contact florent dot garnier at gmail dot com for  further informations.
+
+This files is released under the terms of the LGPL v2.1 Licence.
+
+ 
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA  02110-1301  USA
+
 *)
+
 
 
 open Nts_types
@@ -83,7 +118,9 @@ sig
 									        *)
     
   val is_state_in_inv_relation : inv_relation_container -> control -> bool
+  val is_state_in_transition_container : control -> transitions_container -> bool
 
+ 
 
     
   (** counter automata with inputs and
@@ -116,7 +153,7 @@ sig
         nts_system_threads : (string * Big_int.big_int) list option;
       }
 
-
+  
 
   type num_subrel_in_cautomaton = {
     subrel_root : control ;
@@ -124,6 +161,8 @@ sig
     sub_transitions : transitions_container;
   }
   
+
+ val is_state_in_cautomaton : control -> nts_automaton -> bool 
   (** 
       Experimental section 
   *)
@@ -139,11 +178,18 @@ sig
   val control_of_id_param : Param.t -> control 
   
   val out_degree_of_control_state :  control ->  nts_automaton -> int
+  val in_degree_of_control_state : control -> inv_relation_container -> int
 
   val get_varinfo_by_optname : nts_system -> string option -> string -> nts_genrel_var option 
 
   val get_varinfo_by_optcautomaton : nts_system -> nts_automaton option ->string -> nts_genrel_var option
     
+
+  val is_error_state : nts_automaton -> control -> bool
+  val is_initial_state : nts_automaton -> control -> bool
+  val is_final_state : nts_automaton -> control -> bool 
+
+
     
   val get_transition_from :
     nts_automaton ->
@@ -151,6 +197,14 @@ sig
   
   val get_successor_of : nts_automaton -> control -> states_container
   val get_one_state : states_container -> control option
+
+
+  (*val get_outgoing_transit : nts_automatont -> control -> 
+    (control * control * ())*)
+
+  (** returns true iff the third argument is a successor of the second one
+  in the automaton provided as first argument.*)
+  val is_successor_of : nts_automaton -> control -> control -> bool
 
   (** Picks an outing transiton from control in the automaton*)
   val get_one_transition : nts_automaton -> control -> (control * Nts_types.nts_trans_label list) 
@@ -178,5 +232,62 @@ sig
     (control, (control , unit) Hashtbl.t ) Hashtbl.t*)
   val compute_pred_relation : nts_automaton -> inv_relation_container
   val subgraph_between : nts_automaton -> control -> control -> num_subrel_in_cautomaton
+  val subgraph_between_cond_on_edges :
+    (control -> Nts_types.nts_trans_label list -> control -> bool) ->
+    nts_automaton -> control -> control -> num_subrel_in_cautomaton
+
+  val pprint_subgraph_transitions : num_subrel_in_cautomaton -> string
+
+
+  (** Creates a new couter automaton, using the definition of a cautomaton
+  -2nd argument- and a subrelation -3rd argument, and call it using the
+  name provided in the first argument.*)
+
+
+  val cautomaton_of_subrelation_cautomaton : string -> nts_automaton -> num_subrel_in_cautomaton -> nts_automaton
+  val cautomaton_of_transitions_container : string -> nts_automaton -> transitions_container -> nts_automaton
+
+
+    (** Types and functions used to generate a control flow graph
+      from the numerical transition system description*)
+ 
+  type nts_type_basic_block = Nts_branching_block
+			     | Nts_standard_block    
+
+  type nts_basic_block = {
+    block_head_label : string ;
+    block_head_state : control;
+    block_type : nts_type_basic_block ;
+    mutable block : (control * nts_trans_label list * control) list; 
+    (** Current control state,
+	nts_trans_label_list corresponds
+	to what changes/is called before
+	transiting*)
+    
+    mutable block_succs : ( nts_basic_block ref * nts_trans_label list ) list option;
+    (** transitions between blocks. Nexts blocks and the transisions being
+	described.
+	None is in the case the last control state is an error state.
+	It's also a convenience for the buiding process.   
+    *) 
+  } 
+    
+    
+  type nts_automaton_cfg = {
+    mutable nts_cfg_name : string; 
+    mutable cfg_anot : anotations;
+    (*states : (control , unit ) Hashtbl.t;*)
+    nts_cfg_init_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_cfg_final_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_cfg_error_block : (string , nts_basic_block ) Hashtbl.t;
+    nts_input_vars : nts_genrel_var list; (*Variable ordering is important*)
+    nts_output_vars : nts_genrel_var list;
+    nts_local_vars : nts_genrel_var list;
+    nts_blocks_transitions : ( string , nts_basic_block ) Hashtbl.t
+  }
+
+  val get_last_control_state_of_bblock : nts_basic_block -> control
+  val blocks_compression_of_nts_automaton : nts_automaton -> nts_automaton_cfg 
+
 end
 

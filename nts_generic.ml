@@ -1,3 +1,28 @@
+(*
+Written by Florent Garnier, at Verimag Labs  2012 
+Contact florent dot garnier at gmail dot com for  further informations.
+
+This files is released under the terms of the LGPL v2.1 Licence.
+
+ 
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA  02110-1301  USA
+
+*)
+
+
 open Nts_types
 open Nts
 
@@ -70,8 +95,8 @@ let pprint_typeinfo_nts_genvar_list l  =
     match ctype with
         Some(NtsIntType) -> ": int"
       | Some(NtsRealType) -> ": real"
-      | Some(NtsBoolType) -> ":bool"
-      | Some(NtsUnTyped) -> ":untyped"
+      | Some(NtsBoolType) -> ": bool"
+      | Some(NtsUnTyped) -> ": untyped"
       | None -> ""
   in
   let outputstring_folder ( prefix , ctype ) nvar  =
@@ -580,3 +605,16 @@ let nts_pprint_gen_trans_label_list ( tlabellist : nts_trans_label list ) =
 
 
 
+ (** 
+this function aims at splitting one transition list in two parts :
+_ The guards  
+_ The operations.
+
+ *)
+
+
+
+(*
+let split_folder (pre_guards,pre_op) curr_label =
+  match curr_label with
+*)  

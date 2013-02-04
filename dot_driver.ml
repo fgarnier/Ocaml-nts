@@ -1,3 +1,28 @@
+(*
+Written by Florent Garnier, at Verimag Labs  2012 
+Contact florent dot garnier at gmail dot com for  further informations.
+
+This files is released under the terms of the LGPL v2.1 Licence.
+
+ 
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA  02110-1301  USA
+
+*)
+
+
 open Nts_functor
 open Nts_types
 open Hashtbl
@@ -93,13 +118,11 @@ module Make =
 	  subrel transition_printer prefix
 	
 
-      (** Interprocedural calls are represented using a red transition 
-      label.*)
-      let dot_of_transitions  (ca : nts_automaton ) prefix =
-	let transition_printer prefix control_org l control_dest =
-	  let opt_call = get_opt_transition l in
+    (** Transition printer folder*)
+      let transition_printer ca prefix control_org l control_dest =
+	let opt_call = get_opt_transition l in
 	  match opt_call with
-	      None ->
+	    None ->
 		Format.sprintf "%s%s_%s->%s_%s;\n" prefix 
 		  ca.NFParam.nts_automata_name 
 		  (pprint_control control_org) 
@@ -114,7 +137,13 @@ module Make =
 	      end
 	    | Some(_) -> assert false
 	      
-	in 
+
+
+      (** Interprocedural calls are represented using a red transition 
+      label.*)
+      let dot_of_transitions  (ca : nts_automaton ) prefix =
+	
+	let transition_printer = transition_printer ca in
 	NFParam.fold_transitions_container 
 	  ca.transitions transition_printer prefix
 	  
@@ -218,7 +247,7 @@ module Make =
 
       (** Computes and then concatenates the sequence of arrows that
       belong to the different control points of a trace, whenever
-      two or more belong to the same nts automaton. *)
+      two or more belong to the same nts automaton. If  *)
 
       let pprint_subgraph_between_ctr_pair_folder 
 	  nt (pre_str,pre_sysc) curr_sysc =
@@ -239,10 +268,31 @@ module Make =
 		  let max_c = control_of_syscontrol prev_sysc in 
 		  let min_c = control_of_syscontrol curr_sysc in
 		  let ca = ca_of_syscontrol nt curr_sysc in
-		  let gprint_out = highlight_graph_between ca max_c min_c
-		  in
-		  let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
-		  (suffix,Some(curr_sysc))
+		  if not (NFParam.is_successor_of ca max_c min_c) then
+		  begin
+		    let gprint_out = highlight_graph_between ca max_c min_c
+		    in
+		    let suffix = Format.sprintf "%s%s\n" pre_str gprint_out in
+		    (suffix,Some(curr_sysc))
+		  end
+		  else
+		    begin
+		      let transition_labels = NFParam.get_transition_from
+			ca max_c min_c in
+		      let print_out = 
+			(
+			  match transition_labels
+			  with 
+			    Some(ll) ->
+			      let label = List.hd ll in
+			      transition_printer ca pre_str max_c label min_c
+			
+			  | None -> ""
+			) 
+		      in
+		      (print_out,Some(curr_sysc))
+		    end
+		    
 		with
 		  No_such_counter_automata_in_nts_system(_,_) ->
 		    (pre_str,None)
@@ -269,5 +319,106 @@ module Make =
 	Format.sprintf "%s%s}" ret_string printout_hgraph
 
 	
+
+      (*
+	In this section, we define the set of functions that
+	allows to draw the control flow graph from a numerical
+	transition system. 
+      *)
+	  
+      type nts_block_type = Block_transition
+			    | Error_block
+			    | Init_block
+			    | Final_block
+
+
+      let decorate_block_by_type ntblock_type =
+	match ntblock_type with
+	  Block_transition -> ""
+	| Error_block -> "[color=red]"
+	| Init_block -> "[color=blue]"
+	| Final_block -> "[color=green]"
+
+      let dot_of_basic_block nts_cfg ?(block_type = Block_transition) bblock =
+	let block_opt_by_type = decorate_block_by_type block_type 
+	in
+	let trans_block_print_folder prefix (corg,_,cdest) =
+	  Format.sprintf "%s %s_%s->%s_%s %s;\n" 
+	    prefix nts_cfg.nts_cfg_name
+	    (pprint_control corg) nts_cfg.nts_cfg_name (pprint_control cdest) block_opt_by_type
+	in
+	let inner_block_transitions  = 
+	  List.fold_left trans_block_print_folder "" bblock.block in
+	let block_out = Format.sprintf "subgraph cluster_%s { \n color=red; label=\"%s\"; %s }" bblock.block_head_label bblock.block_head_label inner_block_transitions in
+	block_out
+
+
+	  
+      let get_list_of_opt_list ol =
+	match ol with 
+	  None -> []
+	| Some(l) -> l
+
+      let link_basic_blocks_of_nts_cfg nts_cfg =
+	let link_block_table_folder  _ bblock pre =
+
+	  let block_link_folder curr_block curr_block_last_cstate 
+	      pre (bref,_) =
+	    let next_block = !bref 
+	    in
+	    Format.sprintf "%s  %s_%s -> %s_%s [color=\"red\"]; \n" pre
+	      nts_cfg.NFParam.nts_cfg_name (pprint_control curr_block_last_cstate) nts_cfg.NFParam.nts_cfg_name (pprint_control next_block.block_head_state)   
+	  in    
+	  let curr_block_last_cstate = 
+	    NFParam.get_last_control_state_of_bblock bblock 
+	  in
+	  List.fold_left (block_link_folder bblock 
+			    curr_block_last_cstate) pre 
+	    ( get_list_of_opt_list bblock.block_succs) 
+	in
+	let print_out = 
+	  Hashtbl.fold link_block_table_folder  nts_cfg.nts_cfg_init_block "" 
+	in
+	let print_out =
+	  Hashtbl.fold link_block_table_folder  nts_cfg.nts_blocks_transitions print_out
+	in
+	print_out
+      
+	  
+
+      let dot_of_nts_cfg ?(standalone = true) nts_cfg = 
+	
+	let dot_table_folder ?(block_type = Block_transition) vlabel bblock pre =
+	  Format.sprintf "%s \n %s" pre (dot_of_basic_block nts_cfg ~block_type:block_type bblock)
+	in
+	let print_out = Hashtbl.fold (dot_table_folder ~block_type:Init_block) nts_cfg.nts_cfg_init_block "" in
+	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Final_block) nts_cfg.nts_cfg_final_block print_out in
+	let print_out =  Hashtbl.fold (dot_table_folder ~block_type:Error_block) nts_cfg.nts_cfg_error_block print_out in
+	let print_out = Hashtbl.fold dot_table_folder nts_cfg.nts_blocks_transitions print_out in
+	let print_inter_block_links = link_basic_blocks_of_nts_cfg nts_cfg in
+	let header = 
+	  ( 
+	    if standalone then "digraph"
+	    else "subgraph"
+	  ) 
+	in
+	Format.sprintf "%s %s { %s\n %s }\n" header nts_cfg.nts_cfg_name print_out print_inter_block_links
+
+
+
+      let dot_of_all_subsystem_of_nts nts = 
+
+	let all_dot_folder _ cautomaton pre =
+	  let nts_cfg = NFParam.blocks_compression_of_nts_automaton 
+	    cautomaton in
+	  let dot_out = dot_of_nts_cfg ~standalone:false nts_cfg in
+	  Format.sprintf "%s %s \n" pre dot_out 
+	in
+	let dot_out = Hashtbl.fold all_dot_folder nts.NFParam.nts_automata
+	  "" in
+	Format.sprintf "digraph blocks_of_%s { %s }" 
+	  nts.NFParam.nts_system_name dot_out
+	  
+	  
 	
 end;;
