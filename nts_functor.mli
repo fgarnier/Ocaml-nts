@@ -83,11 +83,14 @@ sig
       
 (** Type for anotations*)
   type anotations 
+
 (** Type of a control state*)
   type control =  Nts_State of Param.t
+
 (** Type used to encode transitions between control states *) 
   type transitions_container 
   type states_container  
+
 (** Type used to encode the inverse of the
 unlabelled successor relation transition
 			      *)
@@ -138,7 +141,7 @@ unlabelled successor relation transition
    
   }
 
-  (** Hierarchical numerical transition systems *)
+  (** Hierarchical numerical transition systems type definition *)
   type nts_system = {
         nts_system_name : string;
         nts_global_vars : nts_genrel_var list;
@@ -148,7 +151,7 @@ unlabelled successor relation transition
       }
 
   
-
+(** Subrelation type definition.*)
   type num_subrel_in_cautomaton = {
     subrel_root : control ;
     sub_vertices : states_container;
@@ -166,10 +169,13 @@ unlabelled successor relation transition
   val transitions_container_of_trans_list : (control * control * Nts_types.nts_trans_label list ) list -> transitions_container
     
   
-  (** *)
+  (** Creates a control state type value from an identifier value.*)
   val control_of_id_param : Param.t -> control 
   
+  (** Number of outgoing transition of a control state*)
   val out_degree_of_control_state :  control ->  nts_automaton -> int
+
+  (**Number of incoming transitions in a control state*)
   val in_degree_of_control_state : control -> inv_relation_container -> int
 
   val get_varinfo_by_optname : nts_system -> string option -> string -> nts_genrel_var option 
@@ -210,10 +216,17 @@ unlabelled successor relation transition
      list of each automaton has been cleared of non used varibles
   *)
   val nt_system_var_cleaner : nts_system -> nts_system 
+
+
+  (**
+     Returns a nts system where all subsystems that does not appear
+     in a call are removed.
+  *)
   val nt_system_uncalled_subsystem_cleaner : nts_system -> nts_system 
   
   (** This function pretty prints a nts subsystem.*)
   val pprint_to_nts : nts_automaton -> string
+
   (** This function pretty prints a hierarchical transition system.*)
   val pprint_nts : nts_system -> string 
    
@@ -223,6 +236,7 @@ unlabelled successor relation transition
   
   (** Compute the set of one step predecessors of all control states*)
   val compute_pred_relation : nts_automaton -> inv_relation_container
+
   (** Computes the subgraph between two control states*)
   val subgraph_between : nts_automaton -> control -> control -> num_subrel_in_cautomaton
 
