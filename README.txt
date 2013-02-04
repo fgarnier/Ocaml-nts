@@ -53,12 +53,65 @@ make docgen
  
 
 
-Tools generated during the compilation time 
+Tools generated during the compilation : 
+
+
+parse_n_print : 
+Used to parse a .nts file, and print it using a noramlization procedure. All
+non used variables are removed from subsystems.
+
+nts2dot :
+Takes as input a numerical transition system and prints the collection of
+subsytems in the Graphviz .dot format for visualizing the control structure
+of numerical transition systems. Initial control states are printed in blue,
+final state in green and error stated are printed in red. Transitions that
+corresponds to interprocedural calls are printed in red.
+
+To compile the .dot file into the ps resp. pdf format, use the command below :
+
+ dot -Tps out.dot -o out.ps
+ dot -Tpdf out.dot -o out.pdf
+
+
+nts2dot_subgraph : 
+
+
+nts2dot_subgraph file.nts : Does the same thing as nts2dot.
+nts2dot_subgraph file.nts -interval trace_file.txt :
+
+ Draws an enveloppe of the trace described with trace_file.txt on the
+Graphviz representation the nts described in file.nts .
+
+
+An execution trace is represented a comma separated list of control state :
+
+List((subsystem_name,control_state_id),...,(subsystem,last_control_state))
+
+All sysbsystems in the trace name must either be defined in file.nts or in the 
+base_fun.ca_lib file, that contains a collection of subsystems that are supposed
+to be defined as a standard. 
+
+
+trace2nts :
+
+ This program takes as input a nts file and a trace description, an computes
+a numerical transition system that contains the trace given as input.
+Each time the execution trance enters a subsystems, one define a new
+subsystem that contains the trace in the corresponding context.
+
+
+This program is useful for checking whether a counter example trace provided
+by one tool is satifiable using an analysis technique provided by another one.
+E.g : The satisfiability of traces provided using eldarica were checked using
+    flata.
+
+
+ 
 
 
 
 
-(c) Verimag 2012.
- For any question or remark, please write to florent dot garnier at imag dot fr 
+(c) Verimag 2012-2013.
+ For any question or remark, please write to florent dot garnier at gmail dot com 
 
 
