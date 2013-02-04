@@ -105,7 +105,8 @@ module Make :
           val cautomaton_of_transitions_container :
             string -> nts_automaton -> transitions_container -> nts_automaton
         end
-      type anotations = NFParam.anotations
+      (*
+	type anotations = NFParam.anotations
       type control = NFParam.control
       type nts_automaton = NFParam.nts_automaton
       type nts_system = NFParam.nts_system
@@ -185,6 +186,16 @@ module Make :
         NFParam.nts_system ->
         Trace_types.sys_control list ->
         (string, NFParam.nts_automaton) Hashtbl.t
+
+	*)
+
+
+	  
+      (** Computes the numerical transition system that corresponds 
+	  to an execution trace on the subsystems define in a standard
+	  library --first parameter, a numerical transition system --
+	  second parameter, an a trace.
+      *)  
       val nts_out_trace :
         NFParam.nts_system ->
         NFParam.nts_system ->
