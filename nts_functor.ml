@@ -2324,7 +2324,7 @@ state %s\n%!" (pprint_control current_control);
      or have many predecessors, or have no succesor at all.*)
 	  
  	  
-  (** When several transitions go out of a control state :
+  (* When several transitions go out of a control state :
       
       s_i -> s_j1 {guard_1 and op_1}
       ...

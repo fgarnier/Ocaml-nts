@@ -23,20 +23,42 @@ In its current state of developpement, this library contains :
 	)
 
  _ A pretty printer.
- _ A set of function that allows to extract a GraphViz .dot visual
+
+ _ A set of functions that allow to extract a GraphViz .dot visual
  representation of a Numerical Transition System.
+
+ _ A set of functions and types that allows to analyse traces of numerical
+ transitions systems : 
+  We define some functions that allow to map traces back to the nts :
+ Full traces, as well as uncomplete traces -- traces where only calls,
+ branching control flow operations and subsystem return are present, print
+ trace enveloppe on .dot format.
+
+ We provide as well some utilities that allow to generate a Numerical
+ transition system from a trace. This is usefull to check whether a trace or
+ a counter example trace is satifiable using thirg party tool --e.g. flata
+ or eldarica.   
+
 
  _ Syntactic and type checking : Developpment in progress.
 
 To build and test the library :
 
- make -f makefileparser all
+ make  all
 
-The api can be genrated using the targer docgen of the aforementionned
+The api can be generated using the docgen targe of the aforementionned
 makefile.
 
- make -f makefileparser docgen
+make docgen
  
+
+
+Tools generated during the compilation time 
+
+
+
 
 (c) Verimag 2012.
  For any question or remark, please write to florent dot garnier at imag dot fr 
+
+
