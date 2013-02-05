@@ -16,11 +16,36 @@ I)  Requirements :
 
 
 II) Compilation :
------------------
+=================
+
+i) Building utilities and the library :
+---------------------------------------
 
 _ make all : Builds all objects modules and utilities tools.
+_ make ntslib : Build .cma and .cmxa library objects and store
+ them in the lib/ directory.
 _ make docgen : Builds the html api using ocamldoc.
+_ make clean : Remove all files genrerated during compilation
 
+ii) Directory structure :
+-------------------------
+
+ Before running Makefile, those directories are empty : 
+ 
+ bin/ 
+ include/
+ lib/
+ api/
+
+ Utilities are copied in bon, interface .mli files are copied into 
+ include, lib contains both bytecode and native code library, and
+ api shall contain the html compiled api whenevet the user runs :
+
+  make docgen 
+ command.
+
+ The root directory contains both source and interface files + Makefile.
+ ./
 
 III) General Description :
 -------------------------
