@@ -2304,7 +2304,7 @@ state %s\n%!" (pprint_control current_control);
 	end
     in  
     (
-      if (bblock.block_type == Nts_standard_block) then
+      if (bblock.block_type = Nts_standard_block) then
 	add_elem_of_segment bblock.block_head_state
       else 
 	let branching_block = 

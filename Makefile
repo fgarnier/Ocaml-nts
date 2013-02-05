@@ -7,6 +7,10 @@ SOURCE_FILES := nts_types.ml nts.ml nts_functor.ml ntsint.ml nts_generic.ml\
 
 OCAMLDOC := ocamldoc
 DOCEXPORTDIR := ./api
+INCLUDEDIR := ./include
+LIBDIR := ./lib
+BINDIR := ./bin
+
 DOCFLAGS := -html -d $(DOCEXPORTDIR) *.ml *.mli
 
 CFLAGS = -g -annot -c
@@ -47,6 +51,9 @@ DIST_TAR_NAME = ocaml_ntlib$(DATE).tgz
  
 clean : 
 	rm -f *.cmo *.o *.cmx *.cmxa *.cmi *.cma *.annot parse_n_print xparse_n_print $(GENSOURCE)
+	rm -f $(INCLUDEDIR)/*
+	rm -f $(BINDIR)/*
+	rm -f $(LIBDIR)/*
 
 all : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) parse_n_print nts2dot nts2dot_subgraph test_parse_sidinfo trace2nts
 	@echo "Build successfull"
@@ -56,6 +63,16 @@ dist : all clean
 	
 	cd .. && echo `pwd` && tar czvf $(DIST_TAR_NAME) ntl_lib/ && cd ntl_lib/
 	cp ../$(DIST_TAR_NAME) ./
+
+ntslib : all
+	@echo "Building bytecode library :"
+	ocamlc -o libocamlnts.cma -a $(OBJECTS)
+	@echo "Building native code library :"
+	ocamlopt -o libocamlnts.cmxa -a $(XOBJECTS)
+	@echo "Moving library files into lib dir"
+	@mv libocamlnts.cma libocamlnts.cmxa $(LIBDIR)
+	@echo "Coping interface files into include dir"
+	@cp *.mli $(INCLUDEDIR)
 
 dist_no_fixpoint : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) clean
 	 cd .. && echo `pwd` && tar czvf $(DIST_TAR_NAME) ntl_lib/ && cd ntl_lib/
@@ -122,44 +139,51 @@ sid_table_info_parser.ml :  sid_table_info_parser.mly trace_types.cmi trace_type
 parse_n_print : parse_n_print.cmo parse_n_print.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling parse_n_print test"
 	ocamlc -g -o parse_n_print $(LIBNUM) $(OBJECTS) parse_n_print.cmo 
-	ocamlopt -g -o xparse_n_print  $(LIBXNUM) $(XOBJECTS) parse_n_print.cmx 
+	ocamlopt -g -o xparse_n_print  $(LIBXNUM) $(XOBJECTS) parse_n_print.cmx
+	@mv parse_n_print xparse_n_print $(BINDIR) 
 
 nts2dot	: nts2dot.cmo nts2dot.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling nts2dot"
 	ocamlc -g -o nts2dot $(LIBNUM) $(OBJECTS) nts2dot.cmo 
 	ocamlopt -g -o xnts2dot  $(LIBXNUM) $(XOBJECTS) nts2dot.cmx 
-
+	@mv nts2dot xnts2dot $(BINDIR)
 
 nts2dot_subgraph : nts2dot_subgraph_info.cmo nts2dot_subgraph_info.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling nts2dot"
 	ocamlc -g -o nts2dot_subgraph $(LIBNUM) $(OBJECTS) nts2dot_subgraph_info.cmo 
 	ocamlopt -g -o xnts2dot_subgraph  $(LIBXNUM) $(XOBJECTS) nts2dot_subgraph_info.cmx 
+	@mv xnts2dot_subgraph nts2dot_subgraph $(BINDIR)
 
 test_parse_trace : test_trace_parsing.cmo test_trace_parsing.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling test parse trace"
 	ocamlc -g -o print_trace $(LIBNUM) $(OBJECTS) test_trace_parsing.cmo 
 	ocamlopt -g -o xprint_trace  $(LIBXNUM) $(XOBJECTS) test_trace_parsing.cmx 
+	@mv print_trace xprint_trace $(BINDIR)
 
 test_parse_sidinfo : test_parse_sid_table.cmo test_parse_sid_table.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling test_parse_sid_table"
 	ocamlc -g -o test_parse_sid_table $(LIBNUM) $(OBJECTS) test_parse_sid_table.cmo 
 	ocamlopt -g -o xtest_parse_sid_table  $(LIBXNUM) $(XOBJECTS) test_parse_sid_table.cmx 
+	@mv test_parse_sid_table xtest_parse_sid_table $(BINDIR) 
 
 trace_upon_statement_info : trace_upon_statement_info.cmo trace_upon_statement_info.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling trace_upon_statemen_info"
 	ocamlc -g -o trace_upon_statement_info $(LIBNUM) $(OBJECTS) trace_upon_statement_info.cmo 
 	ocamlopt -g -o xtrace_upon_statment_info  $(LIBXNUM) $(XOBJECTS) trace_upon_statement_info.cmx
-
+	@mv trace_upon_statement_info xtrace_upon_statement $(BINDIR)
 
 trace2nts : export_trace_nts.cmo export_trace_nts.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling trace compiler"
 	ocamlc -g -o trace2nts $(LIBNUM) $(OBJECTS) export_trace_nts.cmo 
 	ocamlopt -g -o xtrace2nts $(LIBXNUM) $(XOBJECTS)  export_trace_nts.cmx 
+	@mv trace2nts xtrace2nts $(BINDIR)
 
 test_block_compression : test_block_compression.cmo test_block_compression.cmx $(OBJECTS) $(XOBJECTS)
 	@echo "Compiling test block comression"
 	ocamlc -g -o test_block_compress $(LIBNUM) $(OBJECTS) test_block_compression.cmo
 	ocamlopt -g -o xtest_block_compress $(LIBXNUM) $(XOBJECTS) test_block_compression.cmx
+	@mv test_block_compress xtest_block_compress $(BINDIR)
+
 include .depend
 
 .depend: $(GENSOURCE)  
