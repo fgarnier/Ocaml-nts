@@ -9,7 +9,7 @@ OCAMLDOC := ocamldoc
 DOCEXPORTDIR := ./api
 INCLUDEDIR := ./include
 LIBDIR := ./lib
-BINDIR := ./bindir
+BINDIR := ./bin
 
 DOCFLAGS := -html -d $(DOCEXPORTDIR) *.ml *.mli
 
@@ -66,7 +66,10 @@ ntslib : all
 	ocamlc -o libocamlnts.cma -a $(OBJECTS)
 	@echo "Building native code library :"
 	ocamlopt -o libocamlnts.cmxa -a $(XOBJECTS)
+	@echo "Moving libraty files into lib dir"
 	@mv libocamlnts.cma libocamlnts.cmxa $(LIBDIR)
+	@echo "Coping interface files into include dir"
+	@cp *.mli $(INCLUDEDIR)
 
 dist_no_fixpoint : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) clean
 	 cd .. && echo `pwd` && tar czvf $(DIST_TAR_NAME) ntl_lib/ && cd ntl_lib/
