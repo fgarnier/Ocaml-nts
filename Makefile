@@ -51,6 +51,9 @@ DIST_TAR_NAME = ocaml_ntlib$(DATE).tgz
  
 clean : 
 	rm -f *.cmo *.o *.cmx *.cmxa *.cmi *.cma *.annot parse_n_print xparse_n_print $(GENSOURCE)
+	rm -f $(INCLUDEDIR)/*
+	rm -f $(BINDIR)/*
+	rm -f $(LIBDIR)/*
 
 all : .depend $(INTERFACES) $(OBJECTS) $(XOBJECTS) $(TEST) parse_n_print nts2dot nts2dot_subgraph test_parse_sidinfo trace2nts
 	@echo "Build successfull"
@@ -66,7 +69,7 @@ ntslib : all
 	ocamlc -o libocamlnts.cma -a $(OBJECTS)
 	@echo "Building native code library :"
 	ocamlopt -o libocamlnts.cmxa -a $(XOBJECTS)
-	@echo "Moving libraty files into lib dir"
+	@echo "Moving library files into lib dir"
 	@mv libocamlnts.cma libocamlnts.cmxa $(LIBDIR)
 	@echo "Coping interface files into include dir"
 	@cp *.mli $(INCLUDEDIR)
