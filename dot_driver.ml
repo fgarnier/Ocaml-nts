@@ -343,9 +343,12 @@ module Make =
 	let block_opt_by_type = decorate_block_by_type block_type 
 	in
 	let trans_block_print_folder prefix (corg,_,cdest) =
-	  Format.sprintf "%s %s_%s->%s_%s %s;\n" 
-	    prefix nts_cfg.nts_cfg_name
-	    (pprint_control corg) nts_cfg.nts_cfg_name (pprint_control cdest) block_opt_by_type
+	  let corg = prepostfix_id_of_control corg (bblock.block_head_label^"_") "" in
+	  let cdest = prepostfix_id_of_control cdest (bblock.block_head_label^"_") "" 
+	  in
+	  Format.sprintf "%s %s->%s %s;\n" 
+	    prefix 
+	    (pprint_control corg)  (pprint_control cdest) block_opt_by_type
 	in
 	let inner_block_transitions  = 
 	  List.fold_left trans_block_print_folder "" bblock.block in
