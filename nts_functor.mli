@@ -165,7 +165,7 @@ unlabelled successor relation transition
   }
   
 
- val is_state_in_cautomaton : control -> nts_automaton -> bool 
+  val is_state_in_cautomaton : control -> nts_automaton -> bool 
   
  	
   val pprint_control : control -> string	
