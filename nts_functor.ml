@@ -2475,11 +2475,11 @@ state %s\n%!" (pprint_control current_control);
     in
     (* Iterator used to schedule the initial basic blocks*)
     let initialize_scheduler_iterator control_state =
-      let new_block  = 
+      let new_block_ref  = ref(
 	create_block_of_control_state control_state cindex lindex
-	  blabel_index label_uid cautomaton
+	  blabel_index label_uid cautomaton)
       in
-      Queue.push new_block scheduler
+      Queue.push new_block_ref scheduler
     in
 
     (* Actual initialisation of the basic blocks *)
@@ -2490,7 +2490,7 @@ state %s\n%!" (pprint_control current_control);
     let schedule_next_element_iterator (bblock_ref, _ ) =
       if not (is_block_header_marked_as_visited (!bblock_ref) vtable ) 
       then
-	Queue.push (!bblock_ref) scheduler
+	Queue.push bblock_ref scheduler
       else
 	()
     in
@@ -2500,38 +2500,37 @@ state %s\n%!" (pprint_control current_control);
     (* 
        Here is the main loop. 
     *)
-    begin
-     (* try *) 
-	while (not (Queue.is_empty scheduler )) 
-	do
-	  
-	let curr_block = Queue.pop scheduler in
-	(*try*)
-	mark_block_header_as_visited curr_block vtable;
-
-	let successors_list = fill_basic_block 
-	  curr_block vtable lindex cindex
-	  bindex blabel_index pred_relation cautomaton label_uid
-	in
-	Format.printf "current block is %s \n %! " 
-	  (pprint_nts_basic_bloc 
-	     curr_block);
-	List.iter schedule_next_element_iterator successors_list;
-	add_block_in_proper_section_of_nts_cfg curr_block ret_nts_cfg 
-	  cautomaton;
-      (*with
-	_ -> Format.printf "current block is %s \n %! " 
-      (pprint_nts_basic_bloc 
-	curr_block)
-      *)
-	
-	done
-      (*with
-	e -> Format.printf "Failure : current cautomaton is : %s \n%!" 
-	  (pprint_to_nts cautomaton); raise e*)
-    end;
-	ret_nts_cfg
+   
     
+    while (not (Queue.is_empty scheduler )) 
+    do
+      let curr_block_ref = Queue.pop scheduler 
+      in
+      if (is_block_header_marked_as_visited  !curr_block_ref vtable)
+      then () (* If several blocks points to the same one,
+	      the latter will be scheduled several times. One
+	      make sure to deal with this case by dropping those
+	      already dealt with once alredy marked as visited
+	       *)
+      else 
+	begin
+	  mark_block_header_as_visited !curr_block_ref vtable;
+	  
+	  let successors_list = fill_basic_block 
+	    (!curr_block_ref) vtable lindex cindex
+	    bindex blabel_index pred_relation cautomaton label_uid
+	  in
+	  Format.printf "current block is %s \n %! " 
+	    (pprint_nts_basic_bloc 
+	       !curr_block_ref);
+	  List.iter schedule_next_element_iterator successors_list;
+	  add_block_in_proper_section_of_nts_cfg !curr_block_ref ret_nts_cfg 
+	    cautomaton;
+	  
+	end
+    done;
+    ret_nts_cfg
+	
 
 
 
