@@ -326,6 +326,11 @@ module Make =
 	transition system. 
       *)
 	  
+
+      let rename_control_id_by_block_type  bblock cstate =
+	Format.printf " control label : %s  ; bblock.block_label_name : %s \n ================= " (pprint_control cstate)   bblock.block_head_label;
+	prepostfix_id_of_control cstate (bblock.block_head_label^"_") ""
+
       type nts_block_type = Block_transition
 			    | Error_block
 			    | Init_block
@@ -343,9 +348,15 @@ module Make =
 	let block_opt_by_type = decorate_block_by_type block_type 
 	in
 	let trans_block_print_folder prefix (corg,_,cdest) =
-	  Format.sprintf "%s %s_%s->%s_%s %s;\n" 
-	    prefix nts_cfg.nts_cfg_name
-	    (pprint_control corg) nts_cfg.nts_cfg_name (pprint_control cdest) block_opt_by_type
+	  let corg = rename_control_id_by_block_type bblock corg in 
+(* prepostfix_id_of_control corg (bblock.block_head_label^"_") "" in *)
+	  let cdest = rename_control_id_by_block_type  bblock cdest in
+(*prepostfix_id_of_control cdest (bblock.block_head_label^"_") "" 
+	  in *)  
+
+	  Format.sprintf "%s %s->%s %s;\n" 
+	    prefix 
+	    (pprint_control corg)  (pprint_control cdest) block_opt_by_type
 	in
 	let inner_block_transitions  = 
 	  List.fold_left trans_block_print_folder "" bblock.block in
@@ -366,8 +377,13 @@ module Make =
 	      pre (bref,_) =
 	    let next_block = !bref 
 	    in
-	    Format.sprintf "%s  %s_%s -> %s_%s [color=\"red\"]; \n" pre
-	      nts_cfg.NFParam.nts_cfg_name (pprint_control curr_block_last_cstate) nts_cfg.NFParam.nts_cfg_name (pprint_control next_block.block_head_state)   
+	    let curr_block_last_cstate = rename_control_id_by_block_type 
+	      bblock curr_block_last_cstate in
+	    let next_block_hstate = rename_control_id_by_block_type 
+	      next_block next_block.block_head_state   in
+	    Format.sprintf "%s  %s -> %s [color=\"red\"]; \n" pre
+	      (pprint_control curr_block_last_cstate)  
+	      (pprint_control next_block_hstate)   
 	  in    
 	  let curr_block_last_cstate = 
 	    NFParam.get_last_control_state_of_bblock bblock 

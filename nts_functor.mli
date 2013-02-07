@@ -165,8 +165,8 @@ unlabelled successor relation transition
   }
   
 
- val is_state_in_cautomaton : control -> nts_automaton -> bool 
-  
+  val is_state_in_cautomaton : control -> nts_automaton -> bool 
+  val prepostfix_id_of_control : control -> string -> string -> control
  	
   val pprint_control : control -> string	
   val anot_parser : unit -> anotations

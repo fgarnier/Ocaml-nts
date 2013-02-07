@@ -168,6 +168,14 @@ struct
   let control_of_id_param p =
     Nts_State (p)
       
+  let prepostfix_id_of_control cstate prefix suffix =
+    let new_key_id = Format.sprintf "%s%s%s" prefix (pprint_control cstate) 
+      suffix in
+    let new_id = Param.key_val_of_string new_key_id 
+    in
+    control_of_id_param new_id
+    
+
   let is_state_in_inv_relation table cstate =
     Hashtbl.mem table cstate
 
@@ -833,35 +841,7 @@ control state "state" in the subsystem cautomaton.
    new_transition_container
  
 
-(** Iterator parmetrized by two hashtbl container for collecting the transitive
-closure of  *)
-(*
- let rec build_subg_iterator relation_table visited_vertices 
-     traversed_edges v_current _ =
-   
-   if Hashtbl.mem visited_vertices v_current 
-   then ()
-   else 
-     begin
-       Hashtbl.add visited_vertices v_current () (*Marks v_current as visited*);
-       if Hashtbl.mem relation_table v_current 
-       (*Check whether
-	 there exists an outgoing transition from this control
-	 state.*)
-       then
-	 begin
-	   let outing_edges = 
-	     copy_out_transition_from_rel (Hashtbl.find relation_table 
-					     v_current ) 
-	   in
-	   Hashtbl.add traversed_edges v_current outing_edges;
-	   let recurse_iterator = build_subg_iterator 
-	     relation_table visited_vertices traversed_edges in
-	   Hashtbl.iter recurse_iterator outing_edges 
-	 end
-       else ();(* No outgoing transition ? No recursion.*)
-     end
-*)
+
 
 (** 
 Selects the set of transitions of transitions which applied upon
@@ -2077,7 +2057,7 @@ using a nts_automaton definition.
 
   (** Marks a block as visited in vtable*)
  let mark_block_header_as_visited bblock vtable =
-   mark_cstate_as_visited bblock.block_head_state
+   mark_cstate_as_visited bblock.block_head_state vtable
    
  (** Checks whether some block header is marked as visited*)
  let is_block_header_marked_as_visited bblock vtable =
@@ -2092,7 +2072,8 @@ using a nts_automaton definition.
     then
       begin
 	label_id := !label_id + 1;
-	let label_of_block =  Format.sprintf "block_%d" !label_id in
+	let label_of_block =  Format.sprintf "%s_block_%d" cautomaton.nts_automata_name 
+	 !label_id in
 	bind_cstate_to_label cstate label_of_block cindex;
 	bind_label_to_cstate label_of_block cstate lindex;
 	let btype =  type_of_bblock_starting_with_cstate cstate cautomaton in
@@ -2169,7 +2150,7 @@ using a nts_automaton definition.
 
 
 
-
+  
   
 
   let rec fill_basic_block bblock (vtable : visited_table ) 
@@ -2187,14 +2168,38 @@ using a nts_automaton definition.
 
 	This function need to
     *)
+    let final_transition_from_state last_control =
+      let key_string = Format.sprintf "%s_fake_final_or_error_state" 
+	cautomaton.nts_automata_name in
+      let fake_id_key = Param.key_val_of_string key_string 
+	 in
+      let fake_final_state = control_of_id_param fake_id_key in
+      (last_control,(Nts_types.CntGenHavoc([])::[]),fake_final_state)
 
+    in
     
     let rec add_elem_of_segment current_control =
       let add_transition_to_next_element_if_single_succs 
 	  current_control =
-	let out_relation = Hashtbl.find 
-	  cautomaton.transitions current_control in
+       
+	let out_relation = 
+	  (
+	    try 
+	      Hashtbl.find 
+		cautomaton.transitions current_control 
+	    with
+	      Not_found -> Format.printf "Failed to find control %s Current block_id is : %s ; block head state is : %s \n Current cautomaton is %s \n" (pprint_control current_control) bblock.block_head_label (pprint_control bblock.block_head_state) cautomaton.nts_automata_name; 
+		raise Not_found 
+	  )
+	in
 	let (ctr, trans_list ) =  one_binding out_relation in
+	(*
+let current_control = prepostfix_id_of_control current_control (cautomaton.nts_automata_name^"_") "" in
+	let ctr = prepostfix_id_of_control ctr (cautomaton.nts_automata_name^"_") "" 
+	in
+
+	*)
+	
 	bblock.block <- (bblock.block @( (current_control,trans_list,ctr)::[])) ;
 	(** In this part we have to deal with two cases : 
 	    _ The next control state belongs to the same block
@@ -2304,15 +2309,29 @@ state %s\n%!" (pprint_control current_control);
 	end
     in  
     (
-      if (bblock.block_type = Nts_standard_block) then
-	add_elem_of_segment bblock.block_head_state
+      if (bblock.block_type = Nts_standard_block) 
+      then
+	begin
+	  if (is_error_state cautomaton bblock.block_head_state) ||
+	    (is_final_state cautomaton bblock.block_head_state)
+	  then
+	    (
+	      bblock.block <-
+		(final_transition_from_state bblock.block_head_state)::[]; 
+	      [] 
+	    )
+	  
+	  else
+	  add_elem_of_segment bblock.block_head_state
+	end
       else 
-	let branching_block = 
-	  make_branching_blocks bblock vtable
-	    lindex cindex blabel_index cautomaton label_id 
-	in
-	get_succs_ref_list_of_block branching_block
-
+	begin
+	  let branching_block = 
+	    make_branching_blocks bblock vtable
+	      lindex cindex blabel_index cautomaton label_id 
+	  in
+	  get_succs_ref_list_of_block branching_block
+	end
 	(*let ret_v = list_of_opt_list
 	bblock.block_succs in 
 	ret_v*)
@@ -2447,11 +2466,11 @@ state %s\n%!" (pprint_control current_control);
     in
     (* Iterator used to schedule the initial basic blocks*)
     let initialize_scheduler_iterator control_state =
-      let new_block  = 
+      let new_block_ref  = ref(
 	create_block_of_control_state control_state cindex lindex
-	  blabel_index label_uid cautomaton
+	  blabel_index label_uid cautomaton)
       in
-      Queue.push new_block scheduler
+      Queue.push new_block_ref scheduler
     in
 
     (* Actual initialisation of the basic blocks *)
@@ -2462,7 +2481,7 @@ state %s\n%!" (pprint_control current_control);
     let schedule_next_element_iterator (bblock_ref, _ ) =
       if not (is_block_header_marked_as_visited (!bblock_ref) vtable ) 
       then
-	Queue.push (!bblock_ref) scheduler
+	Queue.push bblock_ref scheduler
       else
 	()
     in
@@ -2472,36 +2491,37 @@ state %s\n%!" (pprint_control current_control);
     (* 
        Here is the main loop. 
     *)
-    begin
-     (* try *) 
-	while (not (Queue.is_empty scheduler )) 
-	do
-	  
-	let curr_block = Queue.pop scheduler in
-	(*try*)
-	let successors_list = fill_basic_block 
-	  curr_block vtable lindex cindex
-	  bindex blabel_index pred_relation cautomaton label_uid
-	in
-	Format.printf "current block is %s \n %! " 
-	  (pprint_nts_basic_bloc 
-	     curr_block);
-	List.iter schedule_next_element_iterator successors_list;
-	add_block_in_proper_section_of_nts_cfg curr_block ret_nts_cfg 
-	  cautomaton;
-      (*with
-	_ -> Format.printf "current block is %s \n %! " 
-      (pprint_nts_basic_bloc 
-	curr_block)
-      *)
-	
-	done
-      (*with
-	e -> Format.printf "Failure : current cautomaton is : %s \n%!" 
-	  (pprint_to_nts cautomaton); raise e*)
-    end;
-	ret_nts_cfg
+   
     
+    while (not (Queue.is_empty scheduler )) 
+    do
+      let curr_block_ref = Queue.pop scheduler 
+      in
+      if (is_block_header_marked_as_visited  !curr_block_ref vtable)
+      then () (* If several blocks points to the same one,
+	      the latter will be scheduled several times. One
+	      make sure to deal with this case by dropping those
+	      already dealt with once alredy marked as visited
+	       *)
+      else 
+	begin
+	  mark_block_header_as_visited !curr_block_ref vtable;
+	  
+	  let successors_list = fill_basic_block 
+	    (!curr_block_ref) vtable lindex cindex
+	    bindex blabel_index pred_relation cautomaton label_uid
+	  in
+	  Format.printf "current block is %s \n %! " 
+	    (pprint_nts_basic_bloc 
+	       !curr_block_ref);
+	  List.iter schedule_next_element_iterator successors_list;
+	  add_block_in_proper_section_of_nts_cfg !curr_block_ref ret_nts_cfg 
+	    cautomaton;
+	  
+	end
+    done;
+    ret_nts_cfg
+	
 
 
 
