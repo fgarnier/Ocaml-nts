@@ -328,7 +328,9 @@ module Make =
 	  
 
       let rename_control_id_by_block_type  bblock cstate =
+	(*
 	Format.printf " control label : %s  ; bblock.block_label_name : %s \n ================= " (pprint_control cstate)   bblock.block_head_label;
+	*)
 	prepostfix_id_of_control cstate (bblock.block_head_label^"_") ""
 
       type nts_block_type = Block_transition
@@ -349,9 +351,9 @@ module Make =
 	in
 	let trans_block_print_folder prefix (corg,_,cdest) =
 	  let corg = rename_control_id_by_block_type bblock corg in 
-(* prepostfix_id_of_control corg (bblock.block_head_label^"_") "" in *)
+	  (* prepostfix_id_of_control corg (bblock.block_head_label^"_") "" in *)
 	  let cdest = rename_control_id_by_block_type  bblock cdest in
-(*prepostfix_id_of_control cdest (bblock.block_head_label^"_") "" 
+	  (*prepostfix_id_of_control cdest (bblock.block_head_label^"_") "" 
 	  in *)  
 
 	  Format.sprintf "%s %s->%s %s;\n" 
@@ -360,7 +362,7 @@ module Make =
 	in
 	let inner_block_transitions  = 
 	  List.fold_left trans_block_print_folder "" bblock.block in
-	let block_out = Format.sprintf "subgraph cluster_%s { \n color=red; label=\"%s\"; %s }" bblock.block_head_label bblock.block_head_label inner_block_transitions in
+	let block_out = Format.sprintf "subgraph cluster_%s { \n %s; label=\"%s\"; %s }" bblock.block_head_label block_opt_by_type bblock.block_head_label inner_block_transitions in
 	block_out
 
 
