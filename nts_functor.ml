@@ -2179,9 +2179,12 @@ using a nts_automaton definition.
     in
     
     let rec add_elem_of_segment current_control =
+
+      assert (not (is_final_state cautomaton current_control)); 
       let add_transition_to_next_element_if_single_succs 
 	  current_control =
-       
+	
+	
 	let out_relation = 
 	  (
 	    try 

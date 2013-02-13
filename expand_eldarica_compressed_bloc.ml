@@ -420,6 +420,7 @@ struct
     Stack.push current_context context_stack;
 
 
+    (*
     let pprint_ctl_ele e =
       match e with
 	(ca,(corg,l,dest)) ->
@@ -428,7 +429,7 @@ struct
 	    (NFParam.pprint_control corg)
 	    (NFParam.pprint_control dest)
 	    (Nts_generic.nts_pprint_gen_trans_label_list l)
-    in
+    in*)
     
     let rec build_ctl_iterator ctl = 
       (*Format.printf "[Debug] Iterating on ctl list, List length %d \n" (List.length ctl);*)
@@ -445,11 +446,10 @@ struct
       (*Format.printf "Current cid is %d \n " current_cid;*)
       
       match ctl with 	    
-	(ca,((corg,l,dest) as tlabel))::tl ->
+	(ca,((corg,l,dest) ))::tl ->
 	  begin
 	 
-	   (*Format.printf "[DEBUG] %s \n" (pprint_ctl_ele (ca,tlabel));
-	   *)
+	   
 
 	    if ( (is_transition_a_call_actually_called  l tl) && (not (empty_tail tl)) )
 	    then 

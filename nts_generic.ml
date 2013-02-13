@@ -618,3 +618,67 @@ _ The operations.
 let split_folder (pre_guards,pre_op) curr_label =
   match curr_label with
 *)  
+
+
+(**
+Getting the type of arithemtic subtrees for typing the current node current 
+*)
+exception Untyped_constant of nts_base_type_cst
+exception InconsistantTypingofGenVar of nts_genrel_var
+exception CantTypeArithmExpression of nts_genrel_arithm_exp
+
+let type_of_nts_var nv = 
+  match nv with
+    NtsVar(_,rettype) -> rettype
+
+let type_of_genvar ngvar = 
+  match ngvar with
+    NtsGenVar(v,_) -> type_of_nts_var v
+    
+let type_of_cnt_base_cst gcst =
+  match gcst with 
+    CntGenICst _ -> NtsIntType
+  | CntGenFCst _ -> NtsRealType
+  | CntGenBCst _ -> NtsBoolType
+  
+
+let type_of_nts_sym_cst symc =
+  match symc with 
+    CntSymCst(_,t) -> t
+
+let rec type_of_gen_arithmetic_expr aop =
+  match aop with
+    CntGenCst(cs,ct) -> 
+      begin
+	let typ_bot = type_of_cnt_base_cst cs in
+	if typ_bot = ct then ct
+	else raise (CantTypeArithmExpression(aop))
+      end
+  | CntGenSymCst(symcst,ct) -> 
+    begin
+      let typ_bot = type_of_nts_sym_cst symcst in
+      if typ_bot = ct then ct
+      else raise (CantTypeArithmExpression(aop))
+    end
+  
+  | CntGenVar gvar -> type_of_genvar gvar
+  
+  | CntGenArithmBOp (_,tg,td,tup) ->
+    begin
+      let typ_tg = type_of_gen_arithmetic_expr tg in
+      let typ_td = type_of_gen_arithmetic_expr td in
+      if (typ_tg=typ_td && typ_td=tup) then
+	tup
+      else
+	raise (CantTypeArithmExpression(aop))
+    end
+
+  | CntGenArithmUOp (_,expr,tup) ->
+    begin
+      let typ_exp = type_of_gen_arithmetic_expr expr in
+      if ( typ_exp=tup) then
+	tup
+      else
+	raise (CantTypeArithmExpression(aop))
+    end
+
