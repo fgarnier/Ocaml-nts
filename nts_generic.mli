@@ -90,6 +90,8 @@ val size_genrel_deeper_than : Nts_types.nts_gen_relation -> int -> bool
 (** Pprints a general expression --Constrainsts between prime and unprimed
 variables.*)
 val nts_pprint_genrel_arithm_exp : Nts_types.nts_genrel_arithm_exp -> string
+val type_of_gen_arithmetic_expr : Nts_types.nts_genrel_arithm_exp -> 
+  Nts_types.nts_base_types
 
 val pprint_gen_rel_arithm_list :
   Nts_types.nts_genrel_arithm_exp list -> string
