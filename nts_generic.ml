@@ -646,6 +646,10 @@ let type_of_nts_sym_cst symc =
   match symc with 
     CntSymCst(_,t) -> t
 
+(** 
+Check that an arithmetic term is well typed and retunrs the
+type of the root node of the term.
+*)
 let rec type_of_gen_arithmetic_expr aop =
   match aop with
     CntGenCst(cs,ct) -> 
@@ -682,3 +686,9 @@ let rec type_of_gen_arithmetic_expr aop =
 	raise (CantTypeArithmExpression(aop))
     end
 
+
+(** Compares the type of two arithemtic expressions*)
+let arithm_exp_same_type l r =
+  let tl = type_of_gen_arithmetic_expr l in
+  let tg = type_of_gen_arithmetic_expr r in
+  tl=tg
