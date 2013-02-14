@@ -96,6 +96,10 @@ val type_of_gen_arithmetic_expr : Nts_types.nts_genrel_arithm_exp ->
 val pprint_gen_rel_arithm_list :
   Nts_types.nts_genrel_arithm_exp list -> string
 
+val arithm_exp_same_type : Nts_types.nts_genrel_arithm_exp -> 
+  Nts_types.nts_genrel_arithm_exp -> bool
+  
+
 val nts_pprint_bool_binop :
   string -> Nts_types.nts_gen_bool_binop -> string -> string
 
