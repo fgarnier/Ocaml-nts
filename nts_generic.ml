@@ -691,4 +691,5 @@ let rec type_of_gen_arithmetic_expr aop =
 let arithm_exp_same_type l r =
   let tl = type_of_gen_arithmetic_expr l in
   let tg = type_of_gen_arithmetic_expr r in
-  tl=tg
+  if tl=tg then Some(tl)
+  else None

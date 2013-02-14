@@ -96,8 +96,10 @@ val type_of_gen_arithmetic_expr : Nts_types.nts_genrel_arithm_exp ->
 val pprint_gen_rel_arithm_list :
   Nts_types.nts_genrel_arithm_exp list -> string
 
+(** This function returns Some(type_t) whenever both expression have
+type_t as type and None if their types differs.*)
 val arithm_exp_same_type : Nts_types.nts_genrel_arithm_exp -> 
-  Nts_types.nts_genrel_arithm_exp -> bool
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_base_types option
   
 
 val nts_pprint_bool_binop :
