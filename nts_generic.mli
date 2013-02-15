@@ -49,6 +49,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor,
 *)
 
 exception Found_a_primed_var
+exception Type_mismatch_in_arithm_expression of 
+    Nts_types.nts_genrel_arithm_exp
+  *  Nts_types.nts_genrel_arithm_exp
 
 (** Pretty prints a variable name, regardless of its type*)
 val nts_pprint_genvar : Nts_types.nts_genrel_var -> string
