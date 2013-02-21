@@ -139,3 +139,13 @@ val is_label_true : Nts_types.nts_trans_label -> bool
 (** Pretty prints a transition label*)
 val nts_pprint_gen_trans_label_list :
   Nts_types.nts_trans_label list -> string
+
+
+
+
+val make_nts_genvar : string -> Nts_types.nts_base_types -> 
+  Nts_types.nts_genrel_var
+
+val primerized_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_var
+
+val affect_aexpr_to_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation

@@ -695,3 +695,26 @@ let arithm_exp_same_type l r =
   let tg = type_of_gen_arithmetic_expr r in
   if tl=tg then Some(tl)
   else None
+
+
+
+
+
+
+
+
+(**  The function below aim at building arithemtical terms without 
+having to write all those verbose constructors ... *)
+
+let make_nts_genvar name typ =
+  NtsGenVar(NtsVar(name,typ),NtsUnPrimed)
+
+let primerized_nts_var nts_var =
+  match nts_var with
+    NtsGenVar(ntv,_) -> NtsGenVar(ntv, NtsPrimed)
+      
+
+let affect_aexpr_to_nts_var nts_var arithm_exp =
+  let primed_var = primerized_nts_var nts_var in
+  CntGenRel(CntEq,CntGenVar(primed_var),arithm_exp)
+  
