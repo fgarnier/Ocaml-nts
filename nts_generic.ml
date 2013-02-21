@@ -706,6 +706,18 @@ let arithm_exp_same_type l r =
 (**  The function below aim at building arithemtical terms without 
 having to write all those verbose constructors ... *)
 
+let make_nts_int_cst i =
+  CntGenCst(CntGenICst(i),Nts_types.NtsIntType)
+
+let make_nts_real_cst f =
+   CntGenCst(CntGenFCst(f),Nts_types.NtsRealType)
+
+let make_nts_bool_cst b =
+  if b then
+    CntGenCst(CntGenBCst(CntBTrue),Nts_types.NtsBoolType)
+  else
+     CntGenCst(CntGenBCst(CntBFalse),Nts_types.NtsBoolType)
+
 let make_nts_genvar name typ =
   NtsGenVar(NtsVar(name,typ),NtsUnPrimed)
 

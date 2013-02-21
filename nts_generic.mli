@@ -141,6 +141,10 @@ val nts_pprint_gen_trans_label_list :
   Nts_types.nts_trans_label list -> string
 
 
+(** Creates a constantes and types it as a nts_genrel_arithm expressions*)
+val make_nts_int_cst : Big_int.big_int -> Nts_types.nts_genrel_arithm_exp
+val make_nts_real_cst : float -> Nts_types.nts_genrel_arithm_exp
+val make_nts_bool_cst : bool -> Nts_types.nts_genrel_arithm_exp
 
 
 val make_nts_genvar : string -> Nts_types.nts_base_types -> 
