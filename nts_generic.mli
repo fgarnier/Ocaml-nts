@@ -110,6 +110,8 @@ val nts_pprint_bool_binop :
 
 val nts_pprint_aritm_binop : Nts_types.nts_gen_arithm_binop -> string
 
+val nts_pprint_arithm_unop : Nts_types.nts_gen_arithm_unop -> string
+
 val nts_pprint_genrel : Nts_types.nts_gen_relation -> string
 
 val boolean_relation : Nts_types.nts_genrel_arithm_exp -> bool
@@ -142,6 +144,7 @@ val nts_pprint_gen_trans_label_list :
 
 
 (** Creates a constantes and types it as a nts_genrel_arithm expressions*)
+val make_nts_int_cst_of_int : int -> Nts_types.nts_genrel_arithm_exp
 val make_nts_int_cst : Big_int.big_int -> Nts_types.nts_genrel_arithm_exp
 val make_nts_real_cst : float -> Nts_types.nts_genrel_arithm_exp
 val make_nts_bool_cst : bool -> Nts_types.nts_genrel_arithm_exp
@@ -153,3 +156,53 @@ val make_nts_genvar : string -> Nts_types.nts_base_types ->
 val primerized_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_var
 
 val affect_aexpr_to_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+
+val add_arithm_expr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
+
+val sub_arithm_expr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
+
+val mul_arithm_expr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
+
+val div_arithm_expr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
+
+val mod_arith_expr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
+
+
+val inv_sign_of_aexp :
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
+val guard_lt_aexpr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+val guard_gt_aexpr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+val guard_leq_aexpr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+val guard_geq_aexpr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+val guard_eq_aexpr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+
+
+val make_transition_of_translabel :
+  Nts_types.nts_trans_label -> Nts_types.nts_trans_label list
+
+val add_to_transition :
+  Nts_types.nts_trans_label list ->
+  Nts_types.nts_trans_label -> Nts_types.nts_trans_label list
+
+
+

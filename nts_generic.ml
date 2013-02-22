@@ -29,6 +29,8 @@ open Nts
 exception Found_a_primed_var
 exception Type_mismatch_in_arithm_expression of 
     Nts_types.nts_genrel_arithm_exp * Nts_types.nts_genrel_arithm_exp
+exception Arithmetic_modulo_on_non_integer_type
+
 
 let nts_pprint_genvar var =
   match var with
@@ -307,7 +309,9 @@ let pprint_gen_rel_arithm_list larithm =
   
 
 
-
+let nts_pprint_arithm_unop uop =
+  match uop with
+    CntGenUMinus -> "-"
 
 (* Print the conjunction or the disjunction of lhs/rhs *)
 let nts_pprint_bool_binop ( lhs : string) bop (rhs : string) =
@@ -700,14 +704,18 @@ let arithm_exp_same_type l r =
 
 
 
-
-
-
 (**  The function below aim at building arithemtical terms without 
 having to write all those verbose constructors ... *)
 
+
+
+
 let make_nts_int_cst i =
   CntGenCst(CntGenICst(i),Nts_types.NtsIntType)
+
+let make_nts_int_cst_of_int i = 
+  let big_i = Big_int.big_int_of_int i in
+  make_nts_int_cst big_i
 
 let make_nts_real_cst f =
    CntGenCst(CntGenFCst(f),Nts_types.NtsRealType)
@@ -730,3 +738,78 @@ let affect_aexpr_to_nts_var nts_var arithm_exp =
   let primed_var = primerized_nts_var nts_var in
   CntGenRel(CntEq,CntGenVar(primed_var),arithm_exp)
   
+let add_arithm_expr aeg aed =
+  let tg = arithm_exp_same_type aed aed 
+  in
+  match tg  with 
+    Some(tg) ->
+      CntGenArithmBOp(CntGenSum,aed,aeg,tg)
+  | None -> raise (Type_mismatch_in_arithm_expression(aeg,aed))
+
+let sub_arithm_expr aeg aed =
+  let tg = arithm_exp_same_type aed aed 
+  in
+  match tg  with 
+    Some(tg) ->
+      CntGenArithmBOp(CntGenMinus,aed,aeg,tg)
+  | _ -> raise (Type_mismatch_in_arithm_expression(aeg,aed))
+    
+let mul_arithm_expr aeg aed =
+  let tg = arithm_exp_same_type aed aed 
+  in
+  match tg  with 
+    Some(tg) ->
+      CntGenArithmBOp(CntGenProd,aed,aeg,tg)
+  | _ -> raise (Type_mismatch_in_arithm_expression(aeg,aed))
+    
+
+let div_arithm_expr aeg aed =
+  let tg = arithm_exp_same_type aed aed 
+  in
+  match tg  with 
+    Some(tg) ->
+      CntGenArithmBOp(CntGenDiv,aed,aeg,tg)
+  | _ -> raise (Type_mismatch_in_arithm_expression(aeg,aed))
+
+let mod_arith_expr aeg aed = 
+  let tg = arithm_exp_same_type aed aed 
+  in
+  match tg  with 
+    Some(tg) ->
+      if tg=NtsIntType then 
+	CntGenArithmBOp(CntGenMod,aed,aeg,tg)
+      else
+	raise Arithmetic_modulo_on_non_integer_type
+	  
+  | None -> raise (Type_mismatch_in_arithm_expression(aeg,aed))
+
+
+let inv_sign_of_aexp aexp =
+  let taexp = type_of_gen_arithmetic_expr aexp in
+  match aexp with
+    CntGenArithmUOp(CntGenUMinus,retv,_) -> retv
+  | _ -> CntGenArithmUOp(CntGenUMinus,aexp,taexp)
+
+
+
+let guard_lt_aexpr aexpg aexpd =
+  CntGenRel(CntLt,aexpg,aexpd)
+
+let guard_gt_aexpr aexpg aexpd =
+  CntGenRel(CntGt,aexpg,aexpd)
+
+let guard_leq_aexpr aexpg aexpd =
+  CntGenRel(CntLeq,aexpg,aexpd)
+
+let guard_geq_aexpr aexpg aexpd =
+  CntGenRel(CntGeq,aexpg,aexpd)
+
+let guard_eq_aexpr aexpg aexpd =
+  CntGenRel(CntEq,aexpg,aexpd)
+
+let make_transition_of_translabel (tl : nts_trans_label ) =
+  tl::[]
+
+let add_to_transition pre ( op : nts_trans_label) =
+  op::pre
+
