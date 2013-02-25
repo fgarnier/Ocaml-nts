@@ -157,6 +157,9 @@ val primerized_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_var
 
 val affect_aexpr_to_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
 
+val make_affect_to_var_from_exp : Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+
 val add_arithm_expr :
   Nts_types.nts_genrel_arithm_exp ->
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
@@ -205,4 +208,13 @@ val add_to_transition :
   Nts_types.nts_trans_label -> Nts_types.nts_trans_label list
 
 
+val and_of_genrel : 
+  Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation ->
+  Nts_types.nts_gen_relation 
 
+val or_of_genrel :
+  Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation ->
+  Nts_types.nts_gen_relation 
+  
+val make_guard_of_relation : Nts_types.nts_gen_relation ->
+  Nts_types.nts_trans_label

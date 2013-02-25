@@ -737,7 +737,20 @@ let primerized_nts_var nts_var =
 let affect_aexpr_to_nts_var nts_var arithm_exp =
   let primed_var = primerized_nts_var nts_var in
   CntGenRel(CntEq,CntGenVar(primed_var),arithm_exp)
-  
+
+
+(** Performs the affectation of rhs to lhs if lhs is a variable, fails
+otherwise.*)
+let make_affect_to_var_from_exp lhs rhs =
+  match lhs with
+    CntGenVar(v) ->
+      begin
+	let v = primerized_nts_var v in
+	CntGenRel(CntEq,CntGenVar(v),rhs)
+      end
+  | _ -> assert false
+
+
 let add_arithm_expr aeg aed =
   let tg = arithm_exp_same_type aed aed 
   in
@@ -813,3 +826,12 @@ let make_transition_of_translabel (tl : nts_trans_label ) =
 let add_to_transition pre ( op : nts_trans_label) =
   op::pre
 
+
+let and_of_genrel lhs rhs =
+  CntGenRelComp(CntGenBAnd,lhs,rhs)
+
+let or_of_genrel lhs rhs =
+  CntGenRelComp(CntGenBOr,lhs,rhs)
+
+let  make_guard_of_relation r =
+  CntGenGuard(r)
