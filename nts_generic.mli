@@ -53,6 +53,10 @@ exception Type_mismatch_in_arithm_expression of
     Nts_types.nts_genrel_arithm_exp
   *  Nts_types.nts_genrel_arithm_exp
 
+
+val zero : Nts_types.nts_genrel_arithm_exp
+val one : Nts_types.nts_genrel_arithm_exp
+
 (** Pretty prints a variable name, regardless of its type*)
 val nts_pprint_genvar : Nts_types.nts_genrel_var -> string
 
@@ -155,7 +159,13 @@ val make_nts_genvar : string -> Nts_types.nts_base_types ->
 
 val primerized_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_var
 
-val affect_aexpr_to_nts_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+val aexpr_of_nts_var : Nts_types.nts_var -> Nts_types.nts_genrel_arithm_exp
+
+val aexpr_of_nts_genrel_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_arithm_exp
+
+val affect_aexpr_to_nts_var : Nts_types.nts_var -> Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
+
+val affect_aexpr_to_nts_genrel_var : Nts_types.nts_genrel_var -> Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
 
 val make_affect_to_var_from_exp : Nts_types.nts_genrel_arithm_exp ->
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
@@ -199,6 +209,9 @@ val guard_eq_aexpr :
   Nts_types.nts_genrel_arithm_exp ->
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
 
+val guard_neq_aexpr :
+  Nts_types.nts_genrel_arithm_exp ->
+  Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
 
 val make_transition_of_translabel :
   Nts_types.nts_trans_label -> Nts_types.nts_trans_label list
@@ -216,5 +229,9 @@ val or_of_genrel :
   Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation ->
   Nts_types.nts_gen_relation 
   
+val neg_of_genrel : Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation
+
+val neg_cond_in_guard : Nts_types.nts_trans_label -> Nts_types.nts_trans_label
+
 val make_guard_of_relation : Nts_types.nts_gen_relation ->
   Nts_types.nts_trans_label

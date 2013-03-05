@@ -30,7 +30,7 @@ exception Found_a_primed_var
 exception Type_mismatch_in_arithm_expression of 
     Nts_types.nts_genrel_arithm_exp * Nts_types.nts_genrel_arithm_exp
 exception Arithmetic_modulo_on_non_integer_type
-
+exception NotAGuardTranision of Nts_types.nts_trans_label
 
 let nts_pprint_genvar var =
   match var with
@@ -713,6 +713,13 @@ having to write all those verbose constructors ... *)
 let make_nts_int_cst i =
   CntGenCst(CntGenICst(i),Nts_types.NtsIntType)
 
+let zero = 
+  let z =  Big_int.big_int_of_int 0 in
+  CntGenCst(CntGenICst(z),Nts_types.NtsIntType)
+let one = 
+  let o = Big_int.big_int_of_int 1 in
+  CntGenCst(CntGenICst(o),Nts_types.NtsIntType)
+
 let make_nts_int_cst_of_int i = 
   let big_i = Big_int.big_int_of_int i in
   make_nts_int_cst big_i
@@ -734,7 +741,18 @@ let primerized_nts_var nts_var =
     NtsGenVar(ntv,_) -> NtsGenVar(ntv, NtsPrimed)
       
 
-let affect_aexpr_to_nts_var nts_var arithm_exp =
+let aexpr_of_nts_var nvar =
+   CntGenVar(NtsGenVar(nvar,NtsUnPrimed))
+
+
+let aexpr_of_nts_genrel_var ngvar =
+  CntGenVar(ngvar)
+
+let affect_aexpr_to_nts_var nvar arithm_exp =
+  let primed_var = NtsGenVar(nvar,NtsPrimed) in
+  CntGenRel(CntEq,CntGenVar(primed_var),arithm_exp)  
+
+let affect_aexpr_to_nts_genrel_var nts_var arithm_exp =
   let primed_var = primerized_nts_var nts_var in
   CntGenRel(CntEq,CntGenVar(primed_var),arithm_exp)
 
@@ -820,6 +838,9 @@ let guard_geq_aexpr aexpg aexpd =
 let guard_eq_aexpr aexpg aexpd =
   CntGenRel(CntEq,aexpg,aexpd)
 
+let guard_neq_aexpr aexpg aexpd =
+  CntGenRel(CntNeq,aexpg,aexpd)
+
 let make_transition_of_translabel (tl : nts_trans_label ) =
   tl::[]
 
@@ -833,5 +854,21 @@ let and_of_genrel lhs rhs =
 let or_of_genrel lhs rhs =
   CntGenRelComp(CntGenBOr,lhs,rhs)
 
-let  make_guard_of_relation r =
+
+let neg_of_genrel r =
+  match r with
+    CntGenNot(v) -> v
+  | _ -> CntGenNot r
+
+let make_guard_of_relation r =
   CntGenGuard(r)
+
+let neg_cond_in_guard g =
+  match g with
+    CntGenGuard(cnd) ->
+      let ncnd = neg_of_genrel cnd in
+      CntGenGuard(ncnd)
+  | _ -> raise (  NotAGuardTranision(g))
+
+
+
