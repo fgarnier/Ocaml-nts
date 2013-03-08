@@ -872,3 +872,95 @@ let neg_cond_in_guard g =
 
 
 
+let is_primed_genrelvar v =
+  match v with 
+    NtsGenVar (_, NtsPrimed) -> true
+  | _ -> false 
+  
+
+let type_cmp t1 t2 =
+  if t1=t2 then 0
+  else 
+   
+    begin
+      match t1,t2 with
+	(NtsBoolType, NtsIntType) |
+	    (NtsBoolType,NtsRealType) | (NtsBoolType,NtsUnTyped) 
+      | (NtsIntType, NtsRealType) | (NtsIntType,NtsUnTyped) |
+	  (NtsRealType,NtsUnTyped) -> 1
+      | _ -> -1
+    end
+
+let compare_genrelvar l r =
+  match l, r with 
+    NtsGenVar(NtsVar(lname,ltype),_),NtsGenVar(NtsVar(rname,rtype),_)
+      ->
+	begin
+	  if ltype=rtype then
+	    String.compare lname rname
+	  else
+	    type_cmp ltype rtype
+	end
+	
+
+module Vars_acc = Set.Make 
+  (
+    struct
+      type t = nts_genrel_var
+      let compare = compare_genrelvar 
+    end
+  ) 
+
+
+(** computes the set of primed variables of an arithmetical expression*)
+let primed_vars_of_genrel_aexpr aexp =
+  let acc_set = Vars_acc.empty in
+  let rec descent term varset =
+    match term with
+      CntGenVar(NtsGenVar(_,NtsPrimed) as v)  -> (Vars_acc.add v varset) 
+    | CntGenArithmBOp(_,lg,ld,_) ->
+      begin
+	let collect_g = descent lg varset in
+	let collect_d = descent ld collect_g in
+	(* Var_acc.union 
+	  collect_g collect_d in *)
+	collect_d
+      end
+
+    | CntGenArithmUOp(_,l,_) ->
+      begin
+	descent l varset 
+      end
+
+    | _ -> varset (** default case where no primed vars are found*)
+
+  in
+  descent aexp acc_set
+
+
+(** computes the set of primed variables of a genrel expression*)
+let primed_vars_of_genrel gexpr =
+  let acc_set = Vars_acc.empty in
+  let rec collect_primed_vars expr accu =
+    match expr with
+      CntGenRel(_,aeg,aed) ->
+	let vaeg = primed_vars_of_genrel_aexpr aeg in
+	let vaed = primed_vars_of_genrel_aexpr aed in
+	let vexp = Vars_acc.union vaeg vaed in (* Performs the 
+						  union of the set
+						  of subterms primed vars*)
+	Vars_acc.union vaeg accu (* Returns the union of acc and subterls
+				   vars*)
+    
+    | CntGenRelComp(_,tg,td) ->
+      begin
+	let vaeg = collect_primed_vars tg accu in
+	collect_primed_vars td vaeg
+      end
+  
+    | CntGenNot(t) -> collect_primed_vars t accu
+    | CntQVarsGenRel(_,_,_) -> assert false (** Not yet implemented*)
+    | _ -> accu
+  in
+  collect_primed_vars gexpr acc_set
+
