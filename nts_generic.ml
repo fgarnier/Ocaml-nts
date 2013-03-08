@@ -964,3 +964,19 @@ let primed_vars_of_genrel gexpr =
   in
   collect_primed_vars gexpr acc_set
 
+
+let list_of_primed_vars_in_aexp aexp =
+  let folder ele pre_list =
+    ele::pre_list 
+  in
+  let setv = primed_vars_of_genrel_aexpr aexp
+  in
+  Vars_acc.fold folder setv []
+
+let list_of_primed_vars_in_gerelexp gexp =
+  let folder ele pre_list =
+    ele::pre_list 
+  in
+  let setv = primed_vars_of_genrel gexp in
+  Vars_acc.fold folder setv [] 
+
