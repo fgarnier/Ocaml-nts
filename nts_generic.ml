@@ -142,6 +142,21 @@ let pprint_typeinfo_nts_genvar_list l  =
   
 
 
+let neg_bool_binop (bop :  nts_gen_bool_binop) =
+  match bop with
+    CntGenBAnd -> CntGenBOr 
+  | CntGenBOr -> CntGenBAnd
+
+
+let neg_cnt_binop ( gr : cnt_binop ) =
+  match gr with
+    CntEq -> CntNeq 
+  | CntNeq -> CntEq
+  | CntLeq -> CntGt 
+  | CntLt -> CntGeq
+  | CntGt -> CntLeq 
+  | CntGeq -> CntLt
+
 
 let rec size_genrel_arithm_deeper_than 
     (barithm : nts_genrel_arithm_exp ) (depth : int ) =

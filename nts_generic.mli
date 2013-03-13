@@ -228,6 +228,12 @@ val and_of_genrel :
 val or_of_genrel :
   Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation ->
   Nts_types.nts_gen_relation 
+
+val neg_cnt_binop : 
+  Nts_types.cnt_binop -> Nts_types.cnt_binop 
+
+val neg_bool_binop : 
+    Nts_types.nts_gen_bool_binop -> Nts_types.nts_gen_bool_binop
   
 val neg_of_genrel : Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation
 
@@ -236,7 +242,8 @@ val neg_cond_in_guard : Nts_types.nts_trans_label -> Nts_types.nts_trans_label
 val make_guard_of_relation : Nts_types.nts_gen_relation ->
   Nts_types.nts_trans_label
 
-(*
+
+
 module Vars_acc :
   sig
     type elt = Nts_types.nts_genrel_var
@@ -270,8 +277,9 @@ module Vars_acc :
 
 val primed_vars_of_genrel_aexpr :
   Nts_types.nts_genrel_arithm_exp -> Vars_acc.t
-val primed_vars_of_genrel : Nts_types.nts_gen_relation -> Vars_acc.t
-*)
+val primed_vars_of_genrel : 
+  Nts_types.nts_gen_relation -> Vars_acc.t
+
 
 val list_of_primed_vars_in_aexp :
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_var list
