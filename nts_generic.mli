@@ -170,6 +170,8 @@ val affect_aexpr_to_nts_genrel_var : Nts_types.nts_genrel_var -> Nts_types.nts_g
 val make_affect_to_var_from_exp : Nts_types.nts_genrel_arithm_exp ->
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
 
+
+
 val add_arithm_expr :
   Nts_types.nts_genrel_arithm_exp ->
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_genrel_arithm_exp
@@ -213,13 +215,20 @@ val guard_neq_aexpr :
   Nts_types.nts_genrel_arithm_exp ->
   Nts_types.nts_genrel_arithm_exp -> Nts_types.nts_gen_relation
 
+
+
+val make_fun_call : string -> 
+  ?ret_vlist:Nts_types.nts_genrel_var list option
+  -> Nts_types.nts_genrel_arithm_exp list
+  -> Nts_types.nts_trans_label
+
+
 val make_transition_of_translabel :
   Nts_types.nts_trans_label -> Nts_types.nts_trans_label list
 
 val add_to_transition :
   Nts_types.nts_trans_label list ->
   Nts_types.nts_trans_label -> Nts_types.nts_trans_label list
-
 
 val and_of_genrel : 
   Nts_types.nts_gen_relation -> Nts_types.nts_gen_relation ->

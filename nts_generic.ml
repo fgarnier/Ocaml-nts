@@ -995,3 +995,13 @@ let list_of_primed_vars_in_gerelexp gexp =
   let setv = primed_vars_of_genrel gexp in
   Vars_acc.fold folder setv [] 
 
+
+
+(** 
+Defines a function call
+*)
+
+let make_fun_call fname ?(ret_vlist=None) argcall =
+  CntGenCall(fname,ret_vlist,argcall)
+  
+
